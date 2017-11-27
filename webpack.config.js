@@ -13,7 +13,7 @@ module.exports = {
     extensions: [".tsx", ".ts", ".js"]
   },
   resolveLoader: {
-    modules: ["/usr/local/lib/node_modules"]
+    modules: ["./node_modules", "/usr/local/lib/node_modules"]
   },
   output: {
     filename: "./bundled_app.js",
