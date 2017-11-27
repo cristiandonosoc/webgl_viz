@@ -9,8 +9,8 @@ let graph_line_vs = `
 in vec4 a_position_coord;
 
 // Uniforms
-uniform vec3 u_offset;
-uniform vec3 u_scale;
+uniform vec2 u_offset;
+uniform vec2 u_scale;
 
 void main() {
   // We add the offset to the position

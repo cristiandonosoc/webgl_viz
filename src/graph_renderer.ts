@@ -6,11 +6,12 @@ declare var twgl: any;
 
 class GraphRenderer {
 
+  canvas: HTMLCanvasElement;
   gl: WebGL2RenderingContext;
   program_info: any;
   buffer_info: any;
 
-  renderer_state: {
+  state: {
     graph_info: {
       offset: number[],                 /* size = 2 */
       scale: number[],                  /* size = 2 */
@@ -27,11 +28,17 @@ class GraphRenderer {
   points: number[];
 
   constructor(graph_canvas: HTMLCanvasElement) {
+    this.canvas = graph_canvas;
+    this.CreateDefaults();
+    this.SetupInteraction();
     this.gl = graph_canvas.getContext("webgl2");
     this.program_info = twgl.createProgramInfo(this.gl, [
       AllShaders.GetVertexShader("graph_line"),
       AllShaders.GetFragmentShader("graph_line")]);
 
+  }
+
+  private CreateDefaults() {
     var graph_info = {
       offset: [0, 0],
       scale: [0, 0],
@@ -45,10 +52,47 @@ class GraphRenderer {
       dragging: false
     };
 
-    this.renderer_state = {
+    this.state = {
       graph_info: graph_info,
       interaction: interaction
     };
+  }
+
+
+  private SetupInteraction() {
+    this.canvas.addEventListener("mousedown", this.MouseDown);
+    document.addEventListener("mouseup", this.MouseUp);
+    document.addEventListener("mousemove", this.MouseMove);
+  }
+
+  private MouseDown = (event: any) => {
+    this.state.interaction.dragging = true;
+    this.state.interaction.mouse_pos = [event.screenX, event.screenY];
+  }
+
+  private MouseUp = (event: any) => {
+    this.state.interaction.dragging = false;
+  }
+
+  private MouseMove = (event: any) => {
+    if (!this.state.interaction.dragging) {
+      return;
+    }
+
+    var last_pos = this.state.interaction.mouse_pos;
+    var current_pos = [event.screenX, event.screenY];
+    this.state.interaction.mouse_pos = current_pos;
+
+    var diff = [current_pos[0] - last_pos[0],
+                current_pos[1] - last_pos[1]];
+    var offset = [diff[0] / this.gl.canvas.width,
+                  diff[1] / this.gl.canvas.height];
+
+
+    // We apply this offset
+    this.state.graph_info.offset[0] += offset[0];
+    this.state.graph_info.offset[1] -= offset[1];
+
   }
 
   AddPoints(points: number[]) {
@@ -62,10 +106,10 @@ class GraphRenderer {
   }
 
   private Clear() {
-    this.gl.clearColor(this.renderer_state.graph_info.background_color[0],
-                       this.renderer_state.graph_info.background_color[1],
-                       this.renderer_state.graph_info.background_color[2],
-                       this.renderer_state.graph_info.background_color[3]);
+    this.gl.clearColor(this.state.graph_info.background_color[0],
+                       this.state.graph_info.background_color[1],
+                       this.state.graph_info.background_color[2],
+                       this.state.graph_info.background_color[3]);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 
@@ -85,8 +129,8 @@ class GraphRenderer {
 
     // Set the uniforms
     var uniforms = {
-      u_scale: this.renderer_state.graph_info.offset,
-      u_color: this.renderer_state.graph_info.line_color
+      u_offset: this.state.graph_info.offset,
+      u_color: this.state.graph_info.line_color
     };
     twgl.setUniforms(this.program_info, uniforms);
 
