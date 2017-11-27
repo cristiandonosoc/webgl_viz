@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="./resources/style.css" />
+    <style>
+    </style>
+  </head>
+<body>
+  <input id="background-color-picker" type="color" />
+  <div id="main-canvas-container">
+    <div class="stats">
+      <div>
+        <span>OffsetX: </span>
+        <input id="offset-x" />
+      </div>
+      <div>
+        <span>OffsetY: </span>
+        <input id="offset-y" />
+      </div>
+    </div>
+    <div class="graph-container">
+      <canvas id="main-canvas"></canvas>
+    </div>
+  </div>
+  <!-- SCRIPTS -->
+  <script src="resources/webgl-utils.js"></script>
+  <script src="resources/m3.js"></script>
+  <script src="resources/jscolor.min.js"></script>
+  <script src="test.js"></script>
+</body>
+</html>
