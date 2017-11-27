@@ -20,7 +20,11 @@ class GraphRenderer {
       line_width: number
     },
     interaction: {
-      mouse_pos: number[],
+      mouse: {
+        local: number[],
+        canvas: number[],
+        screen: number[]
+      },
       dragging: boolean,
     }
   };
@@ -48,7 +52,11 @@ class GraphRenderer {
     };
 
     var interaction = {
-      mouse_pos: [0, 0],
+      mouse: {
+        local: [0, 0],
+        canvas: [0, 0],
+        screen: [0, 0]
+      },
       dragging: false
     };
 
@@ -62,12 +70,13 @@ class GraphRenderer {
   private SetupInteraction() {
     this.canvas.addEventListener("mousedown", this.MouseDown);
     document.addEventListener("mouseup", this.MouseUp);
-    document.addEventListener("mousemove", this.MouseMove);
+    this.canvas.addEventListener("mousemove", this.MouseMove);
   }
 
   private MouseDown = (event: any) => {
     this.state.interaction.dragging = true;
-    this.state.interaction.mouse_pos = [event.screenX, event.screenY];
+    this.state.interaction.mouse.screen = [event.screenX, event.screenY];
+    this.state.interaction.mouse.canvas = [event.clientX, event.clientY];
   }
 
   private MouseUp = (event: any) => {
@@ -75,13 +84,30 @@ class GraphRenderer {
   }
 
   private MouseMove = (event: any) => {
+    // We log the variables
+    // Screen
+    var last_pos = this.state.interaction.mouse.screen;
+    var current_pos = [event.screenX, event.screenY];
+    this.state.interaction.mouse.screen = current_pos;
+
+    // Canvas relative
+    var bounds = this.canvas.getBoundingClientRect();
+    var canvas_pos = [event.clientX - bounds.left,
+                      event.clientY - bounds.top];
+    this.state.interaction.mouse.canvas = canvas_pos;
+
+    // Local (variable space)
+    // Convert from pixels to 0.0 -> 1.0
+    var temp = [canvas_pos[0] / this.gl.canvas.width,
+               canvas_pos[1] / this.gl.canvas.height];
+    var local = temp.map(i => (i * 2.0) - 1.0);
+    this.state.interaction.mouse.local = local;
+
+
     if (!this.state.interaction.dragging) {
       return;
     }
 
-    var last_pos = this.state.interaction.mouse_pos;
-    var current_pos = [event.screenX, event.screenY];
-    this.state.interaction.mouse_pos = current_pos;
 
     var diff = [current_pos[0] - last_pos[0],
                 current_pos[1] - last_pos[1]];

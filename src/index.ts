@@ -275,10 +275,22 @@ renderer.AddPoints(positions);
 // We updathe boxes
 var offset_x_box = <HTMLInputElement> document.getElementById("offset-x");
 var offset_y_box = <HTMLInputElement> document.getElementById("offset-y");
+var screen_x_box = <HTMLInputElement> document.getElementById("screen-x");
+var screen_y_box = <HTMLInputElement> document.getElementById("screen-y");
+var canvas_x_box = <HTMLInputElement> document.getElementById("canvas-x");
+var canvas_y_box = <HTMLInputElement> document.getElementById("canvas-y");
+var local_x_box = <HTMLInputElement> document.getElementById("local-x");
+var local_y_box = <HTMLInputElement> document.getElementById("local-y");
 
 function UpdateInfo() {
   offset_x_box.value = String(renderer.state.graph_info.offset[0]);
   offset_y_box.value = String(renderer.state.graph_info.offset[1]);
+  screen_x_box.value = String(renderer.state.interaction.mouse.screen[0]);
+  screen_y_box.value = String(renderer.state.interaction.mouse.screen[1]);
+  canvas_x_box.value = String(renderer.state.interaction.mouse.canvas[0]);
+  canvas_y_box.value = String(renderer.state.interaction.mouse.canvas[1]);
+  local_x_box.value = String(renderer.state.interaction.mouse.local[0]);
+  local_y_box.value = String(renderer.state.interaction.mouse.local[1]);
 }
 
 // We create a fast "game-loop"
