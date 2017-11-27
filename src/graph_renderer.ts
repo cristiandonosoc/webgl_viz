@@ -87,11 +87,13 @@ class GraphRenderer {
                 current_pos[1] - last_pos[1]];
     var offset = [diff[0] / this.gl.canvas.width,
                   diff[1] / this.gl.canvas.height];
+    // We invert the y-axis
+    offset[1] *= -1;
 
 
     // We apply this offset
     this.state.graph_info.offset[0] += offset[0];
-    this.state.graph_info.offset[1] -= offset[1];
+    this.state.graph_info.offset[1] += offset[1];
 
   }
 

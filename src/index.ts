@@ -272,9 +272,19 @@ var positions = [
 // We add our positions
 renderer.AddPoints(positions);
 
+// We updathe boxes
+var offset_x_box = <HTMLInputElement> document.getElementById("offset-x");
+var offset_y_box = <HTMLInputElement> document.getElementById("offset-y");
+
+function UpdateInfo() {
+  offset_x_box.value = String(renderer.state.graph_info.offset[0]);
+  offset_y_box.value = String(renderer.state.graph_info.offset[1]);
+}
+
 // We create a fast "game-loop"
 function DrawScene(time: any) {
   renderer.Draw();
+  UpdateInfo();
   requestAnimationFrame(DrawScene);
 }
 
