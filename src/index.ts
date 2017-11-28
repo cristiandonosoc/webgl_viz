@@ -285,12 +285,12 @@ var local_y_box = <HTMLInputElement> document.getElementById("local-y");
 function UpdateInfo() {
   offset_x_box.value = String(renderer.state.graph_info.offset[0]);
   offset_y_box.value = String(renderer.state.graph_info.offset[1]);
-  screen_x_box.value = String(renderer.state.interaction.mouse.screen[0]);
-  screen_y_box.value = String(renderer.state.interaction.mouse.screen[1]);
-  canvas_x_box.value = String(renderer.state.interaction.mouse.canvas[0]);
-  canvas_y_box.value = String(renderer.state.interaction.mouse.canvas[1]);
-  local_x_box.value = String(renderer.state.interaction.mouse.local[0]);
-  local_y_box.value = String(renderer.state.interaction.mouse.local[1]);
+  screen_x_box.value = String(renderer.interaction.state.mouse.screen[0]);
+  screen_y_box.value = String(renderer.interaction.state.mouse.screen[1]);
+  canvas_x_box.value = String(renderer.interaction.state.mouse.canvas[0]);
+  canvas_y_box.value = String(renderer.interaction.state.mouse.canvas[1]);
+  local_x_box.value =  String(renderer.interaction.state.mouse.local[0]);
+  local_y_box.value =  String(renderer.interaction.state.mouse.local[1]);
 }
 
 // We create a fast "game-loop"

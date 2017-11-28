@@ -1,6 +1,8 @@
 ///<reference path="resources/webgl2.d.ts" />
 
 import AllShaders from "./shaders";
+import Interaction from "./interaction";
+
 // We mark twgl as a global
 declare var twgl: any;
 
@@ -11,6 +13,7 @@ class GraphRenderer {
   program_info: any;
   buffer_info: any;
 
+  interaction: Interaction;
   state: {
     graph_info: {
       offset: number[],                 /* size = 2 */
@@ -19,14 +22,6 @@ class GraphRenderer {
       line_color: number[],             /* size = 2 */
       line_width: number
     },
-    interaction: {
-      mouse: {
-        local: number[],
-        canvas: number[],
-        screen: number[]
-      },
-      dragging: boolean,
-    }
   };
 
   points: number[];
@@ -34,12 +29,11 @@ class GraphRenderer {
   constructor(graph_canvas: HTMLCanvasElement) {
     this.canvas = graph_canvas;
     this.CreateDefaults();
-    this.SetupInteraction();
     this.gl = graph_canvas.getContext("webgl2");
     this.program_info = twgl.createProgramInfo(this.gl, [
       AllShaders.GetVertexShader("graph_line"),
       AllShaders.GetFragmentShader("graph_line")]);
-
+    this.interaction = new Interaction(this);
   }
 
   private CreateDefaults() {
@@ -62,66 +56,9 @@ class GraphRenderer {
 
     this.state = {
       graph_info: graph_info,
-      interaction: interaction
     };
   }
 
-
-  private SetupInteraction() {
-    this.canvas.addEventListener("mousedown", this.MouseDown);
-    document.addEventListener("mouseup", this.MouseUp);
-    this.canvas.addEventListener("mousemove", this.MouseMove);
-  }
-
-  private MouseDown = (event: any) => {
-    this.state.interaction.dragging = true;
-    this.state.interaction.mouse.screen = [event.screenX, event.screenY];
-    this.state.interaction.mouse.canvas = [event.clientX, event.clientY];
-  }
-
-  private MouseUp = (event: any) => {
-    this.state.interaction.dragging = false;
-  }
-
-  private MouseMove = (event: any) => {
-    // We log the variables
-    // Screen
-    var last_pos = this.state.interaction.mouse.screen;
-    var current_pos = [event.screenX, event.screenY];
-    this.state.interaction.mouse.screen = current_pos;
-
-    // Canvas relative
-    var bounds = this.canvas.getBoundingClientRect();
-    var canvas_pos = [event.clientX - bounds.left,
-                      event.clientY - bounds.top];
-    this.state.interaction.mouse.canvas = canvas_pos;
-
-    // Local (variable space)
-    // Convert from pixels to 0.0 -> 1.0
-    var temp = [canvas_pos[0] / this.gl.canvas.width,
-               canvas_pos[1] / this.gl.canvas.height];
-    var local = temp.map(i => (i * 2.0) - 1.0);
-    this.state.interaction.mouse.local = local;
-
-
-    if (!this.state.interaction.dragging) {
-      return;
-    }
-
-
-    var diff = [current_pos[0] - last_pos[0],
-                current_pos[1] - last_pos[1]];
-    var offset = [diff[0] / this.gl.canvas.width,
-                  diff[1] / this.gl.canvas.height];
-    // We invert the y-axis
-    offset[1] *= -1;
-
-
-    // We apply this offset
-    this.state.graph_info.offset[0] += offset[0];
-    this.state.graph_info.offset[1] += offset[1];
-
-  }
 
   AddPoints(points: number[]) {
     this.points = points;
