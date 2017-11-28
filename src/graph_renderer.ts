@@ -1,5 +1,6 @@
 ///<reference path="resources/webgl2.d.ts" />
 
+import AllColors from "./colors"
 import AllShaders from "./shaders";
 import Interaction from "./interaction";
 
@@ -169,12 +170,12 @@ class GraphRenderer {
     this.Clear();
 
     this.DrawGraph(time, this.state.graph_info.line_color);
-    this.DrawLineLocalSpace([-g_inf, 0], [g_inf, 0], this.state.graph_info.offset, [0, 1, 0, 1]);
+    this.DrawLineLocalSpace([-g_inf, 0], [g_inf, 0], this.state.graph_info.offset, AllColors.Get("green"));
     // this.DrawLinePixelSpace([10, 10], [200, 200]);
 
     if (this.cross_icon_tex) {
-      this.DrawIconPixelSpace(this.cross_icon_tex, [1000, 100], [1, 0, 1, 1]);
-      this.DrawIconLocalSpace(this.cross_icon_tex, [-0.5, 0.5], [1, 1, 0, 1]);
+      this.DrawIconPixelSpace(this.cross_icon_tex, [1000, 100], AllColors.Get("purple"));
+      this.DrawIconLocalSpace(this.cross_icon_tex, [-0.5, 0.5], AllColors.Get("yellow"));
     }
   }
 
