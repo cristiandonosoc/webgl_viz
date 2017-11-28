@@ -13,17 +13,22 @@ class GraphRenderer {
 
   canvas: HTMLCanvasElement;
   gl: WebGL2RenderingContext;
-  direct_program_info: any;
-  direct_buffer_info: any;
-  graph_buffer_info: any;
 
+  /* WebGL programs */
+  direct_program_info: any;   /* For rendering in local space */
+  pixel_program_info: any;    /* For rendering in pixel space */
 
-  pixel_program_info: any;
-  pixel_buffer_info: any;
+  graph_buffer_info: any;     /* Holds a graph, should be one per graph */
 
+  direct_buffer_info: any;    /* Holds a pair of points */
+  pixel_buffer_info: any;     /* Holds a pair of points */
 
+  interaction: Interaction;   /* Manages interaction with browser (mostly mouse */
 
-  interaction: Interaction;
+  /* ICONS */
+  cross_icon: Image;
+
+  // Internal state of the renderer
   state: {
     graph_info: {
       offset: number[],                 /* size = 2 */
