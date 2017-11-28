@@ -26,7 +26,7 @@ class GraphRenderer {
   interaction: Interaction;   /* Manages interaction with browser (mostly mouse */
 
   /* ICONS */
-  cross_icon: Image;
+  cross_icon_tex: any;
 
   // Internal state of the renderer
   state: {
@@ -85,8 +85,30 @@ class GraphRenderer {
     };
     this.pixel_buffer_info = twgl.createBufferInfoFromArrays(this.gl, arrays);
     this.direct_buffer_info = twgl.createBufferInfoFromArrays(this.gl, arrays);
+
+    this.SetupTextures();
   }
 
+  private SetupTextures() {
+    // We ge the element
+    const img = new Image();
+    img.addEventListener("load", () => {
+      this.cross_icon_tex = this.gl.createTexture();
+      this.gl.bindTexture(this.gl.TEXTURE_2D, this.cross_icon_tex);
+      this.gl.texImage2D(this.gl.TEXTURE_2D,
+        0,                        // LOD
+        this.gl.RGBA,             // Format
+        img.width,
+        img.height,
+        0,                        // Border
+        this.gl.RGBA,    // Input Format
+        this.gl.UNSIGNED_BYTE,
+        img);
+    });
+
+    img.crossOrigin = "";
+    img.src = "src/resources/cross.png";
+  }
 
   AddPoints(points: number[]) {
     // We set the WebGL points
@@ -179,8 +201,11 @@ class GraphRenderer {
   private DrawLineLocalSpace(p1: number[], p2: number[], offset: number[]) {
     this.gl.useProgram(this.direct_program_info.program);
     var new_pos = [p1[0], p1[1], p2[0], p2[1]];
-    twgl.setBuffersAndAttributes(this.gl, this.direct_program_info, this.direct_buffer_info);
-    twgl.setAttribInfoBufferFromArray(this.gl, this.direct_buffer_info.attribs.a_position_coord, new_pos);
+    twgl.setBuffersAndAttributes(this.gl,
+                                 this.direct_program_info,
+                                 this.direct_buffer_info);
+    twgl.setAttribInfoBufferFromArray(this.gl,
+      this.direct_buffer_info.attribs.a_position_coord, new_pos);
 
     var uniforms = {
       u_offset: offset,
@@ -188,6 +213,12 @@ class GraphRenderer {
     };
     twgl.setUniforms(this.direct_program_info, uniforms);
     twgl.drawBufferInfo(this.gl, this.direct_buffer_info, this.gl.LINES);
+  }
+
+  private DrawIcon(icon: any) {
+    this.gl.enable(this.gl.BLEND);
+
+
   }
 
 }

@@ -38,9 +38,33 @@ void main() {
   vec2 clip_space = zero_to_two - 1.0;
 
   gl_Position = vec4(clip_space, 0, 1);
-  // gl_Position = vec4(u_resolution.x / 2000.0, u_resolution.y / 1000.0, 0, 1);
-  // gl_Position = vec4(a_position_coord.x / u_resolution.x, a_position_coord.y / u_resolution.y, 0, 1);
 }
+`;
+
+let point_sprite_vs = `
+#version 300 es
+
+// Attributes
+in vec2 a_position_coord;
+
+// Uniforms
+uniform vec2 u_resolution;
+uniform vec2 u_point_size;
+
+void main() {
+  // Pixels -> [0.0, 1.0]
+  vec2 zero_to_one = a_position_coord / u_resolution;
+
+  // // [0.0, 1.0] -> [0.0, 2.0]
+  vec2 zero_to_two = zero_to_one * 2.0;
+
+  // // [0.0, 2.0] -> [-1.0, 1.0]
+  vec2 clip_space = zero_to_two - 1.0;
+
+  gl_Position = vec4(clip_space, 0, 1);
+  gl_PointSize = u_point_size;
+}
+
 `;
 
 /********************************************
@@ -76,6 +100,21 @@ void main() {
   //out_color = u_color;
   out_color = vec4(1,0,0,1); // red
 }
+`;
+
+let point_sprite_fs = `
+#version 300 es
+precision mediump float;
+
+// Uniforms
+uniform sampler2D u_sampler;
+
+void main() {
+vec4 tex_color = texture2D(u_sampler, gl_PointCoord);
+gl_FragColor = tex_color;
+}
+
+
 `;
 
 

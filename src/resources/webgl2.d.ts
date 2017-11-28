@@ -106,7 +106,7 @@ interface WebGL2RenderingContext extends WebGLRenderingContext {
     texStorage3D(target: number, levels: number, internalformat: number, width: number, height: number, depth: number): void;
 
     //texImage2D(target: number, level: number, internalformat: number, width: number, height: number, border: number, format: number, type: number, offset: number): void;
-    //texImage2D(target: number, level: number, internalformat: number, width: number, height: number, border: number, format: number, type: number, source: ImageData | ImageBitmap | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement): void;
+    texImage2D(target: number, level: number, internalformat: number, width: number, height: number, border: number, format: number, type: number, source: ImageData | ImageBitmap | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement): void;
     //texImage2D(target: number, level: number, internalformat: number, width: number, height: number, border: number, format: number, type: number, srcData: ArrayBufferView, srcOffset?: number): void;
     texImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, format: number, type: number, offset: number): void;
     texImage3D(target: number, level: number, internalformat: number, width: number, height: number, depth: number, border: number, format: number, type: number, source: ImageData | ImageBitmap | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement): void;
