@@ -13,18 +13,15 @@
 }
 
 .stats {
-  position: absolute;
-  top: 0;
-  right: 100% - 200px;
-  bottom: 100px;
-  border: 1px solid black;
-  width: 180px;
-  margin: 10px;
 
 }
-
-
-
+.stats .stat-group {
+  display: inline-block;
+  width: 200px;
+}
+.stats .stat-group input {
+  display: inline;
+}
 
 .label-container {
   position: absolute;
@@ -33,11 +30,6 @@
   top: 0;
   bottom: 100px;
 
-}
-.label-container .y-label {
-  position: absolute;
-  top: 50%;
-  transform: rotate(-90deg);
 }
 .graph-container .label {
   font-weight: bold;
