@@ -45,33 +45,6 @@ void main() {
 }
 `;
 
-let point_sprite_vs = `
-#version 300 es
-precision highp float;
-
-// Attributes
-in vec2 a_position_coord;
-
-// Uniforms
-uniform vec2 u_resolution;
-uniform float u_point_size;
-
-void main() {
-  // Pixels -> [0.0, 1.0]
-  vec2 zero_to_one = a_position_coord / u_resolution;
-
-  // // [0.0, 1.0] -> [0.0, 2.0]
-  vec2 zero_to_two = zero_to_one * 2.0;
-
-  // // [0.0, 2.0] -> [-1.0, 1.0]
-  vec2 clip_space = zero_to_two - 1.0;
-
-  gl_Position = vec4(clip_space, 0, 1);
-  gl_PointSize = u_point_size;
-}
-
-`;
-
 /********************************************
  * FRAGMENT SHADERS
  ********************************************/
