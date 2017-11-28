@@ -2,6 +2,7 @@
 
 import AllColors from "./colors"
 import Interaction from "./interaction";
+import LabelManager from "./label_manager";
 import Renderer from "./renderer";
 
 // We mark twgl as a global
@@ -16,6 +17,7 @@ class GraphManager {
 
   interaction: Interaction;   /* Manages interaction with browser (mostly mouse) */
   renderer: Renderer;
+  labels: LabelManager;
 
   // Internal state of the renderer
   state: {
@@ -37,6 +39,7 @@ class GraphManager {
     this.CreateDefaults();
     this.renderer = new Renderer(this.canvas);
     this.interaction = new Interaction(this);
+    this.labels = new LabelManager(canvas);
   }
 
   private CreateDefaults() {
@@ -102,6 +105,8 @@ class GraphManager {
       this.renderer.DrawIconLocalSpace(this.closest_point, this.state.graph_info,
         AllColors.Get("purple"));
     }
+
+    this.labels.Update(this.state.graph_info);
   }
 }
 

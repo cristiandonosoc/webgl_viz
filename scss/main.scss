@@ -1,6 +1,13 @@
 $stats-height: 100px;
 $stat-width: 125px;
-$canvas-border: 50px;
+$canvas-border-bottom: 50px;
+$canvas-border-top: 0px;
+$canvas-border-left: 100px;
+$canvas-border-right: 50px;
+
+$label-width-x: 75px;
+$label-width-y: 75px;
+
 
 body {
   position: absolute;
@@ -18,18 +25,58 @@ body {
   top: $stats-height;
 
   .graph-container {
-    bottom: $canvas-border;
-    left: $canvas-border;
-    right: $canvas-border;
-    top: $canvas-border;
-    position: absolute;
+    position: relative;
+    height: 100%;
+    width: 100%;
 
-    canvas {
-      border: 1px solid black;
-      height: 100%;
-      width: 100%;
+    .canvas-container {
+      bottom: $canvas-border-bottom;
+      left: $canvas-border-left;
+      right: $canvas-border-right;
+      top: $canvas-border-top;
+      position: absolute;
+
+      canvas {
+        border: 1px solid black;
+        width: 100%;
+        height: 100%;
+      }
     }
   }
+
+  .x-labels {
+    input {
+      width: $label-width-x;
+    }
+
+    .bottom {
+      position: absolute;
+      left: $canvas-border-left - ($label-width-x / 2px);
+      bottom: 0;
+    }
+    .top {
+      position: absolute;
+      right: $canvas-border-right - ($label-width-x / 2px);
+      bottom: 0;
+    }
+  }
+
+  .y-labels {
+    input {
+      width: $label-width-y;
+    }
+    .bottom {
+      position: absolute;
+      left: $canvas-border-left - $label-width-y - 10px;
+      bottom: $canvas-border-bottom;
+    }
+    .top {
+      position: absolute;
+      left: $canvas-border-left - $label-width-y - 10px;
+      top: $canvas-border-top;
+    }
+  }
+
 }
 
 .stats {
