@@ -1,10 +1,8 @@
-// import * as AllShaders from "./shaders.js";
-import AllShaders from "./shaders";
-import GraphRenderer from "./graph_renderer"
+import GraphManager from "./graph_manager"
 
 // We "cast" the instance"
 var canvas = <HTMLCanvasElement> document.getElementById("main-canvas");
-var renderer = new GraphRenderer(canvas);
+var renderer = new GraphManager(canvas);
 
 // We add some points
 // var size = 500;
@@ -270,7 +268,7 @@ var positions = [
 2, 2.2755625788279916];
 
 // We add our positions
-renderer.AddPoints(positions);
+renderer.AddGraph(positions);
 
 // We updathe boxes
 var offset_x_box = <HTMLInputElement> document.getElementById("offset-x");

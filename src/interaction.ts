@@ -1,4 +1,5 @@
-import GraphRenderer from "./graph_renderer";
+import GraphManager from "./graph_manager";
+import Renderer from "./renderer";
 
 /**
  * Interaction
@@ -10,7 +11,8 @@ import GraphRenderer from "./graph_renderer";
  **/
 class Interaction {
 
-  renderer: GraphRenderer;
+  manager: GraphManager;
+  renderer: Renderer;
   state: {
     temp: {
       last_pos: number[],
@@ -24,8 +26,9 @@ class Interaction {
     dragging: boolean
   };
 
-  constructor(renderer: GraphRenderer) {
-    this.renderer = renderer;
+  constructor(manager: GraphManager) {
+    this.manager = manager;
+    this.renderer = manager.renderer;
 
     this.state = {
       temp: {
@@ -89,12 +92,12 @@ class Interaction {
     var temp = [canvas_pos[0] / this.renderer.gl.canvas.width,
                 canvas_pos[1] / this.renderer.gl.canvas.height];
     temp = temp.map(i => (i * 2.0) - 1.0);
-    var offset = this.renderer.state.graph_info.offset;
+    var offset = this.manager.state.graph_info.offset;
     var local = [temp[0] - offset[0],
                  temp[1] + offset[1]];
     this.state.mouse.local = local;
 
-    this.renderer.closest_point = this.SearchForClosestPoint(local);
+    this.manager.closest_point = this.SearchForClosestPoint(local);
 
   }
 
@@ -109,17 +112,17 @@ class Interaction {
     offset[1] *= -1;
 
     // We updathe the date
-    this.renderer.state.graph_info.offset[0] += offset[0];
-    this.renderer.state.graph_info.offset[1] += offset[1];
+    this.manager.state.graph_info.offset[0] += offset[0];
+    this.manager.state.graph_info.offset[1] += offset[1];
   }
 
   private SearchForClosestPoint(mouse_pos: number[]) {
-    var len = this.renderer.custom_points.length;
-    if (mouse_pos[0] <= this.renderer.custom_points[0][0]) {
-      return this.renderer.custom_points[0];
+    var len = this.manager.custom_points.length;
+    if (mouse_pos[0] <= this.manager.custom_points[0][0]) {
+      return this.manager.custom_points[0];
     }
-    if (mouse_pos[0] >= this.renderer.custom_points[len-1][0]) {
-      return this.renderer.custom_points[len-1];
+    if (mouse_pos[0] >= this.manager.custom_points[len-1][0]) {
+      return this.manager.custom_points[len-1];
     }
 
     // We do binary search
@@ -128,7 +131,7 @@ class Interaction {
 
     while (min_index < max_index) {
       var half = Math.floor((min_index + max_index) / 2);
-      var val = this.renderer.custom_points[half][0];
+      var val = this.manager.custom_points[half][0];
 
       if (val > mouse_pos[0]) {
         if (max_index == half) { break; }
@@ -140,8 +143,8 @@ class Interaction {
     }
 
     // We now have two points
-    var min_point = this.renderer.custom_points[min_index];
-    var max_point = this.renderer.custom_points[max_index];
+    var min_point = this.manager.custom_points[min_index];
+    var max_point = this.manager.custom_points[max_index];
 
     // We want to return the closest (x-wise)
     var dist1 = Math.abs(min_point[0] - mouse_pos[0]);
