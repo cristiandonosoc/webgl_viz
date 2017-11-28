@@ -87,8 +87,11 @@ class Interaction {
     // Local (variable space)
     // Convert from pixels to 0.0 -> 1.0
     var temp = [canvas_pos[0] / this.renderer.gl.canvas.width,
-               canvas_pos[1] / this.renderer.gl.canvas.height];
-    var local = temp.map(i => (i * 2.0) - 1.0);
+                canvas_pos[1] / this.renderer.gl.canvas.height];
+    temp = temp.map(i => (i * 2.0) - 1.0);
+    var offset = this.renderer.state.graph_info.offset;
+    var local = [temp[0] - offset[0],
+                 temp[1] + offset[1]];
     this.state.mouse.local = local;
 
     this.renderer.closest_point = this.SearchForClosestPoint(local);

@@ -170,12 +170,20 @@ class GraphRenderer {
     this.Clear();
 
     this.DrawGraph(time, this.state.graph_info.line_color);
-    this.DrawLineLocalSpace([-g_inf, 0], [g_inf, 0], this.state.graph_info.offset, AllColors.Get("green"));
-    // this.DrawLinePixelSpace([10, 10], [200, 200]);
 
-    if (this.cross_icon_tex) {
-      this.DrawIconPixelSpace(this.cross_icon_tex, [1000, 100], AllColors.Get("purple"));
-      this.DrawIconLocalSpace(this.cross_icon_tex, [-0.5, 0.5], AllColors.Get("yellow"));
+    // Draw x/y Axis
+    this.DrawLineLocalSpace([-g_inf, 0], [g_inf, 0], AllColors.Get("green"));
+    this.DrawLineLocalSpace([0, -g_inf], [0, g_inf], AllColors.Get("green"));
+
+    // Draw mouse vertical line
+    // this.DrawLinePixelSpace([10, 10], [200, 200]);
+    var canvas_pos = this.interaction.state.mouse.canvas;
+    this.DrawLinePixelSpace([canvas_pos[0], -g_inf], [canvas_pos[0], g_inf], AllColors.Get("orange"));
+
+    if (this.cross_icon_tex && this.closest_point) {
+      // this.DrawIconPixelSpace(this.cross_icon_tex, [1000, 100], AllColors.Get("purple"));
+      // this.DrawIconLocalSpace(this.cross_icon_tex, [-0.5, 0.5], AllColors.Get("yellow"));
+      this.DrawIconLocalSpace(this.cross_icon_tex, this.closest_point, AllColors.Get("purple"));
     }
   }
 
@@ -215,7 +223,7 @@ class GraphRenderer {
     twgl.drawBufferInfo(this.gl, this.pixel_buffer_info, this.gl.LINES);
   }
 
-  private DrawLineLocalSpace(p1: number[], p2: number[], offset: number[], color: number[]) {
+  private DrawLineLocalSpace(p1: number[], p2: number[], color: number[]) {
     this.gl.useProgram(this.local_program_info.program);
     twgl.setBuffersAndAttributes(this.gl,
                                  this.local_program_info,
@@ -225,7 +233,7 @@ class GraphRenderer {
       this.local_buffer_info.attribs.a_position_coord, new_pos);
 
     var uniforms = {
-      u_offset: offset,
+      u_offset: this.state.graph_info.offset,
       u_color: color
     };
     twgl.setUniforms(this.local_program_info, uniforms);
@@ -265,6 +273,7 @@ class GraphRenderer {
       this.ps_buffer_info.attribs.a_position_coord, p);
 
     var uniforms = {
+      u_offset: this.state.graph_info.offset,
       u_color: color,
       u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
       u_point_size: 10,
