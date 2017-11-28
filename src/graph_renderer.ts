@@ -43,6 +43,7 @@ class GraphRenderer {
 
   points: number[];
   custom_points: Array<number[]>;
+  closest_point: number[];
 
   constructor(graph_canvas: HTMLCanvasElement) {
     this.canvas = graph_canvas;
@@ -78,12 +79,12 @@ class GraphRenderer {
     this.gl = this.canvas.getContext("webgl2");
     this.direct_program_info = twgl.createProgramInfo(this.gl, [
       AllShaders.GetVertexShader("direct"),
-      AllShaders.GetFragmentShader("direct")]);
+      AllShaders.GetFragmentShader("simple")]);
     this.pixel_program_info = twgl.createProgramInfo(this.gl, [
       AllShaders.GetVertexShader("pixel"),
-      AllShaders.GetFragmentShader("pixel")]);
+      AllShaders.GetFragmentShader("simple")]);
     this.point_sprite_program_info = twgl.createProgramInfo(this.gl, [
-      AllShaders.GetVertexShader("point_sprite"),
+      AllShaders.GetVertexShader("pixel"),
       AllShaders.GetFragmentShader("point_sprite")]);
 
     // We create the overlay buffers

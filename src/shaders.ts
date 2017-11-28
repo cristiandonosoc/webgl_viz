@@ -11,10 +11,12 @@ in vec4 a_position_coord;
 // Uniforms
 uniform vec2 u_offset;
 uniform vec2 u_scale;
+uniform float u_point_size;
 
 void main() {
   // We add the offset to the position
   gl_Position = a_position_coord + vec4(u_offset.xy, 0, 0);
+  gl_PointSize = u_point_size;
 }
 `;
 
@@ -26,6 +28,7 @@ in vec2 a_position_coord;
 
 // Uniforms
 uniform vec2 u_resolution;
+uniform float u_point_size;
 
 void main() {
   // Pixels -> [0.0, 1.0]
@@ -38,6 +41,7 @@ void main() {
   vec2 clip_space = zero_to_two - 1.0;
 
   gl_Position = vec4(clip_space, 0, 1);
+  gl_PointSize = u_point_size;
 }
 `;
 
@@ -72,22 +76,7 @@ void main() {
  * FRAGMENT SHADERS
  ********************************************/
 
-let direct_fs = `
-#version 300 es
-precision mediump float;
-
-// Uniforms
-uniform vec4 u_color;
-
-// Outputs
-out vec4 out_color;
-
-void main() {
-  out_color = u_color;
-}
-`;
-
-let pixel_fs = `
+let simple_fs = `
 #version 300 es
 precision mediump float;
 
@@ -131,11 +120,9 @@ class ShaderRegistry {
       vertex: {
         direct: direct_vs,
         pixel: pixel_vs,
-        point_sprite: point_sprite_vs,
       },
       fragment: {
-        direct: direct_fs,
-        pixel: pixel_fs,
+        simple: simple_fs,
         point_sprite: point_sprite_fs,
       }
     };
