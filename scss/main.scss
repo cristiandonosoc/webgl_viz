@@ -1,0 +1,32 @@
+#main-canvas-container {
+  display: block;
+  height: 99%;
+  margin: 10px;
+  position: relative;
+
+  .graph-container {
+    bottom: 100px;
+    left: 200px;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+
+    canvas {
+      border: 1px solid black;
+      height: 100%;
+      width: 100%;
+    }
+  }
+}
+
+.stats {
+  .stat-group {
+    display: inline-block;
+    width: 200px;
+
+    input {
+      display: inline;
+      width: 100%;
+    }
+  }
+}
