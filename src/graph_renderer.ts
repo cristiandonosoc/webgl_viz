@@ -109,9 +109,12 @@ class GraphRenderer {
         img.width,
         img.height,
         0,                        // Border
-        this.gl.RGBA,    // Input Format
+        this.gl.RGBA,             // Input Format
         this.gl.UNSIGNED_BYTE,
         img);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+
       this.gl.bindTexture(this.gl.TEXTURE_2D, null);
       console.log("Loaded image");
     });
@@ -160,11 +163,12 @@ class GraphRenderer {
     this.Clear();
 
     this.DrawGraph(time);
-    // this.DrawOverlay(time);
-    // this.DrawLinePixelSpace([-g_inf, this.gl.canvas.height/2], [g_inf, this.gl.canvas.height/2]);
     this.DrawLineLocalSpace([-g_inf, 0], [g_inf, 0], this.state.graph_info.offset);
+    // this.DrawLinePixelSpace([10, 10], [200, 200]);
 
-    this.DrawIcon(this.cross_icon_tex, [10, 10], [50, 50]);
+    if (this.cross_icon_tex) {
+     this.DrawIcon(this.cross_icon_tex, [1000, 100]);
+    }
   }
 
   private DrawGraph(time: number) {
@@ -227,30 +231,26 @@ class GraphRenderer {
     twgl.drawBufferInfo(this.gl, this.direct_buffer_info, this.gl.LINES);
   }
 
-  private DrawIcon(icon_tex: any, p1: number[], p2: number[]) {
+  private DrawIcon(icon_tex: any, p1: number[]) {
     this.gl.enable(this.gl.BLEND);
     this.gl.useProgram(this.point_sprite_program_info.program);
     twgl.setBuffersAndAttributes(this.gl,
                                  this.point_sprite_program_info,
                                  this.point_sprite_buffer_info);
-    var new_pos = [p1[0], p1[1], p2[0], p2[1]];
+    var new_pos = [p1[0], p1[1]];
     twgl.setAttribInfoBufferFromArray(this.gl,
       this.point_sprite_buffer_info.attribs.a_position_coord, new_pos);
 
-    this.gl.activeTexture(this.gl.TEXTURE0);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, icon_tex);
-
     var uniforms = {
+      u_color: [1, 0, 1, 1],
       u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
       u_point_size: 10,
       u_sampler: 0
     };
     twgl.setUniforms(this.point_sprite_program_info, uniforms);
-
-
-    twgl.drawBufferInfo(this.gl,
-                        this.point_sprite_program_info,
-                        this.gl.POINTS);
+    this.gl.activeTexture(this.gl.TEXTURE0);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, icon_tex);
+    this.gl.drawArrays(this.gl.POINTS, 0, new_pos.length / 2);
   }
 
 }

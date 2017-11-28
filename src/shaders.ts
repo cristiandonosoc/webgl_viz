@@ -108,13 +108,18 @@ precision mediump float;
 
 // Uniforms
 uniform sampler2D u_sampler;
+uniform vec4 u_color;
 
 // Outputs
 out vec4 out_color;
 
 void main() {
   vec4 tex_color = texture(u_sampler, gl_PointCoord);
-  out_color = tex_color;
+  if (tex_color.a == 0.0) {
+    out_color = u_color;
+  } else {
+    out_color = vec4(0,0,0,0);
+  }
 }
 `;
 
