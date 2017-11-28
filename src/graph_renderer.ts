@@ -168,17 +168,17 @@ class GraphRenderer {
     // Clear Canvas
     this.Clear();
 
-    this.DrawGraph(time);
-    this.DrawLineLocalSpace([-g_inf, 0], [g_inf, 0], this.state.graph_info.offset);
+    this.DrawGraph(time, this.state.graph_info.line_color);
+    this.DrawLineLocalSpace([-g_inf, 0], [g_inf, 0], this.state.graph_info.offset, [0, 1, 0, 1]);
     // this.DrawLinePixelSpace([10, 10], [200, 200]);
 
     if (this.cross_icon_tex) {
-      this.DrawIconPixelSpace(this.cross_icon_tex, [1000, 100]);
-      this.DrawIconLocalSpace(this.cross_icon_tex, [-0.5, 0.5]);
+      this.DrawIconPixelSpace(this.cross_icon_tex, [1000, 100], [1, 0, 1, 1]);
+      this.DrawIconLocalSpace(this.cross_icon_tex, [-0.5, 0.5], [1, 1, 0, 1]);
     }
   }
 
-  private DrawGraph(time: number) {
+  private DrawGraph(time: number, color: number[]) {
     // Set shader program
     this.gl.useProgram(this.local_program_info.program);
 
@@ -188,7 +188,7 @@ class GraphRenderer {
     // Set the uniforms
     var uniforms = {
       u_offset: this.state.graph_info.offset,
-      u_color: this.state.graph_info.line_color
+      u_color: color
     };
     twgl.setUniforms(this.local_program_info, uniforms);
 
@@ -196,15 +196,8 @@ class GraphRenderer {
     twgl.drawBufferInfo(this.gl, this.graph_buffer_info, this.gl.LINE_STRIP);
   }
 
-  private DrawLinePixelSpace(p1: number[], p2: number[]) {
+  private DrawLinePixelSpace(p1: number[], p2: number[], color: number[]) {
     this.gl.useProgram(this.pixel_program_info.program);
-    // We update the buffers
-    // var new_pos = [
-    //   this.interaction.state.mouse.canvas[0], -10000,
-    //   this.interaction.state.mouse.canvas[0], 10000,
-    //   -10000, this.gl.canvas.height - this.interaction.state.mouse.canvas[1],
-    //   10000,  this.gl.canvas.height - this.interaction.state.mouse.canvas[1]
-    // ];
     var new_pos = [p1[0], p1[1], p2[0], p2[1]];
     // console.log(new_pos);
     twgl.setBuffersAndAttributes(this.gl, this.pixel_program_info, this.pixel_buffer_info);
@@ -213,7 +206,7 @@ class GraphRenderer {
 
     var uniforms = {
       u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
-      u_color: [0.2, 0.6, 0.2, 1],
+      u_color: color,
     };
     twgl.setUniforms(this.pixel_program_info, uniforms);
 
@@ -221,7 +214,7 @@ class GraphRenderer {
     twgl.drawBufferInfo(this.gl, this.pixel_buffer_info, this.gl.LINES);
   }
 
-  private DrawLineLocalSpace(p1: number[], p2: number[], offset: number[]) {
+  private DrawLineLocalSpace(p1: number[], p2: number[], offset: number[], color: number[]) {
     this.gl.useProgram(this.local_program_info.program);
     twgl.setBuffersAndAttributes(this.gl,
                                  this.local_program_info,
@@ -232,13 +225,13 @@ class GraphRenderer {
 
     var uniforms = {
       u_offset: offset,
-      u_color: [0.2, 0.6, 0.2, 1],
+      u_color: color
     };
     twgl.setUniforms(this.local_program_info, uniforms);
     twgl.drawBufferInfo(this.gl, this.local_buffer_info, this.gl.LINES);
   }
 
-  private DrawIconPixelSpace(icon_tex: any, p1: number[]) {
+  private DrawIconPixelSpace(icon_tex: any, p1: number[], color: number[]) {
     this.gl.enable(this.gl.BLEND);
     this.gl.useProgram(this.pixel_ps_program_info.program);
     twgl.setBuffersAndAttributes(this.gl,
@@ -249,7 +242,7 @@ class GraphRenderer {
       this.ps_buffer_info.attribs.a_position_coord, new_pos);
 
     var uniforms = {
-      u_color: [1, 0, 1, 1],
+      u_color: color,
       u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
       u_point_size: 10,
       u_sampler: 0
@@ -260,7 +253,7 @@ class GraphRenderer {
     this.gl.drawArrays(this.gl.POINTS, 0, new_pos.length / 2);
   }
 
-  private DrawIconLocalSpace(icon_tex: any, p: number[]) {
+  private DrawIconLocalSpace(icon_tex: any, p: number[], color: number[]) {
     this.gl.enable(this.gl.BLEND);
     this.gl.useProgram(this.local_ps_program_info.program);
     twgl.setBuffersAndAttributes(this.gl,
@@ -271,7 +264,7 @@ class GraphRenderer {
       this.ps_buffer_info.attribs.a_position_coord, p);
 
     var uniforms = {
-      u_color: [1, 0, 1, 1],
+      u_color: color,
       u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
       u_point_size: 10,
       u_sampler: 0
