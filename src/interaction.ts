@@ -1,5 +1,13 @@
 import GraphRenderer from "./graph_renderer";
 
+/**
+ * Interaction
+ * -----------
+ *
+ * Wraps the interaction with the browser
+ * Basically maintains the tracking of how the mouse has changed on top of the
+ * canvas.
+ **/
 class Interaction {
 
   renderer: GraphRenderer;

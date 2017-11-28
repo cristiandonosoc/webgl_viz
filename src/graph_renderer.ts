@@ -25,6 +25,7 @@ class GraphRenderer {
   };
 
   points: number[];
+  custom_points: Array<number[]>;
 
   constructor(graph_canvas: HTMLCanvasElement) {
     this.canvas = graph_canvas;
@@ -61,13 +62,22 @@ class GraphRenderer {
 
 
   AddPoints(points: number[]) {
-    this.points = points;
-
+    // We set the WebGL points
     var arrays = {
-      a_position_coord: this.points
+      a_position_coord: points
     };
-
     this.buffer_info = twgl.createBufferInfoFromArrays(this.gl, arrays);
+
+    var arr = new Array<number[]>(points.length / 2);
+    for (var i = 0; i < arr.length; i += 1) {
+      var point_index = i * 2;
+      arr[i] = [points[point_index], points[point_index + 1]];
+    }
+
+    // We sort
+    this.custom_points = arr.sort((x: number[], y: number[]) => {
+      return x[0] - y[0];
+    });
   }
 
   private Clear() {
