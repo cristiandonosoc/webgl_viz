@@ -294,8 +294,8 @@ function UpdateInfo() {
 }
 
 // We create a fast "game-loop"
-function DrawScene(time: any) {
-  renderer.Draw();
+function DrawScene(time: number) {
+  renderer.Draw(time);
   UpdateInfo();
   requestAnimationFrame(DrawScene);
 }

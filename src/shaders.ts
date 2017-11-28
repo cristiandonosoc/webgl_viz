@@ -2,7 +2,7 @@
  * VERTEX SHADERS
  ********************************************/
 
-let graph_line_vs = `
+let direct_vs = `
 #version 300 es
 
 // Attributes
@@ -18,11 +18,36 @@ void main() {
 }
 `;
 
+let pixel_vs = `
+#version 300 es
+
+// Attributes
+in vec2 a_position_coord;
+
+// Uniforms
+uniform vec2 u_resolution;
+
+void main() {
+  // Pixels -> [0.0, 1.0]
+  vec2 zero_to_one = a_position_coord / u_resolution;
+
+  // // [0.0, 1.0] -> [0.0, 2.0]
+  vec2 zero_to_two = zero_to_one * 2.0;
+
+  // // [0.0, 2.0] -> [-1.0, 1.0]
+  vec2 clip_space = zero_to_two - 1.0;
+
+  gl_Position = vec4(clip_space, 0, 1);
+  // gl_Position = vec4(u_resolution.x / 2000.0, u_resolution.y / 1000.0, 0, 1);
+  // gl_Position = vec4(a_position_coord.x / u_resolution.x, a_position_coord.y / u_resolution.y, 0, 1);
+}
+`;
+
 /********************************************
  * FRAGMENT SHADERS
  ********************************************/
 
-let graph_line_fs = `
+let direct_fs = `
 #version 300 es
 precision mediump float;
 
@@ -34,19 +59,38 @@ out vec4 out_color;
 
 void main() {
   out_color = u_color;
-
 }
 `;
+
+let pixel_fs = `
+#version 300 es
+precision mediump float;
+
+// Uniforms
+uniform vec4 u_color;
+
+// Outputs
+out vec4 out_color;
+
+void main() {
+  //out_color = u_color;
+  out_color = vec4(1,0,0,1); // red
+}
+`;
+
+
 
 class ShaderRegistry {
   shaders: any;
   constructor() {
     this.shaders = {
       vertex: {
-        graph_line: graph_line_vs
+        direct: direct_vs,
+        pixel: pixel_vs,
       },
       fragment: {
-        graph_line: graph_line_fs
+        direct: direct_fs,
+        pixel: pixel_fs,
       }
     };
   }
