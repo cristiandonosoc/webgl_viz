@@ -1,15 +1,28 @@
-#main-canvas-container {
-  display: block;
-  height: 99%;
-  margin: 10px;
-  position: relative;
+$stats-height: 100px;
+$stat-width: 125px;
+$canvas-border: 50px;
+
+body {
+  position: absolute;
+  top: 0;
+  bottom:0;
+  right: 0;
+  left: 0;
+}
+
+#main-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: $stats-height;
 
   .graph-container {
-    bottom: 100px;
-    left: 200px;
+    bottom: $canvas-border;
+    left: $canvas-border;
+    right: $canvas-border;
+    top: $canvas-border;
     position: absolute;
-    right: 0px;
-    top: 0px;
 
     canvas {
       border: 1px solid black;
@@ -20,9 +33,10 @@
 }
 
 .stats {
+  height: $stats-height;
   .stat-group {
     display: inline-block;
-    width: 200px;
+    width: $stat-width;
 
     input {
       display: inline;
