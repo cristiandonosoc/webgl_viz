@@ -17,8 +17,10 @@ class GraphRenderer {
   /* WebGL programs */
   direct_program_info: any;   /* For rendering in local space */
   pixel_program_info: any;    /* For rendering in pixel space */
+  point_sprite_program_info: any;
 
   graph_buffer_info: any;     /* Holds a graph, should be one per graph */
+  point_sprite_buffer_info: any;
 
   direct_buffer_info: any;    /* Holds a pair of points */
   pixel_buffer_info: any;     /* Holds a pair of points */
@@ -75,9 +77,14 @@ class GraphRenderer {
   private SetupWebGl() {
     this.gl = this.canvas.getContext("webgl2");
     this.direct_program_info = twgl.createProgramInfo(this.gl, [
-      AllShaders.GetVertexShader("direct"), AllShaders.GetFragmentShader("direct")]);
+      AllShaders.GetVertexShader("direct"),
+      AllShaders.GetFragmentShader("direct")]);
     this.pixel_program_info = twgl.createProgramInfo(this.gl, [
-      AllShaders.GetVertexShader("pixel"), AllShaders.GetFragmentShader("pixel")]);
+      AllShaders.GetVertexShader("pixel"),
+      AllShaders.GetFragmentShader("pixel")]);
+    this.point_sprite_program_info = twgl.createProgramInfo(this.gl, [
+      AllShaders.GetVertexShader("point_sprite"),
+      AllShaders.GetFragmentShader("point_sprite")]);
 
     // We create the overlay buffers
     var arrays = {
@@ -85,6 +92,7 @@ class GraphRenderer {
     };
     this.pixel_buffer_info = twgl.createBufferInfoFromArrays(this.gl, arrays);
     this.direct_buffer_info = twgl.createBufferInfoFromArrays(this.gl, arrays);
+    this.point_sprite_buffer_info = twgl.createBufferInfoFromArrays(this.gl, arrays);
 
     this.SetupTextures();
   }
@@ -104,6 +112,8 @@ class GraphRenderer {
         this.gl.RGBA,    // Input Format
         this.gl.UNSIGNED_BYTE,
         img);
+      this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+      console.log("Loaded image");
     });
 
     img.crossOrigin = "";
@@ -153,6 +163,8 @@ class GraphRenderer {
     // this.DrawOverlay(time);
     // this.DrawLinePixelSpace([-g_inf, this.gl.canvas.height/2], [g_inf, this.gl.canvas.height/2]);
     this.DrawLineLocalSpace([-g_inf, 0], [g_inf, 0], this.state.graph_info.offset);
+
+    this.DrawIcon(this.cross_icon_tex, [10, 10], [50, 50]);
   }
 
   private DrawGraph(time: number) {
@@ -200,10 +212,10 @@ class GraphRenderer {
 
   private DrawLineLocalSpace(p1: number[], p2: number[], offset: number[]) {
     this.gl.useProgram(this.direct_program_info.program);
-    var new_pos = [p1[0], p1[1], p2[0], p2[1]];
     twgl.setBuffersAndAttributes(this.gl,
                                  this.direct_program_info,
                                  this.direct_buffer_info);
+    var new_pos = [p1[0], p1[1], p2[0], p2[1]];
     twgl.setAttribInfoBufferFromArray(this.gl,
       this.direct_buffer_info.attribs.a_position_coord, new_pos);
 
@@ -215,10 +227,30 @@ class GraphRenderer {
     twgl.drawBufferInfo(this.gl, this.direct_buffer_info, this.gl.LINES);
   }
 
-  private DrawIcon(icon: any) {
+  private DrawIcon(icon_tex: any, p1: number[], p2: number[]) {
     this.gl.enable(this.gl.BLEND);
+    this.gl.useProgram(this.point_sprite_program_info.program);
+    twgl.setBuffersAndAttributes(this.gl,
+                                 this.point_sprite_program_info,
+                                 this.point_sprite_buffer_info);
+    var new_pos = [p1[0], p1[1], p2[0], p2[1]];
+    twgl.setAttribInfoBufferFromArray(this.gl,
+      this.point_sprite_buffer_info.attribs.a_position_coord, new_pos);
+
+    this.gl.activeTexture(this.gl.TEXTURE0);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, icon_tex);
+
+    var uniforms = {
+      u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
+      u_point_size: 10,
+      u_sampler: 0
+    };
+    twgl.setUniforms(this.point_sprite_program_info, uniforms);
 
 
+    twgl.drawBufferInfo(this.gl,
+                        this.point_sprite_program_info,
+                        this.gl.POINTS);
   }
 
 }

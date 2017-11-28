@@ -43,13 +43,14 @@ void main() {
 
 let point_sprite_vs = `
 #version 300 es
+precision highp float;
 
 // Attributes
 in vec2 a_position_coord;
 
 // Uniforms
 uniform vec2 u_resolution;
-uniform vec2 u_point_size;
+uniform float u_point_size;
 
 void main() {
   // Pixels -> [0.0, 1.0]
@@ -97,8 +98,7 @@ uniform vec4 u_color;
 out vec4 out_color;
 
 void main() {
-  //out_color = u_color;
-  out_color = vec4(1,0,0,1); // red
+  out_color = u_color;
 }
 `;
 
@@ -109,14 +109,14 @@ precision mediump float;
 // Uniforms
 uniform sampler2D u_sampler;
 
+// Outputs
+out vec4 out_color;
+
 void main() {
-vec4 tex_color = texture2D(u_sampler, gl_PointCoord);
-gl_FragColor = tex_color;
+  vec4 tex_color = texture(u_sampler, gl_PointCoord);
+  out_color = tex_color;
 }
-
-
 `;
-
 
 
 class ShaderRegistry {
@@ -126,10 +126,12 @@ class ShaderRegistry {
       vertex: {
         direct: direct_vs,
         pixel: pixel_vs,
+        point_sprite: point_sprite_vs,
       },
       fragment: {
         direct: direct_fs,
         pixel: pixel_fs,
+        point_sprite: point_sprite_fs,
       }
     };
   }
