@@ -270,10 +270,18 @@ var positions = [
 // We add our positions
 manager.AddGraph(positions);
 
+// We set the controllers
+document.getElementById("control-expand").addEventListener("click", (event) => {
+  manager.ApplyMaxBounds();
+  requestAnimationFrame(DrawScene);
+});
+
 
 // We create a fast "game-loop"
 function DrawScene(time: number) {
   manager.Draw();
 }
+
+
 
 requestAnimationFrame(DrawScene);

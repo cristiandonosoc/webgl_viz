@@ -4,9 +4,9 @@ import {Color, AllColors} from "./colors"
 import Interaction from "./interaction";
 import LabelManager from "./label_manager";
 import {DrawSpace, Renderer} from "./renderer";
-import {Vec2} from "./vectors";
+import {Bounds, Vec2} from "./vectors";
 
-var g_inf = 99999999;
+let g_inf = 9007199254740991;
 
 class GraphManager {
   canvas: HTMLCanvasElement;
@@ -21,6 +21,7 @@ class GraphManager {
   // Internal state of the renderer
   state: {
     graph_info: {
+      bounds: Bounds,
       background_color: Color,
       line_color: Color,
       line_width: number
@@ -40,7 +41,8 @@ class GraphManager {
   }
 
   private CreateDefaults() {
-    var graph_info = {
+    let graph_info = {
+      bounds: Bounds.Zero,
       background_color: AllColors.Get("black"),
       line_color: AllColors.Get("white"),
       line_width: 1
@@ -52,12 +54,28 @@ class GraphManager {
   }
 
   AddGraph(points: number[]) {
+    // We pass the points straight down
     this.renderer.AddGraph(points);
-    var arr = new Array<Vec2>(points.length / 2);
-    for (var i = 0; i < arr.length; i += 1) {
-      var point_index = i * 2;
-      arr[i] = new Vec2(points[point_index], points[point_index + 1]);
+
+    // We post-process the points
+    let min = new Vec2(+g_inf, +g_inf);
+    let max = new Vec2(-g_inf, -g_inf);
+    let arr = new Array<Vec2>(points.length / 2);
+    for (let i = 0; i < arr.length; i += 1) {
+      let point_index = i * 2;
+      let p = new Vec2(points[point_index], points[point_index + 1]);
+      arr[i] = p;
+
+      // We track the bounds
+      if (p.x < min.x) { min.x = p.x; }
+      if (p.x > max.x) { max.x = p.x; }
+      if (p.y < min.y) { min.y = p.y; }
+      if (p.y > max.y) { max.y = p.y; }
     }
+
+    // We set the bounds
+    this.state.graph_info.bounds = Bounds.FromPoints(min.x, max.x, min.y, max.y);
+    console.log(this.state.graph_info.bounds);
 
     // We sort
     this.custom_points = arr.sort((p1: Vec2, p2: Vec2) => {
@@ -65,6 +83,10 @@ class GraphManager {
     });
   }
 
+  // Applies the graph max bounds
+  ApplyMaxBounds() {
+    this.renderer.bounds = this.state.graph_info.bounds;
+  }
 
   /*******************************************
    * DRAWING
@@ -86,10 +108,8 @@ class GraphManager {
     // Draw mouse vertical line
     // this.DrawLinePixelSpace([10, 10], [200, 200]);
     let canvas_pos = this.interaction.state.mouse.canvas;
-    this.renderer.DrawLine(new Vec2(canvas_pos.x, -g_inf),
-                           new Vec2(canvas_pos.x, g_inf),
-                           DrawSpace.PIXEL,
-                           AllColors.Get("orange"));
+    this.renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
+                                   AllColors.Get("orange"));
 
     if (this.closest_point) {
       this.renderer.DrawIcon(this.closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));

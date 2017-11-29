@@ -31,6 +31,10 @@ class Vec2 {
     return new Vec2(v1.x + v2.x,
                     v1.y + v2.y);
   }
+
+  static get Zero() : Vec2 {
+    return new Vec2(0, 0);
+  }
 }
 
 class Bounds {
@@ -49,6 +53,10 @@ class Bounds {
     b.x = x;
     b.y = y;
     return b;
+  }
+
+  static get Zero() : Bounds {
+    return Bounds.FromPoints(0, 0, 0, 0);
   }
 
 }

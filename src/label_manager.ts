@@ -76,7 +76,6 @@ class LabelManager {
   }
 
   private UpdateStats(manager: GraphManager) {
-    console.log("stats");
     this.screen_x_box.value = String(manager.interaction.state.mouse.screen.x);
     this.screen_y_box.value = String(manager.interaction.state.mouse.screen.y);
     this.canvas_x_box.value = String(manager.interaction.state.mouse.canvas.x);
@@ -92,8 +91,6 @@ class LabelManager {
     this.labels.y.bottom.value = String(manager.renderer.bounds.y.first);
     this.labels.y.top.value = String(manager.renderer.bounds.y.last);
   }
-
-
 }
 
 export default LabelManager

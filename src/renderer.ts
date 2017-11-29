@@ -44,7 +44,6 @@ class Renderer {
   }
 
   set offset(new_offset: Vec2) {
-    console.log("offset");
     this._state.offset = new_offset;
     this._state.bounds = RendererCalculateBounds(this);
   }
