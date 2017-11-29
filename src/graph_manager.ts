@@ -70,7 +70,7 @@ class GraphManager {
    * DRAWING
    *******************************************/
 
-  Draw(time: number) {
+  Draw() {
     // Resize
     this.renderer.ResizeCanvas();
 
@@ -92,7 +92,7 @@ class GraphManager {
       this.renderer.DrawIconLocalSpace(this.closest_point, AllColors.Get("purple"));
     }
 
-    this.labels.Update(this.renderer);
+    this.labels.Update(this);
   }
 }
 

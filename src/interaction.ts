@@ -66,27 +66,34 @@ class Interaction {
     this.state.dragging = true;
     this.state.mouse.screen = [event.screenX, event.screenY];
     this.state.mouse.canvas = [event.clientX, event.clientY];
+    this.PostChange();
   }
 
   private MouseUp = (event: any) => {
     this.state.dragging = false;
+    this.PostChange();
   }
 
   private MouseMove = (event: any) => {
     this.ProcessMove(event);
-    if (!this.state.dragging) {
-      return;
+    if (this.state.dragging) {
+      this.ProcessDrag(event);
     }
-    this.ProcessDrag(event);
+    this.PostChange();
   }
 
   private MouseWheel = (event: any) => {
     var delta = -event.deltaY;
     this.renderer.state.scale[0] += delta * this.state.mouse.wheel_factor[0];
     this.renderer.state.scale[1] += delta * this.state.mouse.wheel_factor[1];
-
+    this.PostChange();
     // Prevent default browser behaviour
     return false;
+  }
+
+  // Method to call after a change has happened
+  private PostChange() {
+    this.manager.Draw();
   }
 
 

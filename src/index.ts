@@ -270,34 +270,10 @@ var positions = [
 // We add our positions
 manager.AddGraph(positions);
 
-// We updathe boxes
-var offset_x_box = <HTMLInputElement> document.getElementById("offset-x");
-var offset_y_box = <HTMLInputElement> document.getElementById("offset-y");
-var screen_x_box = <HTMLInputElement> document.getElementById("screen-x");
-var screen_y_box = <HTMLInputElement> document.getElementById("screen-y");
-var canvas_x_box = <HTMLInputElement> document.getElementById("canvas-x");
-var canvas_y_box = <HTMLInputElement> document.getElementById("canvas-y");
-var local_x_box = <HTMLInputElement> document.getElementById("local-x");
-var local_y_box = <HTMLInputElement> document.getElementById("local-y");
-var scale_x_box = <HTMLInputElement> document.getElementById("scale-x");
-var scale_y_box = <HTMLInputElement> document.getElementById("scale-y");
-
-function UpdateInfo() {
-  screen_x_box.value = String(manager.interaction.state.mouse.screen[0]);
-  screen_y_box.value = String(manager.interaction.state.mouse.screen[1]);
-  canvas_x_box.value = String(manager.interaction.state.mouse.canvas[0]);
-  canvas_y_box.value = String(manager.interaction.state.mouse.canvas[1]);
-  offset_x_box.value = String(manager.renderer.state.offset[0]);
-  offset_y_box.value = String(manager.renderer.state.offset[1]);
-  scale_x_box.value =  String(manager.renderer.state.scale[0]);
-  scale_y_box.value =  String(manager.renderer.state.scale[1]);
-}
 
 // We create a fast "game-loop"
 function DrawScene(time: number) {
-  manager.Draw(time);
-  UpdateInfo();
-  requestAnimationFrame(DrawScene);
+  manager.Draw();
 }
 
 requestAnimationFrame(DrawScene);
