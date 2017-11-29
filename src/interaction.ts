@@ -21,7 +21,8 @@ class Interaction {
     mouse: {
       local: number[],
       canvas: number[],
-      screen: number[]
+      screen: number[],
+      wheel_factor: number[],
     }
     dragging: boolean
   };
@@ -38,7 +39,8 @@ class Interaction {
       mouse: {
         local: [0, 0],
         canvas: [0, 0],
-        screen: [0, 0]
+        screen: [0, 0],
+        wheel_factor: [0.001, 0.001],
       },
       dragging: false
     };
@@ -51,6 +53,11 @@ class Interaction {
     this.renderer.canvas.addEventListener("mousedown", this.MouseDown);
     document.addEventListener("mouseup", this.MouseUp);
     this.renderer.canvas.addEventListener("mousemove", this.MouseMove);
+
+    // Mouse wheel
+    this.renderer.canvas.addEventListener("mousewheel", this.MouseWheel, {
+      passive: true     /* chrome warns that this helps with latency */
+    });
   }
 
   private MouseDown = (event: any) => {
@@ -71,6 +78,20 @@ class Interaction {
     this.ProcessDrag(event);
   }
 
+  private MouseWheel = (event: any) => {
+    var delta = -event.deltaY;
+    this.manager.state.graph_info.scale[0] += delta * this.state.mouse.wheel_factor[0];
+    this.manager.state.graph_info.scale[1] += delta * this.state.mouse.wheel_factor[1];
+
+    // Prevent default browser behaviour
+    return false;
+  }
+
+
+  /**************************************************************
+   * PRIVATE UTILITY METHODS
+   **************************************************************/
+
   private ProcessMove(event: any) {
     // We log the variables
     // Screen
@@ -87,18 +108,9 @@ class Interaction {
                       event.clientY - bounds.top];
     this.state.mouse.canvas = canvas_pos;
 
-    // Local (variable space)
-    // Convert from pixels to 0.0 -> 1.0
-    var temp = [canvas_pos[0] / this.renderer.gl.canvas.width,
-                canvas_pos[1] / this.renderer.gl.canvas.height];
-    temp = temp.map(i => (i * 2.0) - 1.0);
-    var offset = this.manager.state.graph_info.offset;
-    var local = [temp[0] - offset[0],
-                 temp[1] + offset[1]];
+    var local = this.CanvasToLocal(canvas_pos);
     this.state.mouse.local = local;
-
     this.manager.closest_point = this.SearchForClosestPoint(local);
-
   }
 
   private ProcessDrag(event: any) {
@@ -157,9 +169,26 @@ class Interaction {
     }
   }
 
+  /**************************************************************
+   * HELPER UTILITIES
+   **************************************************************/
 
+  private CanvasToLocal(point: number[]) {
 
+    // Local (variable space)
+    // Convert from pixels to 0.0 -> 1.0
+    var temp = [point[0] / this.renderer.gl.canvas.width,
+                point[1] / this.renderer.gl.canvas.height];
+    temp = temp.map(i => (i * 2.0) - 1.0);
 
+    // De-apply offset and scale
+    var offset = this.manager.state.graph_info.offset;
+    var scale = this.manager.state.graph_info.scale;
+    var local = [(temp[0] - offset[0]) / scale[0],
+                 (temp[1] + offset[1]) / scale[1]];
+
+    return local;
+  }
 }
 
 export default Interaction;

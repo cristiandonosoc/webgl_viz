@@ -5,17 +5,19 @@
 let direct_vs = `
 #version 300 es
 
-// Attributes
 in vec4 a_position_coord;
 
-// Uniforms
 uniform vec2 u_offset;
 uniform vec2 u_scale;
 uniform float u_point_size;
 
 void main() {
+  // Scale the position
+  vec4 scaled = a_position_coord * vec4(u_scale.xy, 1, 1);
   // We add the offset to the position
-  gl_Position = a_position_coord + vec4(u_offset.xy, 0, 0);
+  // gl_Position = a_position_coord + vec4(u_offset.xy, 0, 0);
+  // gl_Position = a_position_coord + vec4(u_offset.xy, 0, 0) + vec4(u_scale.xy, 0, 0);
+  gl_Position = scaled + vec4(u_offset.xy, 0, 0);
   gl_PointSize = u_point_size;
 }
 `;

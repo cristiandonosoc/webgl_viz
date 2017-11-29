@@ -30,6 +30,7 @@ class Renderer {
     this.local_program_info = twgl.createProgramInfo(this.gl, [
       AllShaders.GetVertexShader("direct"),
       AllShaders.GetFragmentShader("simple")]);
+    console.log(this.local_program_info);
     this.pixel_program_info = twgl.createProgramInfo(this.gl, [
       AllShaders.GetVertexShader("pixel"),
       AllShaders.GetFragmentShader("simple")]);
@@ -114,6 +115,7 @@ class Renderer {
     // Set the uniforms
     var uniforms = {
       u_offset: transforms.offset,
+      u_scale: transforms.scale,
       u_color: color
     };
     twgl.setUniforms(this.local_program_info, uniforms);
@@ -122,13 +124,13 @@ class Renderer {
     twgl.drawBufferInfo(this.gl, this.graph_buffer_info, this.gl.LINE_STRIP);
   }
 
+  /* DRAW LINE */
+
   DrawLinePixelSpace(p1: number[], p2: number[], color: number[]) {
     this.gl.useProgram(this.pixel_program_info.program);
     var new_pos = [p1[0], p1[1], p2[0], p2[1]];
-    // console.log(new_pos);
     twgl.setBuffersAndAttributes(this.gl, this.pixel_program_info, this.buffer_info);
     twgl.setAttribInfoBufferFromArray(this.gl, this.buffer_info.attribs.a_position_coord, new_pos);
-
 
     var uniforms = {
       u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
@@ -151,11 +153,14 @@ class Renderer {
 
     var uniforms = {
       u_offset: transforms.offset,
-      u_color: color
+      u_scale: transforms.scale,
+      u_color: color,
     };
     twgl.setUniforms(this.local_program_info, uniforms);
     twgl.drawBufferInfo(this.gl, this.buffer_info, this.gl.LINES);
   }
+
+  /* DRAW ICON */
 
   DrawIconPixelSpace(p1: number[], color: number[]) {
     if (!this.cross_texture) {
@@ -198,6 +203,7 @@ class Renderer {
 
     var uniforms = {
       u_offset: transform.offset,
+      u_scale: transform.scale,
       u_color: color,
       u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
       u_point_size: 10,

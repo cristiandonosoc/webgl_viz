@@ -279,6 +279,8 @@ var canvas_x_box = <HTMLInputElement> document.getElementById("canvas-x");
 var canvas_y_box = <HTMLInputElement> document.getElementById("canvas-y");
 var local_x_box = <HTMLInputElement> document.getElementById("local-x");
 var local_y_box = <HTMLInputElement> document.getElementById("local-y");
+var scale_x_box = <HTMLInputElement> document.getElementById("scale-x");
+var scale_y_box = <HTMLInputElement> document.getElementById("scale-y");
 
 function UpdateInfo() {
   offset_x_box.value = String(renderer.state.graph_info.offset[0]);
@@ -287,8 +289,8 @@ function UpdateInfo() {
   screen_y_box.value = String(renderer.interaction.state.mouse.screen[1]);
   canvas_x_box.value = String(renderer.interaction.state.mouse.canvas[0]);
   canvas_y_box.value = String(renderer.interaction.state.mouse.canvas[1]);
-  local_x_box.value =  String(renderer.interaction.state.mouse.local[0]);
-  local_y_box.value =  String(renderer.interaction.state.mouse.local[1]);
+  scale_x_box.value =  String(renderer.state.graph_info.scale[0]);
+  scale_y_box.value =  String(renderer.state.graph_info.scale[1]);
 }
 
 // We create a fast "game-loop"

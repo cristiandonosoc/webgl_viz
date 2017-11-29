@@ -45,7 +45,7 @@ class GraphManager {
   private CreateDefaults() {
     var graph_info = {
       offset: [0, 0],
-      scale: [0, 0],
+      scale: [1, 1],
       background_color: [1, 1, 1, 1],
       line_color: [0, 0, 0, 1],
       line_width: 1
