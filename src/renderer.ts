@@ -99,6 +99,19 @@ class Renderer {
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
   }
 
+  ChangeDimensions(dim_x: number[], dim_y: number[]) {
+    // We get the new scale
+    var scale = [2 / (dim_x[1] - dim_x[0]),
+                 2 / (dim_y[1] - dim_y[0])];
+    this.state.scale = scale;
+
+    // We get the offset by knowing that, without
+    // offset and scale, the bottom dim_xy is -1
+    var offset = [-1 - (dim_x[0] * scale[0]),
+                  -1 - (dim_y[0] * scale[1])];
+    this.state.offset = offset;
+  }
+
   /*************************************************
    * RENDERING FUNCTIONS
    *************************************************/

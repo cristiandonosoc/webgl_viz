@@ -5,11 +5,9 @@ import Interaction from "./interaction";
 import LabelManager from "./label_manager";
 import Renderer from "./renderer";
 
-// We mark twgl as a global
 var g_inf = 99999999;
 
 class GraphManager {
-
   canvas: HTMLCanvasElement;
 
   /* WebGL programs */
@@ -37,7 +35,7 @@ class GraphManager {
     this.CreateDefaults();
     this.renderer = new Renderer(this.canvas);
     this.interaction = new Interaction(this);
-    this.labels = new LabelManager(canvas);
+    this.labels = new LabelManager(this, canvas);
   }
 
   private CreateDefaults() {
@@ -66,6 +64,10 @@ class GraphManager {
     });
   }
 
+  ChangeDimensions(dim_x: number[], dim_y: number[]) {
+    this.renderer.ChangeDimensions(dim_x, dim_y);
+  }
+
   /*******************************************
    * DRAWING
    *******************************************/
@@ -92,7 +94,7 @@ class GraphManager {
       this.renderer.DrawIconLocalSpace(this.closest_point, AllColors.Get("purple"));
     }
 
-    this.labels.Update(this);
+    this.labels.Update();
   }
 }
 

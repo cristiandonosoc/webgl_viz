@@ -3,6 +3,7 @@ import GraphManager from "./graph_manager";
 import {RendererCanvasToLocal} from "./transforms";
 
 class LabelManager {
+  manager: GraphManager;
   labels: {
     x: {
       bottom: HTMLInputElement,
@@ -25,7 +26,8 @@ class LabelManager {
   scale_x_box: HTMLInputElement;
   scale_y_box: HTMLInputElement;
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(manager: GraphManager, canvas: HTMLCanvasElement) {
+    this.manager = manager;
     var graph_container = canvas.parentNode.parentNode;
 
     this.labels = {
@@ -58,14 +60,17 @@ class LabelManager {
   }
 
   private DimensionChange = (event: any) => {
-    console.log(this.labels.x.bottom.value,
-                this.labels.x.top.value,
-                this.labels.y.bottom.value,
-                this.labels.y.top.value);
+    // We calculate the new dimensions
+    var dim_x = [Number(this.labels.x.bottom.value),
+                 Number(this.labels.x.top.value)];
+    var dim_y = [Number(this.labels.y.bottom.value),
+                 Number(this.labels.y.top.value)];
+    this.manager.ChangeDimensions(dim_x, dim_y);
+    this.manager.Draw();
   };
 
-  Update(manager: GraphManager) {
-    var renderer = manager.renderer;
+  Update() {
+    var renderer = this.manager.renderer;
 
     // We transform the points
     // bottom-left
@@ -82,7 +87,7 @@ class LabelManager {
     this.labels.x.top.value = String(ttr[0]);
     this.labels.y.top.value = String(ttr[1]);
 
-    this.UpdateStats(manager);
+    this.UpdateStats(this.manager);
   }
 
   private UpdateStats(manager: GraphManager) {

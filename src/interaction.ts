@@ -182,26 +182,6 @@ class Interaction {
     }
   }
 
-  /**************************************************************
-   * HELPER UTILITIES
-   **************************************************************/
-
-  // private CanvasToLocal(point: number[]) {
-
-  //   // Local (variable space)
-  //   // Convert from pixels to 0.0 -> 1.0
-  //   var temp = [point[0] / this.renderer.gl.canvas.width,
-  //               point[1] / this.renderer.gl.canvas.height];
-  //   temp = temp.map(i => (i * 2.0) - 1.0);
-
-  //   // De-apply offset and scale
-  //   var offset = this.renderer.state.offset;
-  //   var scale = this.renderer.state.scale;
-  //   var local = [(temp[0] - offset[0]) / scale[0],
-  //                (temp[1] + offset[1]) / scale[1]];
-
-  //   return local;
-  // }
 }
 
 export default Interaction;
