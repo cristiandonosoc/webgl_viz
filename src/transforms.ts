@@ -50,7 +50,7 @@ function RendererLocalToCanvas(renderer: Renderer, point: Vec2) : Vec2 {
   return LocalToCanvas(dimensions, offset, scale, point);
 }
 
-function RendererRecalculateBounds(renderer: Renderer) : Bounds {
+function RendererCalculateBounds(renderer: Renderer) : Bounds {
   // We transform the points
   // bottom-left
   let tbl = RendererCanvasToLocal(renderer, new Vec2(0, 0));
@@ -58,12 +58,11 @@ function RendererRecalculateBounds(renderer: Renderer) : Bounds {
   let tr = new Vec2(renderer.gl.canvas.width, renderer.gl.canvas.height);
   let ttr = RendererCanvasToLocal(renderer, tr);
 
-  return new Bounds();
-
-
+  return Bounds.FromPoints(tbl.x, ttr.x, tbl.y, ttr.y);
 }
 
 export {CanvasToLocal}
 export {RendererCanvasToLocal}
 export {LocalToCanvas}
 export {RendererLocalToCanvas}
+export {RendererCalculateBounds}

@@ -2,6 +2,8 @@ import AllShaders from "./shaders";
 import {Bounds, Vec2} from "./vectors";
 import {Color} from "./colors";
 
+import {RendererCalculateBounds} from "./transforms";
+
 declare let twgl: any;
 let g_inf = 9999999999999999;   /* BIG NUMBER */
 
@@ -42,8 +44,9 @@ class Renderer {
   }
 
   set offset(new_offset: Vec2) {
+    console.log("offset");
     this._state.offset = new_offset;
-    // TODO(donosoc): Do bounds update
+    this._state.bounds = RendererCalculateBounds(this);
   }
 
   get scale() : Vec2 {
@@ -52,7 +55,7 @@ class Renderer {
 
   set scale(new_scale: Vec2) {
     this._state.scale = new_scale;
-    // TODO(donosoc): Do bounds update
+    this._state.bounds = RendererCalculateBounds(this);
   }
 
   get bounds() : Bounds {

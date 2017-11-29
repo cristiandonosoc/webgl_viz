@@ -72,24 +72,11 @@ class LabelManager {
 
   Update() {
     var renderer = this.manager.renderer;
-
-    // We transform the points
-    // bottom-left
-    let tbl = RendererCanvasToLocal(renderer, new Vec2(0, 0));
-    // top-right
-    let tr = new Vec2(renderer.gl.canvas.width, renderer.gl.canvas.height);
-    let ttr = RendererCanvasToLocal(renderer, tr);
-
-    this.labels.x.bottom.value = String(tbl.x);
-    this.labels.y.bottom.value = String(tbl.y);
-
-    this.labels.x.top.value = String(ttr.x);
-    this.labels.y.top.value = String(ttr.y);
-
     this.UpdateStats(this.manager);
   }
 
   private UpdateStats(manager: GraphManager) {
+    console.log("stats");
     this.screen_x_box.value = String(manager.interaction.state.mouse.screen.x);
     this.screen_y_box.value = String(manager.interaction.state.mouse.screen.y);
     this.canvas_x_box.value = String(manager.interaction.state.mouse.canvas.x);
@@ -98,6 +85,12 @@ class LabelManager {
     this.offset_y_box.value = String(manager.renderer.offset.y);
     this.scale_x_box.value =  String(manager.renderer.scale.x);
     this.scale_y_box.value =  String(manager.renderer.scale.y);
+
+    // Labels
+    this.labels.x.bottom.value = String(manager.renderer.bounds.x.first);
+    this.labels.x.top.value = String(manager.renderer.bounds.x.last);
+    this.labels.y.bottom.value = String(manager.renderer.bounds.y.first);
+    this.labels.y.top.value = String(manager.renderer.bounds.y.last);
   }
 
 
