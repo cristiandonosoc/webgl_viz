@@ -1,6 +1,7 @@
 import GraphManager from "./graph_manager";
 
 import {RendererCanvasToLocal} from "./transforms";
+import {Vec2} from "./vectors";
 
 class LabelManager {
   manager: GraphManager;
@@ -61,10 +62,10 @@ class LabelManager {
 
   private DimensionChange = (event: any) => {
     // We calculate the new dimensions
-    var dim_x = [Number(this.labels.x.bottom.value),
-                 Number(this.labels.x.top.value)];
-    var dim_y = [Number(this.labels.y.bottom.value),
-                 Number(this.labels.y.top.value)];
+    let dim_x = new Vec2(Number(this.labels.x.bottom.value),
+                         Number(this.labels.x.top.value));
+    let dim_y = new Vec2(Number(this.labels.y.bottom.value),
+                         Number(this.labels.y.top.value));
     this.manager.ChangeDimensions(dim_x, dim_y);
     this.manager.Draw();
   };
@@ -74,31 +75,29 @@ class LabelManager {
 
     // We transform the points
     // bottom-left
-    var bl = [0, 0];
-    var tbl = RendererCanvasToLocal(renderer, bl);
+    let tbl = RendererCanvasToLocal(renderer, new Vec2(0, 0));
     // top-right
-    var tr = [renderer.gl.canvas.width, renderer.gl.canvas.height];
-    var ttr = RendererCanvasToLocal(renderer, tr);
+    let tr = new Vec2(renderer.gl.canvas.width, renderer.gl.canvas.height);
+    let ttr = RendererCanvasToLocal(renderer, tr);
 
-    var offset = renderer.state.offset;
-    this.labels.x.bottom.value = String(tbl[0]);
-    this.labels.y.bottom.value = String(tbl[1]);
+    this.labels.x.bottom.value = String(tbl.x);
+    this.labels.y.bottom.value = String(tbl.y);
 
-    this.labels.x.top.value = String(ttr[0]);
-    this.labels.y.top.value = String(ttr[1]);
+    this.labels.x.top.value = String(ttr.x);
+    this.labels.y.top.value = String(ttr.y);
 
     this.UpdateStats(this.manager);
   }
 
   private UpdateStats(manager: GraphManager) {
-    this.screen_x_box.value = String(manager.interaction.state.mouse.screen[0]);
-    this.screen_y_box.value = String(manager.interaction.state.mouse.screen[1]);
-    this.canvas_x_box.value = String(manager.interaction.state.mouse.canvas[0]);
-    this.canvas_y_box.value = String(manager.interaction.state.mouse.canvas[1]);
-    this.offset_x_box.value = String(manager.renderer.state.offset[0]);
-    this.offset_y_box.value = String(manager.renderer.state.offset[1]);
-    this.scale_x_box.value =  String(manager.renderer.state.scale[0]);
-    this.scale_y_box.value =  String(manager.renderer.state.scale[1]);
+    this.screen_x_box.value = String(manager.interaction.state.mouse.screen.x);
+    this.screen_y_box.value = String(manager.interaction.state.mouse.screen.y);
+    this.canvas_x_box.value = String(manager.interaction.state.mouse.canvas.x);
+    this.canvas_y_box.value = String(manager.interaction.state.mouse.canvas.y);
+    this.offset_x_box.value = String(manager.renderer.state.offset.x);
+    this.offset_y_box.value = String(manager.renderer.state.offset.y);
+    this.scale_x_box.value =  String(manager.renderer.state.scale.x);
+    this.scale_y_box.value =  String(manager.renderer.state.scale.y);
   }
 
 

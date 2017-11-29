@@ -1,4 +1,5 @@
 import AllShaders from "./shaders";
+import {Vec2} from "./vectors";
 
 declare var twgl: any;
 
@@ -8,8 +9,8 @@ class Renderer {
   gl: WebGL2RenderingContext;
 
   state: {
-    offset: number[],
-    scale: number[],
+    offset: Vec2,
+    scale: Vec2,
   };
 
   // "Normal" programs
@@ -27,8 +28,8 @@ class Renderer {
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.state = {
-      offset: [0, 0],
-      scale: [1, 1],
+      offset: new Vec2(0, 0),
+      scale: new Vec2(1, 1),
     };
     this.gl = canvas.getContext("webgl2");
     this.SetupWebGL();
@@ -99,16 +100,16 @@ class Renderer {
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
   }
 
-  ChangeDimensions(dim_x: number[], dim_y: number[]) {
+  ChangeDimensions(dim_x: Vec2, dim_y: Vec2) {
     // We get the new scale
-    var scale = [2 / (dim_x[1] - dim_x[0]),
-                 2 / (dim_y[1] - dim_y[0])];
+    var scale = new Vec2(2 / (dim_x.last - dim_x.first),
+                         2 / (dim_y.last - dim_y.first));
     this.state.scale = scale;
 
     // We get the offset by knowing that, without
     // offset and scale, the bottom dim_xy is -1
-    var offset = [-1 - (dim_x[0] * scale[0]),
-                  -1 - (dim_y[0] * scale[1])];
+    var offset = new Vec2(-1 - (dim_x.first * scale.x),
+                          -1 - (dim_y.first * scale.x));
     this.state.offset = offset;
   }
 
@@ -135,8 +136,8 @@ class Renderer {
 
     // Set the uniforms
     var uniforms = {
-      u_offset: this.state.offset,
-      u_scale: this.state.scale,
+      u_offset: this.state.offset.AsArray(),
+      u_scale: this.state.scale.AsArray(),
       u_color: color
     };
     twgl.setUniforms(this.local_program_info, uniforms);
@@ -147,9 +148,9 @@ class Renderer {
 
   /* DRAW LINE */
 
-  DrawLinePixelSpace(p1: number[], p2: number[], color: number[]) {
+  DrawLinePixelSpace(p1: Vec2, p2: Vec2, color: number[]) {
     this.gl.useProgram(this.pixel_program_info.program);
-    var new_pos = [p1[0], p1[1], p2[0], p2[1]];
+    var new_pos = [p1.x, p1.y, p2.x, p2.y];
     twgl.setBuffersAndAttributes(this.gl, this.pixel_program_info, this.buffer_info);
     twgl.setAttribInfoBufferFromArray(this.gl, this.buffer_info.attribs.a_position_coord, new_pos);
 
@@ -163,18 +164,18 @@ class Renderer {
     twgl.drawBufferInfo(this.gl, this.buffer_info, this.gl.LINES);
   }
 
-  DrawLineLocalSpace(p1: number[], p2: number[], color: number[]) {
+  DrawLineLocalSpace(p1: Vec2, p2: Vec2, color: number[]) {
     this.gl.useProgram(this.local_program_info.program);
     twgl.setBuffersAndAttributes(this.gl,
                                  this.local_program_info,
                                  this.buffer_info);
-    var new_pos = [p1[0], p1[1], p2[0], p2[1]];
+    var new_pos = [p1.x, p1.y, p2.x, p2.y];
     twgl.setAttribInfoBufferFromArray(this.gl,
       this.buffer_info.attribs.a_position_coord, new_pos);
 
     var uniforms = {
-      u_offset: this.state.offset,
-      u_scale: this.state.scale,
+      u_offset: this.state.offset.AsArray(),
+      u_scale: this.state.scale.AsArray(),
       u_color: color,
     };
     twgl.setUniforms(this.local_program_info, uniforms);
@@ -183,7 +184,7 @@ class Renderer {
 
   /* DRAW ICON */
 
-  DrawIconPixelSpace(p1: number[], color: number[]) {
+  DrawIconPixelSpace(point: Vec2, color: Vec2) {
     if (!this.cross_texture) {
       return;
     }
@@ -193,9 +194,8 @@ class Renderer {
     twgl.setBuffersAndAttributes(this.gl,
                                  this.pixel_ps_program_info,
                                  this.buffer_info);
-    var new_pos = [p1[0], p1[1]];
     twgl.setAttribInfoBufferFromArray(this.gl,
-      this.buffer_info.attribs.a_position_coord, new_pos);
+      this.buffer_info.attribs.a_position_coord, point.AsArray());
 
     var uniforms = {
       u_color: color,
@@ -206,10 +206,10 @@ class Renderer {
     twgl.setUniforms(this.pixel_ps_program_info, uniforms);
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.cross_texture);
-    this.gl.drawArrays(this.gl.POINTS, 0, new_pos.length / 2);
+    this.gl.drawArrays(this.gl.POINTS, 0, 1);
   }
 
-  DrawIconLocalSpace(point: number[], color: number[]) {
+  DrawIconLocalSpace(point: Vec2, color: number[]) {
     if (!this.cross_texture) {
       return;
     }
@@ -220,11 +220,11 @@ class Renderer {
                                  this.buffer_info);
     // We update the point
     twgl.setAttribInfoBufferFromArray(this.gl,
-      this.buffer_info.attribs.a_position_coord, point);
+      this.buffer_info.attribs.a_position_coord, point.AsArray());
 
     var uniforms = {
-      u_offset: this.state.offset,
-      u_scale: this.state.scale,
+      u_offset: this.state.offset.AsArray(),
+      u_scale: this.state.scale.AsArray(),
       u_color: color,
       u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
       u_point_size: 10,

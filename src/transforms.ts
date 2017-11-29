@@ -1,25 +1,26 @@
 import Renderer from "./renderer";
+import {Vec2} from "./vectors";
 
 /* Canvas -> Local */
 
-function CanvasToLocal(dimensions: number[], offset: number[], scale: number[],
-                              point: number[]) : number[] {
+function CanvasToLocal(dimensions: Vec2, offset: Vec2, scale: Vec2,
+                       point: Vec2) : Vec2 {
 
   // Local (variable space)
   // Convert from pixels to 0.0 -> 1.0
-  var temp = [point[0] / dimensions[0],
-              point[1] / dimensions[1]];
+  var temp = [point.x / dimensions.x,
+              point.y / dimensions.y];
   temp = temp.map(i => (i * 2.0) - 1.0);
 
   // De-apply offset and scale
-  var local = [(temp[0] - offset[0]) / scale[0],
-               (temp[1] - offset[1]) / scale[1]];
+  var local = new Vec2((temp[0] - offset.x) / scale.x,
+                       (temp[1] - offset.y) / scale.y);
   return local;
 };
 
-function RendererCanvasToLocal(renderer: Renderer, point: number[]) : number[] {
-  var dimensions = [renderer.gl.canvas.width,
-                    renderer.gl.canvas.height];
+function RendererCanvasToLocal(renderer: Renderer, point: Vec2) : Vec2 {
+  var dimensions = new Vec2(renderer.gl.canvas.width,
+                            renderer.gl.canvas.height);
   var offset = renderer.state.offset;
   var scale = renderer.state.scale;
   return CanvasToLocal(dimensions, offset, scale, point);
@@ -27,22 +28,23 @@ function RendererCanvasToLocal(renderer: Renderer, point: number[]) : number[] {
 
 /* Local -> Canvas */
 
-function LocalToCanvas(dimensions: number[], offset: number[], scale: number[], point: number[]) : number[] {
+function LocalToCanvas(dimensions: Vec2, offset: Vec2, scale: Vec2,
+                       point: Vec2) : Vec2 {
   // Re-apply offset and scale
-  var temp = [(point[0] * scale[0]) + offset[0],
-              (point[1] * scale[1]) + offset[1]];
+  var temp = [(point.x * scale.x) + offset.x,
+              (point.y * scale.y) + offset.y];
   // [-1, -1] -> [0, 1]
   temp = temp.map(i => (i + 1.0) / 2.0);
 
   // Multiply by the dimensions
-  var canvas_pos = [temp[0] * dimensions[0],
-                    temp[1] * dimensions[1]];
+  var canvas_pos = new Vec2(temp[0] * dimensions.x,
+                            temp[1] * dimensions.y);
   return canvas_pos;
 }
 
-function RendererLocalToCanvas(renderer: Renderer, point: number[]) : number[] {
-  var dimensions = [renderer.gl.canvas.width,
-                    renderer.gl.canvas.height];
+function RendererLocalToCanvas(renderer: Renderer, point: Vec2) : Vec2 {
+  var dimensions = new Vec2(renderer.gl.canvas.width,
+                            renderer.gl.canvas.height);
   var offset = renderer.state.offset;
   var scale = renderer.state.scale;
   return LocalToCanvas(dimensions, offset, scale, point);

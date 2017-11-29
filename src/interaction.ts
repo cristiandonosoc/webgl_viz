@@ -3,6 +3,7 @@ import Renderer from "./renderer";
 
 import {RendererCanvasToLocal} from "./transforms";
 import {TempAddEventListener} from "./type_fixes";
+import {Vec2} from "./vectors";
 
 /**
  * Interaction
@@ -18,14 +19,14 @@ class Interaction {
   renderer: Renderer;
   state: {
     temp: {
-      last_pos: number[],
-      current_pos: number[]
+      last_pos: Vec2,
+      current_pos: Vec2
     },
     mouse: {
-      local: number[],
-      canvas: number[],
-      screen: number[],
-      wheel_factor: number[],
+      local: Vec2,
+      canvas: Vec2,
+      screen: Vec2,
+      wheel_factor: Vec2,
     }
     dragging: boolean
   };
@@ -36,14 +37,14 @@ class Interaction {
 
     this.state = {
       temp: {
-        last_pos: [0, 0],
-        current_pos: [0, 0]
+        last_pos: new Vec2(0, 0),
+        current_pos: new Vec2(0, 0),
       },
       mouse: {
-        local: [0, 0],
-        canvas: [0, 0],
-        screen: [0, 0],
-        wheel_factor: [0.001, 0.001],
+        local: new Vec2(0, 0),
+        canvas: new Vec2(0, 0),
+        screen: new Vec2(0, 0),
+        wheel_factor: new Vec2(0.001, 0.001),
       },
       dragging: false
     };
@@ -67,8 +68,8 @@ class Interaction {
 
   private MouseDown = (event: any) => {
     this.state.dragging = true;
-    this.state.mouse.screen = [event.screenX, event.screenY];
-    this.state.mouse.canvas = [event.clientX, event.clientY];
+    this.state.mouse.screen.Set(event.screenX, event.screenY);
+    this.state.mouse.canvas.Set(event.clientX, event.clientY);
     this.PostChange();
   }
 
@@ -87,8 +88,8 @@ class Interaction {
 
   private MouseWheel = (event: any) => {
     var delta = -event.deltaY;
-    this.renderer.state.scale[0] += delta * this.state.mouse.wheel_factor[0];
-    this.renderer.state.scale[1] += delta * this.state.mouse.wheel_factor[1];
+    this.renderer.state.scale.x += delta * this.state.mouse.wheel_factor.x;
+    this.renderer.state.scale.y += delta * this.state.mouse.wheel_factor.y;
     this.PostChange();
     // Prevent default browser behaviour
     return false;
@@ -107,17 +108,17 @@ class Interaction {
   private ProcessMove(event: any) {
     // We log the variables
     // Screen
-    var last_pos = this.state.mouse.screen;
-    var current_pos = [event.screenX, event.screenY];
+    let last_pos = this.state.mouse.screen;
+    let current_pos = new Vec2(event.screenX, event.screenY);
     this.state.mouse.screen = current_pos;
 
     this.state.temp.last_pos = last_pos;
     this.state.temp.current_pos = current_pos;
 
     // Canvas relative
-    var bounds = this.renderer.canvas.getBoundingClientRect();
-    var canvas_pos = [event.clientX - bounds.left,
-                      event.clientY - bounds.top];
+    let bounds = this.renderer.canvas.getBoundingClientRect();
+    let canvas_pos = new Vec2(event.clientX - bounds.left,
+                               event.clientY - bounds.top);
     this.state.mouse.canvas = canvas_pos;
 
     // var local = this.CanvasToLocal(canvas_pos);
@@ -127,26 +128,26 @@ class Interaction {
   }
 
   private ProcessDrag(event: any) {
-    var last_pos = this.state.temp.last_pos;
-    var current_pos = this.state.temp.current_pos;
-    var diff = [current_pos[0] - last_pos[0],
-                current_pos[1] - last_pos[1]];
-    var offset = [diff[0] / this.renderer.gl.canvas.width,
-                  diff[1] / this.renderer.gl.canvas.height];
+    let last_pos = this.state.temp.last_pos;
+    let current_pos = this.state.temp.current_pos;
+    let diff = new Vec2(current_pos.x - last_pos.x,
+                        current_pos.y - last_pos.y);
+    let offset = new Vec2(diff.x / this.renderer.gl.canvas.width,
+                           diff.y / this.renderer.gl.canvas.height);
     // We invert the y-axis
-    offset[1] *= -1;
+    offset.y *= -1;
 
     // We updathe the date
-    this.renderer.state.offset[0] += offset[0];
-    this.renderer.state.offset[1] += offset[1];
+    this.renderer.state.offset.x += offset.x;
+    this.renderer.state.offset.y += offset.y;
   }
 
-  private SearchForClosestPoint(mouse_pos: number[]) {
+  private SearchForClosestPoint(mouse_pos: Vec2) {
     var len = this.manager.custom_points.length;
-    if (mouse_pos[0] <= this.manager.custom_points[0][0]) {
+    if (mouse_pos.x <= this.manager.custom_points[0].x) {
       return this.manager.custom_points[0];
     }
-    if (mouse_pos[0] >= this.manager.custom_points[len-1][0]) {
+    if (mouse_pos.x >= this.manager.custom_points[len-1].x) {
       return this.manager.custom_points[len-1];
     }
 
@@ -156,9 +157,9 @@ class Interaction {
 
     while (min_index < max_index) {
       var half = Math.floor((min_index + max_index) / 2);
-      var val = this.manager.custom_points[half][0];
+      var val = this.manager.custom_points[half].x;
 
-      if (val > mouse_pos[0]) {
+      if (val > mouse_pos.x) {
         if (max_index == half) { break; }
         max_index = half;
       } else {
@@ -172,8 +173,8 @@ class Interaction {
     var max_point = this.manager.custom_points[max_index];
 
     // We want to return the closest (x-wise)
-    var dist1 = Math.abs(min_point[0] - mouse_pos[0]);
-    var dist2 = Math.abs(max_point[0] - mouse_pos[0]);
+    var dist1 = Math.abs(min_point.x - mouse_pos.x);
+    var dist2 = Math.abs(max_point.x - mouse_pos.x);
 
     if (dist1 < dist2) {
       return min_point;
@@ -185,4 +186,3 @@ class Interaction {
 }
 
 export default Interaction;
-
