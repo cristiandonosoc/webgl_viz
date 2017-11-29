@@ -1,3 +1,5 @@
+import Renderer from "./renderer";
+
 class LabelManager {
   labels: {
     x: {
@@ -25,8 +27,8 @@ class LabelManager {
     };
   }
 
-  Update(transforms: any) {
-    var offset = transforms.offset;
+  Update(renderer: Renderer) {
+    var offset = renderer.state.offset;
     this.labels.x.bottom.value = String(-1 - offset[0]);
     this.labels.x.top.value = String(1 - offset[0]);
 

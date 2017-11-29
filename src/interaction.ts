@@ -80,8 +80,8 @@ class Interaction {
 
   private MouseWheel = (event: any) => {
     var delta = -event.deltaY;
-    this.manager.state.graph_info.scale[0] += delta * this.state.mouse.wheel_factor[0];
-    this.manager.state.graph_info.scale[1] += delta * this.state.mouse.wheel_factor[1];
+    this.renderer.state.scale[0] += delta * this.state.mouse.wheel_factor[0];
+    this.renderer.state.scale[1] += delta * this.state.mouse.wheel_factor[1];
 
     // Prevent default browser behaviour
     return false;
@@ -124,8 +124,8 @@ class Interaction {
     offset[1] *= -1;
 
     // We updathe the date
-    this.manager.state.graph_info.offset[0] += offset[0];
-    this.manager.state.graph_info.offset[1] += offset[1];
+    this.renderer.state.offset[0] += offset[0];
+    this.renderer.state.offset[1] += offset[1];
   }
 
   private SearchForClosestPoint(mouse_pos: number[]) {
@@ -182,8 +182,8 @@ class Interaction {
     temp = temp.map(i => (i * 2.0) - 1.0);
 
     // De-apply offset and scale
-    var offset = this.manager.state.graph_info.offset;
-    var scale = this.manager.state.graph_info.scale;
+    var offset = this.renderer.state.offset;
+    var scale = this.renderer.state.scale;
     var local = [(temp[0] - offset[0]) / scale[0],
                  (temp[1] + offset[1]) / scale[1]];
 

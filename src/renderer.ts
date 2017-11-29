@@ -7,6 +7,11 @@ class Renderer {
   canvas: HTMLCanvasElement;
   gl: WebGL2RenderingContext;
 
+  state: {
+    offset: number[],
+    scale: number[],
+  };
+
   // "Normal" programs
   local_program_info: any;
   pixel_program_info: any;
@@ -21,6 +26,10 @@ class Renderer {
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
+    this.state = {
+      offset: [0, 0],
+      scale: [1, 1],
+    };
     this.gl = canvas.getContext("webgl2");
     this.SetupWebGL();
     this.SetupTextures();
@@ -105,7 +114,7 @@ class Renderer {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 
-  DrawGraphLocalSpace(transforms: any, color: number[]) {
+  DrawGraphLocalSpace(color: number[]) {
     // Set shader program
     this.gl.useProgram(this.local_program_info.program);
 
@@ -114,8 +123,8 @@ class Renderer {
 
     // Set the uniforms
     var uniforms = {
-      u_offset: transforms.offset,
-      u_scale: transforms.scale,
+      u_offset: this.state.offset,
+      u_scale: this.state.scale,
       u_color: color
     };
     twgl.setUniforms(this.local_program_info, uniforms);
@@ -142,7 +151,7 @@ class Renderer {
     twgl.drawBufferInfo(this.gl, this.buffer_info, this.gl.LINES);
   }
 
-  DrawLineLocalSpace(p1: number[], p2: number[], transforms: any, color: number[]) {
+  DrawLineLocalSpace(p1: number[], p2: number[], color: number[]) {
     this.gl.useProgram(this.local_program_info.program);
     twgl.setBuffersAndAttributes(this.gl,
                                  this.local_program_info,
@@ -152,8 +161,8 @@ class Renderer {
       this.buffer_info.attribs.a_position_coord, new_pos);
 
     var uniforms = {
-      u_offset: transforms.offset,
-      u_scale: transforms.scale,
+      u_offset: this.state.offset,
+      u_scale: this.state.scale,
       u_color: color,
     };
     twgl.setUniforms(this.local_program_info, uniforms);
@@ -188,7 +197,7 @@ class Renderer {
     this.gl.drawArrays(this.gl.POINTS, 0, new_pos.length / 2);
   }
 
-  DrawIconLocalSpace(point: number[], transform: any, color: number[]) {
+  DrawIconLocalSpace(point: number[], color: number[]) {
     if (!this.cross_texture) {
       return;
     }
@@ -202,8 +211,8 @@ class Renderer {
       this.buffer_info.attribs.a_position_coord, point);
 
     var uniforms = {
-      u_offset: transform.offset,
-      u_scale: transform.scale,
+      u_offset: this.state.offset,
+      u_scale: this.state.scale,
       u_color: color,
       u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
       u_point_size: 10,

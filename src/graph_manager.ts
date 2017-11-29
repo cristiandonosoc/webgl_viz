@@ -22,10 +22,8 @@ class GraphManager {
   // Internal state of the renderer
   state: {
     graph_info: {
-      offset: number[],                 /* size = 2 */
-      scale: number[],                  /* size = 2 */
-      background_color: number[],       /* size = 2 */
-      line_color: number[],             /* size = 2 */
+      background_color: number[],
+      line_color: number[],
       line_width: number
     },
   };
@@ -44,20 +42,9 @@ class GraphManager {
 
   private CreateDefaults() {
     var graph_info = {
-      offset: [0, 0],
-      scale: [1, 1],
       background_color: [1, 1, 1, 1],
       line_color: [0, 0, 0, 1],
       line_width: 1
-    };
-
-    var interaction = {
-      mouse: {
-        local: [0, 0],
-        canvas: [0, 0],
-        screen: [0, 0]
-      },
-      dragging: false
     };
 
     this.state = {
@@ -90,11 +77,11 @@ class GraphManager {
     // Clear Canvas
     this.renderer.Clear(this.state.graph_info.background_color);
 
-    this.renderer.DrawGraphLocalSpace(this.state.graph_info, this.state.graph_info.line_color);
+    this.renderer.DrawGraphLocalSpace(this.state.graph_info.line_color);
 
     // Draw x/y Axis
-    this.renderer.DrawLineLocalSpace([-g_inf, 0], [g_inf, 0], this.state.graph_info, AllColors.Get("green"));
-    this.renderer.DrawLineLocalSpace([0, -g_inf], [0, g_inf], this.state.graph_info, AllColors.Get("green"));
+    this.renderer.DrawLineLocalSpace([-g_inf, 0], [g_inf, 0], AllColors.Get("green"));
+    this.renderer.DrawLineLocalSpace([0, -g_inf], [0, g_inf], AllColors.Get("green"));
 
     // Draw mouse vertical line
     // this.DrawLinePixelSpace([10, 10], [200, 200]);
@@ -102,11 +89,10 @@ class GraphManager {
     this.renderer.DrawLinePixelSpace([canvas_pos[0], -g_inf], [canvas_pos[0], g_inf], AllColors.Get("orange"));
 
     if (this.closest_point) {
-      this.renderer.DrawIconLocalSpace(this.closest_point, this.state.graph_info,
-        AllColors.Get("purple"));
+      this.renderer.DrawIconLocalSpace(this.closest_point, AllColors.Get("purple"));
     }
 
-    this.labels.Update(this.state.graph_info);
+    this.labels.Update(this.renderer);
   }
 }
 
