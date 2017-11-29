@@ -73,7 +73,7 @@ class Renderer {
     // We get the offset by knowing that, without
     // offset and scale, the bottom dim_xy is -1
     let offset = new Vec2(-1 - (new_bounds.x.first * scale.x),
-                          -1 - (new_bounds.y.first * scale.x));
+                          -1 - (new_bounds.y.first * scale.y));
     this._state.offset = offset;
   }
 
