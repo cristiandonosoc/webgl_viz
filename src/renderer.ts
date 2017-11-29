@@ -39,7 +39,6 @@ class Renderer {
     this.local_program_info = twgl.createProgramInfo(this.gl, [
       AllShaders.GetVertexShader("direct"),
       AllShaders.GetFragmentShader("simple")]);
-    console.log(this.local_program_info);
     this.pixel_program_info = twgl.createProgramInfo(this.gl, [
       AllShaders.GetVertexShader("pixel"),
       AllShaders.GetFragmentShader("simple")]);
