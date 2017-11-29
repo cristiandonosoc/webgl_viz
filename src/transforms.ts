@@ -1,5 +1,5 @@
 import {Renderer} from "./renderer";
-import {Vec2} from "./vectors";
+import {Bounds, Vec2} from "./vectors";
 
 /* Canvas -> Local */
 
@@ -21,8 +21,8 @@ function CanvasToLocal(dimensions: Vec2, offset: Vec2, scale: Vec2,
 function RendererCanvasToLocal(renderer: Renderer, point: Vec2) : Vec2 {
   var dimensions = new Vec2(renderer.gl.canvas.width,
                             renderer.gl.canvas.height);
-  var offset = renderer.state.offset;
-  var scale = renderer.state.scale;
+  var offset = renderer.offset;
+  var scale = renderer.scale;
   return CanvasToLocal(dimensions, offset, scale, point);
 }
 
@@ -45,9 +45,22 @@ function LocalToCanvas(dimensions: Vec2, offset: Vec2, scale: Vec2,
 function RendererLocalToCanvas(renderer: Renderer, point: Vec2) : Vec2 {
   var dimensions = new Vec2(renderer.gl.canvas.width,
                             renderer.gl.canvas.height);
-  var offset = renderer.state.offset;
-  var scale = renderer.state.scale;
+  var offset = renderer.offset;
+  var scale = renderer.scale;
   return LocalToCanvas(dimensions, offset, scale, point);
+}
+
+function RendererRecalculateBounds(renderer: Renderer) : Bounds {
+  // We transform the points
+  // bottom-left
+  let tbl = RendererCanvasToLocal(renderer, new Vec2(0, 0));
+  // top-right
+  let tr = new Vec2(renderer.gl.canvas.width, renderer.gl.canvas.height);
+  let ttr = RendererCanvasToLocal(renderer, tr);
+
+  return new Bounds();
+
+
 }
 
 export {CanvasToLocal}

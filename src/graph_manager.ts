@@ -65,9 +65,6 @@ class GraphManager {
     });
   }
 
-  ChangeDimensions(dim_x: Vec2, dim_y: Vec2) {
-    this.renderer.ChangeDimensions(dim_x, dim_y);
-  }
 
   /*******************************************
    * DRAWING

@@ -1,7 +1,7 @@
 import GraphManager from "./graph_manager";
 
 import {RendererCanvasToLocal} from "./transforms";
-import {Vec2} from "./vectors";
+import {Bounds, Vec2} from "./vectors";
 
 class LabelManager {
   manager: GraphManager;
@@ -66,7 +66,7 @@ class LabelManager {
                          Number(this.labels.x.top.value));
     let dim_y = new Vec2(Number(this.labels.y.bottom.value),
                          Number(this.labels.y.top.value));
-    this.manager.ChangeDimensions(dim_x, dim_y);
+    this.manager.renderer.bounds = Bounds.FromVecs(dim_x, dim_y);
     this.manager.Draw();
   };
 
@@ -94,10 +94,10 @@ class LabelManager {
     this.screen_y_box.value = String(manager.interaction.state.mouse.screen.y);
     this.canvas_x_box.value = String(manager.interaction.state.mouse.canvas.x);
     this.canvas_y_box.value = String(manager.interaction.state.mouse.canvas.y);
-    this.offset_x_box.value = String(manager.renderer.state.offset.x);
-    this.offset_y_box.value = String(manager.renderer.state.offset.y);
-    this.scale_x_box.value =  String(manager.renderer.state.scale.x);
-    this.scale_y_box.value =  String(manager.renderer.state.scale.y);
+    this.offset_x_box.value = String(manager.renderer.offset.x);
+    this.offset_y_box.value = String(manager.renderer.offset.y);
+    this.scale_x_box.value =  String(manager.renderer.scale.x);
+    this.scale_y_box.value =  String(manager.renderer.scale.y);
   }
 
 

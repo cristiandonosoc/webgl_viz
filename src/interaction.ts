@@ -87,9 +87,11 @@ class Interaction {
   }
 
   private MouseWheel = (event: any) => {
-    var delta = -event.deltaY;
-    this.renderer.state.scale.x += delta * this.state.mouse.wheel_factor.x;
-    this.renderer.state.scale.y += delta * this.state.mouse.wheel_factor.y;
+    let delta = -event.deltaY;
+    let scale_change = new Vec2(delta * this.state.mouse.wheel_factor.x,
+                                delta * this.state.mouse.wheel_factor.y);
+    this.renderer.scale = Vec2.Sum(this.renderer.scale, scale_change);
+
     this.PostChange();
     // Prevent default browser behaviour
     return false;
@@ -137,9 +139,7 @@ class Interaction {
     // We invert the y-axis
     offset.y *= -1;
 
-    // We updathe the date
-    this.renderer.state.offset.x += offset.x;
-    this.renderer.state.offset.y += offset.y;
+    this.renderer.offset = Vec2.Sum(this.renderer.offset, offset);
   }
 
   private SearchForClosestPoint(mouse_pos: Vec2) {

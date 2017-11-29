@@ -2,6 +2,10 @@ class Vec2 {
   x: number;
   y: number;
 
+  /*********************
+   * GETTERS ALIASES
+   *********************/
+
   get first() : number {
     return this.x;
   }
@@ -23,6 +27,31 @@ class Vec2 {
   }
 
 
+  static Sum(v1: Vec2, v2: Vec2) : Vec2 {
+    return new Vec2(v1.x + v2.x,
+                    v1.y + v2.y);
+  }
+}
+
+class Bounds {
+  x: Vec2
+  y: Vec2
+
+  static FromPoints(x1: number, x2: number, y1: number, y2: number) : Bounds {
+    let b = new Bounds();
+    b.x = new Vec2(x1, x2);
+    b.y = new Vec2(y1, y2);
+    return b;
+  }
+
+  static FromVecs(x: Vec2, y: Vec2) : Bounds {
+    let b = new Bounds();
+    b.x = x;
+    b.y = y;
+    return b;
+  }
+
 }
 
 export {Vec2}
+export {Bounds}

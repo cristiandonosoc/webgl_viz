@@ -1,9 +1,9 @@
 import AllShaders from "./shaders";
-import {Vec2} from "./vectors";
+import {Bounds, Vec2} from "./vectors";
 import {Color} from "./colors";
 
-declare var twgl: any;
-var g_inf = 9999999999999999;   /* BIG NUMBER */
+declare let twgl: any;
+let g_inf = 9999999999999999;   /* BIG NUMBER */
 
 enum DrawSpace {
   LOCAL,
@@ -15,7 +15,8 @@ class Renderer {
   canvas: HTMLCanvasElement;
   gl: WebGL2RenderingContext;
 
-  state: {
+  private _state: {
+    bounds: Bounds,
     offset: Vec2,
     scale: Vec2,
   };
@@ -32,9 +33,51 @@ class Renderer {
 
   cross_texture: any;
 
+  /*************************************************
+   * GETTERS/SETTERS
+   *************************************************/
+
+  get offset() : Vec2 {
+    return this._state.offset;
+  }
+
+  set offset(new_offset: Vec2) {
+    this._state.offset = new_offset;
+    // TODO(donosoc): Do bounds update
+  }
+
+  get scale() : Vec2 {
+    return this._state.scale;
+  }
+
+  set scale(new_scale: Vec2) {
+    this._state.scale = new_scale;
+    // TODO(donosoc): Do bounds update
+  }
+
+  get bounds() : Bounds {
+    return this._state.bounds;
+  }
+
+  set bounds(new_bounds: Bounds) {
+    this._state.bounds = new_bounds;
+
+    // We get the new scale
+    let scale = new Vec2(2 / (new_bounds.x.last - new_bounds.x.first),
+                         2 / (new_bounds.y.last - new_bounds.y.first));
+    this._state.scale = scale;
+
+    // We get the offset by knowing that, without
+    // offset and scale, the bottom dim_xy is -1
+    let offset = new Vec2(-1 - (new_bounds.x.first * scale.x),
+                          -1 - (new_bounds.y.first * scale.x));
+    this._state.offset = offset;
+  }
+
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    this.state = {
+    this._state = {
+      bounds: Bounds.FromPoints(/* x */ -1, 1, /* y */ -1, 1),
       offset: new Vec2(0, 0),
       scale: new Vec2(1, 1),
     };
@@ -59,7 +102,7 @@ class Renderer {
       AllShaders.GetFragmentShader("point_sprite")]);
 
     // We create the overlay buffers
-    var arrays = {
+    let arrays = {
       a_position_coord: Array<number>(4)
     };
     // this.pixel_buffer_info = twgl.createBufferInfoFromArrays(this.gl, arrays);
@@ -96,7 +139,7 @@ class Renderer {
 
   AddGraph(points: number[]) {
     // We set the WebGL points
-    var arrays = {
+    let arrays = {
       a_position_coord: points
     };
     this.graph_buffer_info = twgl.createBufferInfoFromArrays(this.gl, arrays);
@@ -105,19 +148,6 @@ class Renderer {
   ResizeCanvas() {
     twgl.resizeCanvasToDisplaySize(this.gl.canvas);
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
-  }
-
-  ChangeDimensions(dim_x: Vec2, dim_y: Vec2) {
-    // We get the new scale
-    var scale = new Vec2(2 / (dim_x.last - dim_x.first),
-                         2 / (dim_y.last - dim_y.first));
-    this.state.scale = scale;
-
-    // We get the offset by knowing that, without
-    // offset and scale, the bottom dim_xy is -1
-    var offset = new Vec2(-1 - (dim_x.first * scale.x),
-                          -1 - (dim_y.first * scale.x));
-    this.state.offset = offset;
   }
 
   /*************************************************
@@ -138,9 +168,9 @@ class Renderer {
     twgl.setBuffersAndAttributes(this.gl, this.local_program_info, this.graph_buffer_info);
 
     // Set the uniforms
-    var uniforms = {
-      u_offset: this.state.offset.AsArray(),
-      u_scale: this.state.scale.AsArray(),
+    let uniforms = {
+      u_offset: this._state.offset.AsArray(),
+      u_scale: this._state.scale.AsArray(),
       u_color: color.AsArray(),
     };
     twgl.setUniforms(this.local_program_info, uniforms);
@@ -189,11 +219,11 @@ class Renderer {
 
   private DrawLinePixelSpace(p1: Vec2, p2: Vec2, color: Color) : void {
     this.gl.useProgram(this.pixel_program_info.program);
-    var new_pos = [p1.x, p1.y, p2.x, p2.y];
+    let new_pos = [p1.x, p1.y, p2.x, p2.y];
     twgl.setBuffersAndAttributes(this.gl, this.pixel_program_info, this.buffer_info);
     twgl.setAttribInfoBufferFromArray(this.gl, this.buffer_info.attribs.a_position_coord, new_pos);
 
-    var uniforms = {
+    let uniforms = {
       u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
       u_color: color.AsArray(),
     };
@@ -208,13 +238,13 @@ class Renderer {
     twgl.setBuffersAndAttributes(this.gl,
                                  this.local_program_info,
                                  this.buffer_info);
-    var new_pos = [p1.x, p1.y, p2.x, p2.y];
+    let new_pos = [p1.x, p1.y, p2.x, p2.y];
     twgl.setAttribInfoBufferFromArray(this.gl,
       this.buffer_info.attribs.a_position_coord, new_pos);
 
-    var uniforms = {
-      u_offset: this.state.offset.AsArray(),
-      u_scale: this.state.scale.AsArray(),
+    let uniforms = {
+      u_offset: this._state.offset.AsArray(),
+      u_scale: this._state.scale.AsArray(),
       u_color: color.AsArray(),
     };
     twgl.setUniforms(this.local_program_info, uniforms);
@@ -236,7 +266,7 @@ class Renderer {
     twgl.setAttribInfoBufferFromArray(this.gl,
       this.buffer_info.attribs.a_position_coord, point.AsArray());
 
-    var uniforms = {
+    let uniforms = {
       u_color: color,
       u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
       u_point_size: 10,
@@ -261,9 +291,9 @@ class Renderer {
     twgl.setAttribInfoBufferFromArray(this.gl,
       this.buffer_info.attribs.a_position_coord, point.AsArray());
 
-    var uniforms = {
-      u_offset: this.state.offset.AsArray(),
-      u_scale: this.state.scale.AsArray(),
+    let uniforms = {
+      u_offset: this._state.offset.AsArray(),
+      u_scale: this._state.scale.AsArray(),
       u_color: color.AsArray(),
       u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
       u_point_size: 10,
