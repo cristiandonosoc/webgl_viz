@@ -2,6 +2,7 @@ import GraphManager from "./graph_manager";
 import Renderer from "./renderer";
 
 import {RendererCanvasToLocal} from "./transforms";
+import {TempAddEventListener} from "./type_fixes";
 
 /**
  * Interaction
@@ -57,7 +58,9 @@ class Interaction {
     this.renderer.canvas.addEventListener("mousemove", this.MouseMove);
 
     // Mouse wheel
-    this.renderer.canvas.addEventListener("mousewheel", this.MouseWheel, {
+    (this.renderer.canvas.addEventListener as TempAddEventListener)(
+      "mousewheel",
+      this.MouseWheel, {
       passive: true     /* chrome warns that this helps with latency */
     });
   }
