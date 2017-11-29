@@ -3,6 +3,7 @@ import {Vec2} from "./vectors";
 import {Color} from "./colors";
 
 declare var twgl: any;
+var g_inf = 9999999999999999;   /* BIG NUMBER */
 
 enum DrawSpace {
   LOCAL,
@@ -148,7 +149,19 @@ class Renderer {
     twgl.drawBufferInfo(this.gl, this.graph_buffer_info, this.gl.LINE_STRIP);
   }
 
-  DrawLine(space: DrawSpace, p1: Vec2, p2: Vec2, color: Color) : void {
+  DrawHorizontalLine(y: number, space: DrawSpace, color: Color) : void {
+    let p1 = new Vec2(-g_inf, y);
+    let p2 = new Vec2(+g_inf, y);
+    this.DrawLine(p1, p2, space, color);
+  }
+
+  DrawVerticalLine(x: number, space: DrawSpace, color: Color) : void {
+    let p1 = new Vec2(x, -g_inf);
+    let p2 = new Vec2(x, +g_inf);
+    this.DrawLine(p1, p2, space, color);
+  }
+
+  DrawLine(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void {
     if (space == DrawSpace.LOCAL) {
       this.DrawLineLocalSpace(p1, p2, color);
     } else if (space == DrawSpace.PIXEL) {
@@ -158,7 +171,7 @@ class Renderer {
     }
   }
 
-  DrawIcon(space: DrawSpace, point: Vec2, color: Color) : void {
+  DrawIcon(point: Vec2, space: DrawSpace, color: Color) : void {
     if (space == DrawSpace.LOCAL) {
       this.DrawIconLocalSpace(point, color);
     } else if (space == DrawSpace.PIXEL) {

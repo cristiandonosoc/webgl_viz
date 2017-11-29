@@ -83,18 +83,19 @@ class GraphManager {
     this.renderer.DrawGraphLocalSpace(this.state.graph_info.line_color);
 
     // Draw x/y Axis
-    this.renderer.DrawLine(DrawSpace.LOCAL, new Vec2(-g_inf, 0), new Vec2(g_inf, 0), AllColors.Get("green"));
-    this.renderer.DrawLine(DrawSpace.LOCAL, new Vec2(0, -g_inf), new Vec2(0, g_inf), AllColors.Get("green"));
+    this.renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("green"));
+    this.renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("green"));
 
     // Draw mouse vertical line
     // this.DrawLinePixelSpace([10, 10], [200, 200]);
     let canvas_pos = this.interaction.state.mouse.canvas;
-    this.renderer.DrawLine(DrawSpace.PIXEL, new Vec2(canvas_pos.x, -g_inf),
-                                     new Vec2(canvas_pos.x, g_inf),
-                                     AllColors.Get("orange"));
+    this.renderer.DrawLine(new Vec2(canvas_pos.x, -g_inf),
+                           new Vec2(canvas_pos.x, g_inf),
+                           DrawSpace.PIXEL,
+                           AllColors.Get("orange"));
 
     if (this.closest_point) {
-      this.renderer.DrawIcon(DrawSpace.LOCAL, this.closest_point, AllColors.Get("purple"));
+      this.renderer.DrawIcon(this.closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));
     }
 
     this.labels.Update();
