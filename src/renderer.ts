@@ -4,6 +4,11 @@ import {Color} from "./colors";
 
 declare var twgl: any;
 
+enum DrawSpace {
+  LOCAL,
+  PIXEL
+}
+
 class Renderer {
 
   canvas: HTMLCanvasElement;
@@ -143,9 +148,33 @@ class Renderer {
     twgl.drawBufferInfo(this.gl, this.graph_buffer_info, this.gl.LINE_STRIP);
   }
 
+  DrawLine(space: DrawSpace, p1: Vec2, p2: Vec2, color: Color) : void {
+    if (space == DrawSpace.LOCAL) {
+      this.DrawLineLocalSpace(p1, p2, color);
+    } else if (space == DrawSpace.PIXEL) {
+      this.DrawLinePixelSpace(p1, p2, color);
+    } else {
+      throw "Unsupported DrawSpace";
+    }
+  }
+
+  DrawIcon(space: DrawSpace, point: Vec2, color: Color) : void {
+    if (space == DrawSpace.LOCAL) {
+      this.DrawIconLocalSpace(point, color);
+    } else if (space == DrawSpace.PIXEL) {
+      this.DrawIconPixelSpace(point, color);
+    } else {
+      throw "Unsupported DrawSpace";
+    }
+  }
+
+  /******************************************************
+   * PRIVATE FUNCTIONS
+   ******************************************************/
+
   /* DRAW LINE */
 
-  DrawLinePixelSpace(p1: Vec2, p2: Vec2, color: Color) {
+  private DrawLinePixelSpace(p1: Vec2, p2: Vec2, color: Color) : void {
     this.gl.useProgram(this.pixel_program_info.program);
     var new_pos = [p1.x, p1.y, p2.x, p2.y];
     twgl.setBuffersAndAttributes(this.gl, this.pixel_program_info, this.buffer_info);
@@ -161,7 +190,7 @@ class Renderer {
     twgl.drawBufferInfo(this.gl, this.buffer_info, this.gl.LINES);
   }
 
-  DrawLineLocalSpace(p1: Vec2, p2: Vec2, color: Color) {
+  private DrawLineLocalSpace(p1: Vec2, p2: Vec2, color: Color) : void {
     this.gl.useProgram(this.local_program_info.program);
     twgl.setBuffersAndAttributes(this.gl,
                                  this.local_program_info,
@@ -181,7 +210,7 @@ class Renderer {
 
   /* DRAW ICON */
 
-  DrawIconPixelSpace(point: Vec2, color: Vec2) {
+  private DrawIconPixelSpace(point: Vec2, color: Color) : void {
     if (!this.cross_texture) {
       return;
     }
@@ -206,7 +235,7 @@ class Renderer {
     this.gl.drawArrays(this.gl.POINTS, 0, 1);
   }
 
-  DrawIconLocalSpace(point: Vec2, color: Color) {
+  private DrawIconLocalSpace(point: Vec2, color: Color) : void {
     if (!this.cross_texture) {
       return;
     }
@@ -232,7 +261,7 @@ class Renderer {
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.cross_texture);
     this.gl.drawArrays(this.gl.POINTS, 0, 1);
   }
-
 }
 
-export default Renderer;
+export {DrawSpace};
+export {Renderer};

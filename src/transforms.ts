@@ -1,4 +1,4 @@
-import Renderer from "./renderer";
+import {Renderer} from "./renderer";
 import {Vec2} from "./vectors";
 
 /* Canvas -> Local */
