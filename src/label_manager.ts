@@ -1,5 +1,7 @@
 import Renderer from "./renderer";
 
+import {RendererCanvasToLocal} from "./transforms";
+
 class LabelManager {
   labels: {
     x: {
@@ -28,12 +30,21 @@ class LabelManager {
   }
 
   Update(renderer: Renderer) {
-    var offset = renderer.state.offset;
-    this.labels.x.bottom.value = String(-1 - offset[0]);
-    this.labels.x.top.value = String(1 - offset[0]);
+    // We transform the points
+    // bottom-left
+    var bl = [0, 0];
+    var tbl = RendererCanvasToLocal(renderer, bl);
+    // top-right
+    var tr = [renderer.gl.canvas.width, renderer.gl.canvas.height];
+    var ttr = RendererCanvasToLocal(renderer, tr);
 
-    this.labels.y.bottom.value = String(-1 - offset[1]);
-    this.labels.y.top.value = String(1 - offset[1]);
+
+    var offset = renderer.state.offset;
+    this.labels.x.bottom.value = String(tbl[0]);
+    this.labels.y.bottom.value = String(tbl[1]);
+
+    this.labels.x.top.value = String(ttr[0]);
+    this.labels.y.top.value = String(ttr[1]);
   }
 }
 
