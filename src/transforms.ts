@@ -8,12 +8,12 @@ function CanvasToLocal(dimensions: number[], offset: number[], scale: number[],
   // Local (variable space)
   // Convert from pixels to 0.0 -> 1.0
   var temp = [point[0] / dimensions[0],
-              point[1] / dimensions[0]];
+              point[1] / dimensions[1]];
   temp = temp.map(i => (i * 2.0) - 1.0);
 
   // De-apply offset and scale
   var local = [(temp[0] - offset[0]) / scale[0],
-               (temp[1] + offset[1]) / scale[1]];
+               (temp[1] - offset[1]) / scale[1]];
   return local;
 };
 
@@ -30,7 +30,7 @@ function RendererCanvasToLocal(renderer: Renderer, point: number[]) : number[] {
 function LocalToCanvas(dimensions: number[], offset: number[], scale: number[], point: number[]) : number[] {
   // Re-apply offset and scale
   var temp = [(point[0] * scale[0]) + offset[0],
-              (point[1] * scale[1]) - offset[1]];
+              (point[1] * scale[1]) + offset[1]];
   // [-1, -1] -> [0, 1]
   temp = temp.map(i => (i + 1.0) / 2.0);
 
