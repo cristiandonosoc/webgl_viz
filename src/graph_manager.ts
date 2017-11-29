@@ -1,6 +1,6 @@
 ///<reference path="resources/webgl2.d.ts" />
 
-import AllColors from "./colors"
+import {Color, AllColors} from "./colors"
 import Interaction from "./interaction";
 import LabelManager from "./label_manager";
 import Renderer from "./renderer";
@@ -21,8 +21,8 @@ class GraphManager {
   // Internal state of the renderer
   state: {
     graph_info: {
-      background_color: number[],
-      line_color: number[],
+      background_color: Color,
+      line_color: Color,
       line_width: number
     },
   };
@@ -41,8 +41,8 @@ class GraphManager {
 
   private CreateDefaults() {
     var graph_info = {
-      background_color: [1, 1, 1, 1],
-      line_color: [0, 0, 0, 1],
+      background_color: AllColors.Get("white"),
+      line_color: AllColors.Get("black"),
       line_width: 1
     };
 

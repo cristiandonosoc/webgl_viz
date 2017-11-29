@@ -1,3 +1,44 @@
+class Color {
+  name: string;
+  value: number[];
+
+  constructor(value: number[]) {
+    this.name = "";
+    this.value = value;
+  }
+
+  // GETTERS
+  get r() : number { return this.value[0]; }
+  get g() : number { return this.value[1]; }
+  get b() : number { return this.value[2]; }
+  get a() : number { return this.value[3]; }
+
+  AsArray() : number[] {
+    return this.value;
+  }
+}
+
+class ColorRegistry {
+  colors: {[key: string]: Color};
+
+  constructor(colors: {[key: string]: number[]}) {
+    this.colors = {}
+    for (let key in colors) {
+      let color = new Color(colors[key]);
+      color.name = key;
+      this.colors[key] = color;
+    }
+  }
+
+  Get(color_name: string) : Color {
+    return this.colors[color_name];
+  }
+};
+
+/************************************************
+ * LIST OF COLORS VALUES
+ ************************************************/
+
 var colors = {
   aliceblue: [0.941176, 0.972549, 1, 1],
   antiquewhite: [0.980392, 0.921569, 0.843137, 1],
@@ -165,17 +206,6 @@ var colors = {
   yellowgreen: [0.603922, 0.803922, 0.196078, 1],
 };
 
-class ColorRegistry {
-  colors: any;
-
-  constructor(colors: any) {
-    this.colors = colors;
-  }
-
-  Get(color_name: string) {
-    return this.colors[color_name];
-  }
-};
-
 var AllColors = new ColorRegistry(colors);
-export default AllColors;
+export {Color}
+export {AllColors}

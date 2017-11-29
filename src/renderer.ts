@@ -1,5 +1,6 @@
 import AllShaders from "./shaders";
 import {Vec2} from "./vectors";
+import {Color} from "./colors";
 
 declare var twgl: any;
 
@@ -117,17 +118,13 @@ class Renderer {
    * RENDERING FUNCTIONS
    *************************************************/
 
-  Clear(clear_color: number[]) {
-    // this.gl.clearColor(this.state.graph_info.background_color[0],
-    //                    this.state.graph_info.background_color[1],
-    //                    this.state.graph_info.background_color[2],
-    //                    this.state.graph_info.background_color[3]);
-    this.gl.clearColor(clear_color[0], clear_color[1],
-                       clear_color[2], clear_color[3]);
+  Clear(clear_color: Color) {
+    this.gl.clearColor(clear_color.r, clear_color.g,
+                       clear_color.b, clear_color.a);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 
-  DrawGraphLocalSpace(color: number[]) {
+  DrawGraphLocalSpace(color: Color) {
     // Set shader program
     this.gl.useProgram(this.local_program_info.program);
 
@@ -138,7 +135,7 @@ class Renderer {
     var uniforms = {
       u_offset: this.state.offset.AsArray(),
       u_scale: this.state.scale.AsArray(),
-      u_color: color
+      u_color: color.AsArray(),
     };
     twgl.setUniforms(this.local_program_info, uniforms);
 
@@ -148,7 +145,7 @@ class Renderer {
 
   /* DRAW LINE */
 
-  DrawLinePixelSpace(p1: Vec2, p2: Vec2, color: number[]) {
+  DrawLinePixelSpace(p1: Vec2, p2: Vec2, color: Color) {
     this.gl.useProgram(this.pixel_program_info.program);
     var new_pos = [p1.x, p1.y, p2.x, p2.y];
     twgl.setBuffersAndAttributes(this.gl, this.pixel_program_info, this.buffer_info);
@@ -156,7 +153,7 @@ class Renderer {
 
     var uniforms = {
       u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
-      u_color: color,
+      u_color: color.AsArray(),
     };
     twgl.setUniforms(this.pixel_program_info, uniforms);
 
@@ -164,7 +161,7 @@ class Renderer {
     twgl.drawBufferInfo(this.gl, this.buffer_info, this.gl.LINES);
   }
 
-  DrawLineLocalSpace(p1: Vec2, p2: Vec2, color: number[]) {
+  DrawLineLocalSpace(p1: Vec2, p2: Vec2, color: Color) {
     this.gl.useProgram(this.local_program_info.program);
     twgl.setBuffersAndAttributes(this.gl,
                                  this.local_program_info,
@@ -176,7 +173,7 @@ class Renderer {
     var uniforms = {
       u_offset: this.state.offset.AsArray(),
       u_scale: this.state.scale.AsArray(),
-      u_color: color,
+      u_color: color.AsArray(),
     };
     twgl.setUniforms(this.local_program_info, uniforms);
     twgl.drawBufferInfo(this.gl, this.buffer_info, this.gl.LINES);
@@ -209,7 +206,7 @@ class Renderer {
     this.gl.drawArrays(this.gl.POINTS, 0, 1);
   }
 
-  DrawIconLocalSpace(point: Vec2, color: number[]) {
+  DrawIconLocalSpace(point: Vec2, color: Color) {
     if (!this.cross_texture) {
       return;
     }
@@ -225,7 +222,7 @@ class Renderer {
     var uniforms = {
       u_offset: this.state.offset.AsArray(),
       u_scale: this.state.scale.AsArray(),
-      u_color: color,
+      u_color: color.AsArray(),
       u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
       u_point_size: 10,
       u_sampler: 0
