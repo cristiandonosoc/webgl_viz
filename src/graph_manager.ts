@@ -156,6 +156,10 @@ class GraphManager {
         let start = this.interaction.state.temp.last_down.x;
         let end = this.interaction.state.mouse.canvas.x;
         this.renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, this.state.graph_info.drag_color);
+      } else if (this.label_manager.HorizontalZoom) {
+        let start = this.interaction.state.temp.last_down.y;
+        let end = this.interaction.state.mouse.canvas.y;
+        this.renderer.DrawHorizontalRange(start, end, DrawSpace.PIXEL, this.state.graph_info.drag_color);
       }
     }
 

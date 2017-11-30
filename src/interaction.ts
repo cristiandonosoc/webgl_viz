@@ -213,15 +213,19 @@ class Interaction {
 
   private ProcessZoomDrag(event: any) {
     // Get the old bounds
-    let bounds = this.renderer.bounds;
     let start = RendererCanvasToLocal(this.renderer, this.state.temp.last_down);
     let end = RendererCanvasToLocal(this.renderer, this.state.temp.last_up);
 
-    let min = Math.min(start.x, end.x);
-    let max = Math.max(start.x, end.x);
-
-    // Change the bounds
-    bounds.x.Set(min, max);
+    let bounds = this.renderer.bounds;
+    if (this.manager.label_manager.VerticalZoom) {
+      let min = Math.min(start.x, end.x);
+      let max = Math.max(start.x, end.x);
+      bounds.x.Set(min, max);
+    } else if (this.manager.label_manager.HorizontalZoom) {
+      let min = Math.min(start.y, end.y);
+      let max = Math.max(start.y, end.y);
+      bounds.y.Set(min, max);
+    }
 
     this.renderer.bounds = bounds;
   }

@@ -211,14 +211,31 @@ class Renderer {
     }
   }
 
-  DrawVerticalRange(start: number, end: number, space: DrawSpace, color: Color) : void {
+  DrawHorizontalRange(start: number, end: number, space: DrawSpace, color: Color) : void {
+    let min = Math.min(start, end);
+    let max = Math.max(start, end);
     if (space == DrawSpace.PIXEL) {
       let points = Array<Vec2>(4);
-      points[0] = new Vec2(start, -g_inf);
-      points[1] = new Vec2(start, +g_inf);
-      points[2] = new Vec2(end, -g_inf);
-      points[3] = new Vec2(end, +g_inf);
-      this.DrawRangePixelSpace(points, color);
+      points[0] = new Vec2(-g_inf, min);
+      points[1] = new Vec2(+g_inf, min);
+      points[2] = new Vec2(-g_inf, max);
+      points[3] = new Vec2(+g_inf, max);
+      this.DrawTriangleStripPixelSpace(points, color);
+    } else {
+      throw "Unsupported DrawSpace";
+    }
+  }
+
+  DrawVerticalRange(start: number, end: number, space: DrawSpace, color: Color) : void {
+    let min = Math.min(start, end);
+    let max = Math.max(start, end);
+    if (space == DrawSpace.PIXEL) {
+      let points = Array<Vec2>(4);
+      points[0] = new Vec2(min, -g_inf);
+      points[1] = new Vec2(min, +g_inf);
+      points[2] = new Vec2(max, -g_inf);
+      points[3] = new Vec2(max, +g_inf);
+      this.DrawTriangleStripPixelSpace(points, color);
     } else {
       throw "unsupported DrawSpace";
     }
@@ -331,7 +348,7 @@ class Renderer {
 
   /* DRAW RANGE */
 
-  private DrawRangePixelSpace(points: Vec2[], color: Color) {
+  private DrawTriangleStripPixelSpace(points: Vec2[], color: Color) {
     this.gl.useProgram(this.pixel_program_info.program);
 
     twgl.setBuffersAndAttributes(this.gl, this.pixel_program_info, this.buffer_info);
