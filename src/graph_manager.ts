@@ -2,13 +2,14 @@
 
 import {Color, AllColors} from "./colors"
 import Interaction from "./interaction";
-import InteractionInterface from "./interaction_interface";
 import LabelManager from "./label_manager";
-import {ZoomType, LabelManagerInterface} from "./label_manager_interface";
 import Renderer from "./renderer";
-import {DrawSpace, RendererInterface} from "./renderer_interface";
 import {Bounds, Vec2} from "./vectors";
-import GraphManagerInterface from "./graph_manager";
+
+import {DrawSpace, RendererInterface} from "./renderer_interface";
+import InteractionInterface from "./interaction_interface";
+import {ZoomType, LabelManagerInterface} from "./label_manager_interface";
+import GraphManagerInterface from "./graph_manager_interface";
 
 let g_inf = 9007199254740991;
 
@@ -144,7 +145,7 @@ class GraphManager implements GraphManagerInterface {
 
   // Applies the graph max bounds
   ApplyMaxBounds() : void {
-    this._renderer.bounds = this._state.graph_info.bounds.Copy();
+    this.Renderer.Bounds = this._state.graph_info.bounds.Copy();
   }
 
   /*******************************************

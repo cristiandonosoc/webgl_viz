@@ -38,7 +38,7 @@ class LabelManager implements LabelManagerInterface {
 
   constructor(manager: GraphManagerInterface) {
     this._manager = manager;
-    var graph_container = this._manager.Renderer.canvas.parentNode.parentNode;
+    var graph_container = this._manager.Renderer.Canvas.parentNode.parentNode;
 
     this.labels = {
       x: {
@@ -118,7 +118,7 @@ class LabelManager implements LabelManagerInterface {
                          Number(this.labels.x.top.value));
     let dim_y = new Vec2(Number(this.labels.y.bottom.value),
                          Number(this.labels.y.top.value));
-    this._manager.Renderer.bounds = Bounds.FromVecs(dim_x, dim_y);
+    this._manager.Renderer.Bounds = Bounds.FromVecs(dim_x, dim_y);
     this._manager.Draw();
   };
 
@@ -132,16 +132,16 @@ class LabelManager implements LabelManagerInterface {
     this.local_x_box.value = String(mouse_pos.local.x);
     this.local_y_box.value = String(mouse_pos.local.y);
 
-    this.offset_x_box.value = String(manager.Renderer.offset.x);
-    this.offset_y_box.value = String(manager.Renderer.offset.y);
-    this.scale_x_box.value =  String(manager.Renderer.scale.x);
-    this.scale_y_box.value =  String(manager.Renderer.scale.y);
+    this.offset_x_box.value = String(manager.Renderer.Offset.x);
+    this.offset_y_box.value = String(manager.Renderer.Offset.y);
+    this.scale_x_box.value =  String(manager.Renderer.Scale.x);
+    this.scale_y_box.value =  String(manager.Renderer.Scale.y);
 
     // Labels
-    this.labels.x.bottom.value = String(manager.Renderer.bounds.x.first);
-    this.labels.x.top.value = String(manager.Renderer.bounds.x.last);
-    this.labels.y.bottom.value = String(manager.Renderer.bounds.y.first);
-    this.labels.y.top.value = String(manager.Renderer.bounds.y.last);
+    this.labels.x.bottom.value = String(manager.Renderer.Bounds.x.first);
+    this.labels.x.top.value = String(manager.Renderer.Bounds.x.last);
+    this.labels.y.bottom.value = String(manager.Renderer.Bounds.y.first);
+    this.labels.y.top.value = String(manager.Renderer.Bounds.y.last);
   }
 }
 

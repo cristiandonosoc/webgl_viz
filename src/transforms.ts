@@ -19,10 +19,10 @@ function CanvasToLocal(dimensions: Vec2, offset: Vec2, scale: Vec2,
 };
 
 function RendererCanvasToLocal(renderer: RendererInterface, point: Vec2) : Vec2 {
-  var dimensions = new Vec2(renderer.width,
-                            renderer.height);
-  var offset = renderer.offset;
-  var scale = renderer.scale;
+  var dimensions = new Vec2(renderer.Width,
+                            renderer.Height);
+  var offset = renderer.Offset;
+  var scale = renderer.Scale;
   return CanvasToLocal(dimensions, offset, scale, point);
 }
 
@@ -43,10 +43,10 @@ function LocalToCanvas(dimensions: Vec2, offset: Vec2, scale: Vec2,
 }
 
 function RendererLocalToCanvas(renderer: RendererInterface, point: Vec2) : Vec2 {
-  var dimensions = new Vec2(renderer.width,
-                            renderer.height);
-  var offset = renderer.offset;
-  var scale = renderer.scale;
+  var dimensions = new Vec2(renderer.Width,
+                            renderer.Height);
+  var offset = renderer.Offset;
+  var scale = renderer.Scale;
   return LocalToCanvas(dimensions, offset, scale, point);
 }
 
@@ -55,7 +55,7 @@ function RendererCalculateBounds(renderer: RendererInterface) : Bounds {
   // bottom-left
   let tbl = RendererCanvasToLocal(renderer, new Vec2(0, 0));
   // top-right
-  let tr = new Vec2(renderer.width, renderer.height);
+  let tr = new Vec2(renderer.Width, renderer.Height);
   let ttr = RendererCanvasToLocal(renderer, tr);
 
   return Bounds.FromPoints(tbl.x, ttr.x, tbl.y, ttr.y);

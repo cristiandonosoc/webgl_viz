@@ -8,12 +8,12 @@ enum DrawSpace {
 
 interface RendererInterface {
   /* GETTERS / SETTERS */
-  offset: Vec2;
-  scale: Vec2;
-  bounds: Bounds;
-  readonly width: number;
-  readonly height: number;
-  readonly canvas: HTMLCanvasElement;
+  Offset: Vec2;
+  Scale: Vec2;
+  Bounds: Bounds;
+  readonly Width: number;
+  readonly Height: number;
+  readonly Canvas: HTMLCanvasElement;
 
   /* MANAGING INTERFACE */
   AddGraph(points: number[]) : void;

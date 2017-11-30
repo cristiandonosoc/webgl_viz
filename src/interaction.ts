@@ -94,9 +94,9 @@ class Interaction implements InteractionInterface {
    *****************************************************************/
 
   private SetupInteraction() {
-    this.manager.Renderer.canvas.addEventListener("mousedown", this.MouseDown);
+    this.manager.Renderer.Canvas.addEventListener("mousedown", this.MouseDown);
     document.addEventListener("mouseup", this.MouseUp);
-    this.manager.Renderer.canvas.addEventListener("mousemove", this.MouseMove);
+    this.manager.Renderer.Canvas.addEventListener("mousemove", this.MouseMove);
     document.addEventListener("keydown", (event) => {
       this._state.keys.ctrl = event.ctrlKey;
       this.PostChange();
@@ -110,7 +110,7 @@ class Interaction implements InteractionInterface {
     console.info("This app wants to preventDefault scroll Behavior on Canvas.\n" +
                  "This is intended behaviour, but I don't know how to " +
                  "remove the Warning");
-    (this.manager.Renderer.canvas.addEventListener as TempAddEventListener)(
+    (this.manager.Renderer.Canvas.addEventListener as TempAddEventListener)(
       "mousewheel",
       this.MouseWheel, {
       passive: false /* chrome warns that this helps with latency */
@@ -170,21 +170,21 @@ class Interaction implements InteractionInterface {
     }
 
     let scale_change = Vec2.Mul(this._state.config.wheel_factor, delta);
-    let old_scale = this.manager.Renderer.scale;
-    let new_scale = Vec2.Sum(this.manager.Renderer.scale, scale_change);
+    let old_scale = this.manager.Renderer.Scale;
+    let new_scale = Vec2.Sum(this.manager.Renderer.Scale, scale_change);
     if (new_scale.x < 0) { new_scale.x = 0; }
     if (new_scale.y < 0) { new_scale.y = 0; }
-    this.manager.Renderer.scale = new_scale;
+    this.manager.Renderer.Scale = new_scale;
 
     // We change the offset
-    let old_offset = new Vec2(this.manager.Renderer.offset.x,
-                              -this.manager.Renderer.offset.y);
+    let old_offset = new Vec2(this.manager.Renderer.Offset.x,
+                              -this.manager.Renderer.Offset.y);
     // new_offset = old_offset + pin_point * (old_scale - new_scale)
     let new_offset = Vec2.Sum(old_offset,
                               Vec2.Mul(pin_point,
                                        Vec2.Sub(old_scale,
                                                 new_scale)));
-    this.manager.Renderer.offset = new Vec2(new_offset.x, -new_offset.y);
+    this.manager.Renderer.Offset = new Vec2(new_offset.x, -new_offset.y);
 
     this.PostChange();
     // Prevent default browser behaviour
@@ -231,12 +231,12 @@ class Interaction implements InteractionInterface {
     let current_pos = this._state.mouse.current_pos;
     let diff = new Vec2(current_pos.screen.x - prev_pos.screen.x,
                         current_pos.screen.y - prev_pos.screen.y);
-    let offset = new Vec2(diff.x / this.manager.Renderer.width,
-                          diff.y / this.manager.Renderer.height);
+    let offset = new Vec2(diff.x / this.manager.Renderer.Width,
+                          diff.y / this.manager.Renderer.Height);
     // We invert the y-axis
     // offset.y *= -1;
 
-    this.manager.Renderer.offset = Vec2.Sum(this.manager.Renderer.offset, offset);
+    this.manager.Renderer.Offset = Vec2.Sum(this.manager.Renderer.Offset, offset);
   }
 
   private ProcessZoomDrag(event: any) {
@@ -244,7 +244,7 @@ class Interaction implements InteractionInterface {
     let start = this.DownMousePos.local;
     let end = this.UpMousePos.local;
 
-    let bounds = this.manager.Renderer.bounds;
+    let bounds = this.manager.Renderer.Bounds;
     let zoom_type = this.manager.LabelManager.Zoom;
     if (zoom_type == ZoomType.VERTICAL) {
       let min = Math.min(start.x, end.x);
@@ -262,7 +262,7 @@ class Interaction implements InteractionInterface {
       throw "Unsupported Zoom";
     }
 
-    this.manager.Renderer.bounds = bounds;
+    this.manager.Renderer.Bounds = bounds;
   }
 
 }
