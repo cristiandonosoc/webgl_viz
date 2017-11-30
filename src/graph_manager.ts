@@ -3,7 +3,8 @@
 import {Color, AllColors} from "./colors"
 import Interaction from "./interaction";
 import LabelManager from "./label_manager";
-import {DrawSpace, Renderer, RendererInterface} from "./renderer";
+import {Renderer} from "./renderer";
+import {DrawSpace, RendererInterface} from "./renderer_interface";
 import {Bounds, Vec2} from "./vectors";
 
 let g_inf = 9007199254740991;

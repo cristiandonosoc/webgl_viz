@@ -1,5 +1,5 @@
 import GraphManager from "./graph_manager";
-import {RendererInterface} from "./renderer";
+import RendererInterface from "./renderer_interface";
 
 import {RendererCanvasToLocal} from "./transforms";
 import {TempAddEventListener} from "./type_fixes";

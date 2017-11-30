@@ -1,4 +1,4 @@
-import {RendererInterface} from "./renderer";
+import {RendererInterface} from "./renderer_interface";
 import {Bounds, Vec2} from "./vectors";
 
 /* Canvas -> Local */
