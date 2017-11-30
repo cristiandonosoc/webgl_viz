@@ -1,10 +1,11 @@
-import GraphManager from "./graph_manager";
+// import GraphManager from "./graph_manager";
+import GraphManagerInterface from "./graph_manager_interface";
 
 import {RendererCanvasToLocal} from "./transforms";
 import {Bounds, Vec2} from "./vectors";
 
 class LabelManager {
-  manager: GraphManager;
+  private _manager: GraphManagerInterface;
   labels: {
     x: {
       bottom: HTMLInputElement,
@@ -33,9 +34,9 @@ class LabelManager {
 
   ctrl_label: HTMLElement;
 
-  constructor(manager: GraphManager, canvas: HTMLCanvasElement) {
-    this.manager = manager;
-    var graph_container = canvas.parentNode.parentNode;
+  constructor(manager: GraphManagerInterface) {
+    this._manager = manager;
+    var graph_container = this._manager.renderer.canvas.parentNode.parentNode;
 
     this.labels = {
       x: {
@@ -78,8 +79,8 @@ class LabelManager {
                          Number(this.labels.x.top.value));
     let dim_y = new Vec2(Number(this.labels.y.bottom.value),
                          Number(this.labels.y.top.value));
-    this.manager.renderer.bounds = Bounds.FromVecs(dim_x, dim_y);
-    this.manager.Draw();
+    this._manager.renderer.bounds = Bounds.FromVecs(dim_x, dim_y);
+    this._manager.Draw();
   };
 
   get VerticalZoom() : boolean {
@@ -95,21 +96,22 @@ class LabelManager {
   }
 
   Update() {
-    var renderer = this.manager.renderer;
+    var renderer = this._manager.renderer;
 
-    if (this.manager.interaction.CtrlPressed) {
+    if (this._manager.interaction.CtrlPressed) {
       this.ctrl_label.classList.remove("hidden");
     } else {
       this.ctrl_label.classList.add("hidden");
     }
 
-    if (this.manager.graph_loaded) {
-      this.UpdateStats(this.manager);
+    if (this._manager.Valid) {
+      this.UpdateStats();
     }
   }
 
-  private UpdateStats(manager: GraphManager) {
-    let mouse_pos = this.manager.interaction.CurrentMousePos;
+  private UpdateStats() {
+    let mouse_pos = this._manager.interaction.CurrentMousePos;
+    var manager = this._manager;
     this.screen_x_box.value = String(mouse_pos.screen.x);
     this.screen_y_box.value = String(mouse_pos.screen.y);
     this.canvas_x_box.value = String(mouse_pos.canvas.x);
@@ -130,4 +132,4 @@ class LabelManager {
   }
 }
 
-export default LabelManager
+export default LabelManager;

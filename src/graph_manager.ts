@@ -7,19 +7,18 @@ import LabelManager from "./label_manager";
 import Renderer from "./renderer";
 import {DrawSpace, RendererInterface} from "./renderer_interface";
 import {Bounds, Vec2} from "./vectors";
+import GraphManagerInterface from "./graph_manager";
 
 let g_inf = 9007199254740991;
 
-class GraphManager {
-  canvas: HTMLCanvasElement;
-
+class GraphManager implements GraphManagerInterface {
   /* WebGL programs */
   interaction: InteractionInterface;   /* Manages interaction with browser (mostly mouse) */
   label_manager: LabelManager;
   renderer: RendererInterface;
 
   // Internal state of the renderer
-  state: {
+  private _state: {
     graph_info: {
       bounds: Bounds,
       background_color: Color,
@@ -27,34 +26,28 @@ class GraphManager {
       line_color: Color,
       line_width: number
     },
+    graph_loaded: boolean;
+
+    custom_points?: Array<Vec2>;
+    closest_point?: Vec2;
   };
 
-  graph_loaded: boolean;
-  points: number[];
-  custom_points: Array<Vec2>;
-  closest_point: Vec2;
+  /*******************************************************
+   * GETTERS / SETTERS
+   *******************************************************/
 
-  constructor(canvas: HTMLCanvasElement) {
-    this.canvas = canvas;
-    this.CreateDefaults();
-    this.renderer = new Renderer(this.canvas);
-    this.interaction = new Interaction(this);
-    this.label_manager = new LabelManager(this, canvas);
-    this.graph_loaded = false;
+  get Valid() : boolean {
+    return this._state.graph_loaded;
+
   }
 
-  private CreateDefaults() {
-    let graph_info = {
-      bounds: Bounds.Zero,
-      background_color: AllColors.Get("black"),
-      drag_color: AllColors.Get("lightblue"),
-      line_color: AllColors.Get("white"),
-      line_width: 1
-    };
+  constructor(canvas: HTMLCanvasElement) {
+    this.CreateDefaults();
+    this.renderer = new Renderer(canvas);
+    this.interaction = new Interaction(this);
+    this.label_manager = new LabelManager(this);
 
-    this.state = {
-      graph_info: graph_info,
-    };
+    this._state.graph_loaded = false;
   }
 
   HandleDapFile = (content: string) => {
@@ -123,19 +116,19 @@ class GraphManager {
     }
 
     // We set the bounds
-    this.state.graph_info.bounds = Bounds.FromPoints(min.x, max.x, min.y, max.y);
+    this._state.graph_info.bounds = Bounds.FromPoints(min.x, max.x, min.y, max.y);
 
     // We sort
-    this.custom_points = arr.sort((p1: Vec2, p2: Vec2) => {
+    this._state.custom_points = arr.sort((p1: Vec2, p2: Vec2) => {
       return p1.x - p2.x;
     });
 
-    this.graph_loaded = true;
+    this._state.graph_loaded = true;
   }
 
   // Applies the graph max bounds
   ApplyMaxBounds() : void {
-    this.renderer.bounds = this.state.graph_info.bounds.Copy();
+    this.renderer.bounds = this._state.graph_info.bounds.Copy();
   }
 
   /*******************************************
@@ -147,11 +140,11 @@ class GraphManager {
     this.renderer.ResizeCanvas();
 
     // Clear Canvas
-    this.renderer.Clear(this.state.graph_info.background_color);
+    this.renderer.Clear(this._state.graph_info.background_color);
 
     this.label_manager.Update();
 
-    if (!this.graph_loaded) {
+    if (!this.Valid) {
       return;
     }
 
@@ -159,15 +152,15 @@ class GraphManager {
       if (this.label_manager.VerticalZoom) {
         let start = this.interaction.DownMousePos.canvas.x;
         let end = this.interaction.CurrentMousePos.canvas.x;
-        this.renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, this.state.graph_info.drag_color);
+        this.renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, this._state.graph_info.drag_color);
       } else if (this.label_manager.HorizontalZoom) {
         let start = this.interaction.DownMousePos.canvas.y;
         let end = this.interaction.CurrentMousePos.canvas.y;
-        this.renderer.DrawHorizontalRange(start, end, DrawSpace.PIXEL, this.state.graph_info.drag_color);
+        this.renderer.DrawHorizontalRange(start, end, DrawSpace.PIXEL, this._state.graph_info.drag_color);
       } else if (this.label_manager.BoxZoom) {
         let p1 = this.interaction.DownMousePos.canvas;
         let p2 = this.interaction.CurrentMousePos.canvas;
-        this.renderer.DrawBox(p1, p2, DrawSpace.PIXEL, this.state.graph_info.drag_color);
+        this.renderer.DrawBox(p1, p2, DrawSpace.PIXEL, this._state.graph_info.drag_color);
       }
     }
 
@@ -175,7 +168,7 @@ class GraphManager {
     this.renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("green"));
     this.renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("green"));
 
-    this.renderer.DrawGraph(DrawSpace.LOCAL, this.state.graph_info.line_color);
+    this.renderer.DrawGraph(DrawSpace.LOCAL, this._state.graph_info.line_color);
 
     // Draw mouse vertical line
     // this.DrawLinePixelSpace([10, 10], [200, 200]);
@@ -183,11 +176,80 @@ class GraphManager {
     this.renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
                                    AllColors.Get("orange"));
 
-    if (this.closest_point) {
-      this.renderer.DrawIcon(this.closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));
+    if (this._state.closest_point) {
+      this.renderer.DrawIcon(this._state.closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));
     }
 
   }
+
+  SetClosestPoint(pos: Vec2) : void {
+    if (!this.Valid) {
+      return;
+    }
+    this._state.closest_point = this.SearchForClosestPoint(pos);
+  }
+
+  /********************************************************************
+   * PRIVATE IMPLEMENTATION
+   ********************************************************************/
+
+  private CreateDefaults() {
+    let graph_info = {
+      bounds: Bounds.Zero,
+      background_color: AllColors.Get("black"),
+      drag_color: AllColors.Get("lightblue"),
+      line_color: AllColors.Get("white"),
+      line_width: 1
+    };
+
+    this._state = {
+      graph_info: graph_info,
+      graph_loaded: false,
+    };
+  }
+
+  private SearchForClosestPoint(pos: Vec2) : Vec2 {
+    var len = this._state.custom_points.length;
+    if (pos.x <= this._state.custom_points[0].x) {
+      return this._state.custom_points[0];
+    }
+    if (pos.x >= this._state.custom_points[len-1].x) {
+      return this._state.custom_points[len-1];
+    }
+
+    // We do binary search
+    var min_index = 0;
+    var max_index = len - 1;
+
+    while (min_index < max_index) {
+      var half = Math.floor((min_index + max_index) / 2);
+      var val = this._state.custom_points[half].x;
+
+      if (val > pos.x) {
+        if (max_index == half) { break; }
+        max_index = half;
+      } else {
+        if (min_index == half) { break; }
+        min_index = half;
+      }
+    }
+
+    // We now have two points
+    var min_point = this._state.custom_points[min_index];
+    var max_point = this._state.custom_points[max_index];
+
+    // We want to return the closest (x-wise)
+    var dist1 = Math.abs(min_point.x - pos.x);
+    var dist2 = Math.abs(max_point.x - pos.x);
+
+    if (dist1 < dist2) {
+      return min_point;
+    } else {
+      return max_point;
+    }
+  }
+
+
 }
 
 export default GraphManager;
