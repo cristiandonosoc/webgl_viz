@@ -27,6 +27,9 @@ class LabelManager {
   scale_x_box: HTMLInputElement;
   scale_y_box: HTMLInputElement;
 
+  vertical_zoom_radio: HTMLInputElement;
+  horizontal_zoom_radio: HTMLInputElement;
+
   constructor(manager: GraphManager, canvas: HTMLCanvasElement) {
     this.manager = manager;
     var graph_container = canvas.parentNode.parentNode;
@@ -53,6 +56,9 @@ class LabelManager {
     this.scale_x_box = <HTMLInputElement> document.getElementById("scale-x");
     this.scale_y_box = <HTMLInputElement> document.getElementById("scale-y");
 
+    this.vertical_zoom_radio = <HTMLInputElement> document.getElementById("control-vertical-zoom");
+    this.horizontal_zoom_radio = <HTMLInputElement> document.getElementById("control-horizontal-zoom");
+
     // Setup changes
     this.labels.x.bottom.addEventListener("change", this.DimensionChange);
     this.labels.x.top.addEventListener("change", this.DimensionChange);
@@ -69,6 +75,14 @@ class LabelManager {
     this.manager.renderer.bounds = Bounds.FromVecs(dim_x, dim_y);
     this.manager.Draw();
   };
+
+  get VerticalZoom() : boolean {
+    return this.vertical_zoom_radio.checked;
+  }
+
+  get HorizontalZoom() : boolean {
+    return this.horizontal_zoom_radio.checked;
+  }
 
   Update() {
     var renderer = this.manager.renderer;

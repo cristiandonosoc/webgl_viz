@@ -14,7 +14,7 @@ class GraphManager {
   /* WebGL programs */
   interaction: Interaction;   /* Manages interaction with browser (mostly mouse) */
   renderer: Renderer;
-  labels: LabelManager;
+  label_manager: LabelManager;
 
   // Internal state of the renderer
   state: {
@@ -37,7 +37,7 @@ class GraphManager {
     this.CreateDefaults();
     this.renderer = new Renderer(this.canvas);
     this.interaction = new Interaction(this);
-    this.labels = new LabelManager(this, canvas);
+    this.label_manager = new LabelManager(this, canvas);
     this.graph_loaded = false;
   }
 
@@ -152,13 +152,11 @@ class GraphManager {
     }
 
     if (this.interaction.ZoomDragging) {
-      // this.renderer.DrawVerticalLine(this.interaction.state.temp.last_down.x, DrawSpace.PIXEL,
-      //                                this.state.graph_info.drag_color);
-      // this.renderer.DrawVerticalLine(this.interaction.state.temp.current_pos.x, DrawSpace.PIXEL,
-      //                                this.state.graph_info.drag_color);
-      let start = this.interaction.state.temp.last_down.x;
-      let end = this.interaction.state.mouse.canvas.x;
-      this.renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, this.state.graph_info.drag_color);
+      if (this.label_manager.VerticalZoom) {
+        let start = this.interaction.state.temp.last_down.x;
+        let end = this.interaction.state.mouse.canvas.x;
+        this.renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, this.state.graph_info.drag_color);
+      }
     }
 
     // Draw x/y Axis
@@ -177,7 +175,7 @@ class GraphManager {
       this.renderer.DrawIcon(this.closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));
     }
 
-    this.labels.Update();
+    this.label_manager.Update();
   }
 }
 
