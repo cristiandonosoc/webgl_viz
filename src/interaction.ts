@@ -3,7 +3,7 @@ import RendererInterface from "./renderer_interface";
 
 import {RendererCanvasToLocal} from "./transforms";
 import {TempAddEventListener} from "./type_fixes";
-import {Vec2} from "./vectors";
+import {Bounds, Vec2} from "./vectors";
 
 enum MouseButtons {
   LEFT = 0,
@@ -239,8 +239,8 @@ class Interaction {
 
   private ProcessZoomDrag(event: any) {
     // Get the old bounds
-    let start = RendererCanvasToLocal(this.renderer, this._state.mouse.down_pos.canvas);
-    let end = RendererCanvasToLocal(this.renderer, this._state.mouse.up_pos.canvas);
+    let start = this.DownMousePos.local;
+    let end = this.UpMousePos.local;
 
     let bounds = this.renderer.bounds;
     if (this.manager.label_manager.VerticalZoom) {
@@ -251,6 +251,12 @@ class Interaction {
       let min = Math.min(start.y, end.y);
       let max = Math.max(start.y, end.y);
       bounds.y.Set(min, max);
+    } else if (this.manager.label_manager.BoxZoom) {
+      let min = Vec2.Min(start, end);
+      let max = Vec2.Max(start, end);
+      bounds = Bounds.FromPoints(min.x, max.x, min.y, max.y);
+    } else {
+      throw "Unsupported Zoom";
     }
 
     this.renderer.bounds = bounds;
