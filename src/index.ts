@@ -21,12 +21,12 @@ import positions from "./test_points";
 // We set the controllers
 document.getElementById("control-expand").addEventListener("click", (event) => {
   manager.ApplyMaxBounds();
-  requestAnimationFrame(DrawScene);
+  requestAnimationFrame(ProcessFrame);
 });
 
 document.getElementById("control-load-default-data").addEventListener("click", (event) => {
   manager.AddGraph(positions);
-  requestAnimationFrame(DrawScene);
+  requestAnimationFrame(ProcessFrame);
 });
 
 document.getElementById("control-file").addEventListener("change", (event: any) => {
@@ -36,13 +36,13 @@ document.getElementById("control-file").addEventListener("change", (event: any) 
     console.log("Loaded file");
     manager.HandleDapFile(reader.result);
     console.log("Processed dap file");
-    requestAnimationFrame(DrawScene);
+    requestAnimationFrame(ProcessFrame);
   });
   reader.readAsText(event.target.files[0]);
 });
 
-function DrawScene(time: number) {
-  manager.Draw();
+function ProcessFrame(time: number) {
+  manager.FrameLoop();
 }
 
-requestAnimationFrame(DrawScene);
+requestAnimationFrame(ProcessFrame);

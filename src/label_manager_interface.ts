@@ -11,6 +11,7 @@ interface LabelManagerInterface {
 
   /* ACTIONS */
   Update() : void;
+  Draw() : void;
 }
 
 export {ZoomType}

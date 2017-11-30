@@ -82,18 +82,16 @@ class LabelManager implements LabelManagerInterface {
     return ZoomType.NONE;
   }
 
-  Update() {
-    var renderer = this._manager.Renderer;
-
+  Update() : void {
     if (this._manager.Interaction.CtrlPressed) {
       this.ctrl_label.classList.remove("hidden");
     } else {
       this.ctrl_label.classList.add("hidden");
     }
+  }
 
-    if (this._manager.Valid) {
-      this.UpdateStats();
-    }
+  Draw() : void {
+    this.UpdateStats();
   }
 
   /*******************************************************
@@ -119,7 +117,7 @@ class LabelManager implements LabelManagerInterface {
     let dim_y = new Vec2(Number(this.labels.y.bottom.value),
                          Number(this.labels.y.top.value));
     this._manager.Renderer.Bounds = Bounds.FromVecs(dim_x, dim_y);
-    this._manager.Draw();
+    this._manager.FrameLoop();
   };
 
   private UpdateStats() {

@@ -148,22 +148,29 @@ class GraphManager implements GraphManagerInterface {
     this.Renderer.Bounds = this._state.graph_info.bounds.Copy();
   }
 
+  FrameLoop() : void {
+    this.Update();
+    this.Draw();
+  }
+
   /*******************************************
    * DRAWING
    *******************************************/
 
-  Draw() : void {
+  private Update() : void {
     // Resize
     this.Renderer.ResizeCanvas();
+    this.LabelManager.Update();
+  }
 
-    // Clear Canvas
-    this.Renderer.Clear(this._state.graph_info.background_color);
-
-    this._label_manager.Update();
-
+  private Draw() : void {
     if (!this.Valid) {
       return;
     }
+
+    // Clear Canvas
+    this.Renderer.Clear(this._state.graph_info.background_color);
+    this.LabelManager.Draw();
 
     if (this.Interaction.ZoomDragging) {
       let zoom = this._label_manager.Zoom;

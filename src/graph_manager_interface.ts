@@ -14,7 +14,10 @@ interface GraphManagerInterface {
   Valid: boolean;
 
   /* ACTIONS */
-  Draw() : void;
+  FrameLoop() : void;   /* Update + Draw */
+  // Update() : void;
+  // Draw() : void;
+
   SetClosestPoint(point: Vec2) : void;
   // Resets the zoom to the containing bounds
   ApplyMaxBounds() : void;
