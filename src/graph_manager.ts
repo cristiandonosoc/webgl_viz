@@ -64,10 +64,10 @@ class GraphManager {
     // We go over the lines
     let base = new Array<number>();
     let points = new Array<number>();
-    points.push(0);
-    points.push(0);
-    points.push(0.5);
-    points.push(0.5);
+    // points.push(0);
+    // points.push(0);
+    // points.push(0.5);
+    // points.push(0.5);
 
     let limit = 40;
     for (let i = 0; i < lines.length; i += 1) {
@@ -87,8 +87,8 @@ class GraphManager {
 
       let tokens = line.split(" ");
       // We look for the first number
-      let first = parseFloat(tokens[3]) + base[0];
-      let last = parseFloat(tokens[tokens.length - 1]) + base[base.length - 1];
+      let first = parseFloat(tokens[3]);
+      let last = parseFloat(tokens[tokens.length - 1]);
 
       points.push(first);
       points.push(last - first);
