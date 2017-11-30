@@ -108,6 +108,10 @@ class Interaction {
    **************************************************************/
 
   private ProcessMove(event: any) {
+    if (!this.manager.graph_loaded) {
+      return;
+    }
+
     // We log the variables
     // Screen
     let last_pos = this.state.mouse.screen;
@@ -130,6 +134,10 @@ class Interaction {
   }
 
   private ProcessDrag(event: any) {
+    if (!this.manager.graph_loaded) {
+      return;
+    }
+
     let last_pos = this.state.temp.last_pos;
     let current_pos = this.state.temp.current_pos;
     let diff = new Vec2(current_pos.x - last_pos.x,
@@ -143,6 +151,10 @@ class Interaction {
   }
 
   private SearchForClosestPoint(mouse_pos: Vec2) {
+    if (!this.manager.graph_loaded) {
+      return;
+    }
+
     var len = this.manager.custom_points.length;
     if (mouse_pos.x <= this.manager.custom_points[0].x) {
       return this.manager.custom_points[0];

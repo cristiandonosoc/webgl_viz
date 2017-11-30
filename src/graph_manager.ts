@@ -96,7 +96,6 @@ class GraphManager {
     }
 
     this.AddGraph(points);
-    this.graph_loaded = true;
   }
 
   AddGraph(points: number[]) : void {
@@ -126,6 +125,8 @@ class GraphManager {
     this.custom_points = arr.sort((p1: Vec2, p2: Vec2) => {
       return p1.x - p2.x;
     });
+
+    this.graph_loaded = true;
   }
 
   // Applies the graph max bounds

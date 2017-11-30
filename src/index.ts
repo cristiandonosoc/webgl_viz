@@ -15,14 +15,17 @@ var manager = new GraphManager(canvas);
 //   positions[i + 1] = offset + 0.3 * Math.random(); - 0.15;
 // }
 
-// import positions from "./test_points";
+import positions from "./test_points";
 
-// // We add our positions
-// manager.AddGraph(positions);
 
 // We set the controllers
 document.getElementById("control-expand").addEventListener("click", (event) => {
   manager.ApplyMaxBounds();
+  requestAnimationFrame(DrawScene);
+});
+
+document.getElementById("control-load-default-data").addEventListener("click", (event) => {
+  manager.AddGraph(positions);
   requestAnimationFrame(DrawScene);
 });
 
