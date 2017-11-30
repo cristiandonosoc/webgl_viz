@@ -1,9 +1,15 @@
-$stats-height: 100px;
+$stats-real-height: 100px;
+$stats-border: 1px;
+$stats-padding: 5px;
+$stats-height: $stats-real-height - 2 * ($stats-border + $stats-padding);
 $stat-width: 125px;
 
-$controls-height: 50px;
+$controls-real-height: 50px;
+$controls-border: 1px;
+$controls-padding: 5px;
+$controls-height: $controls-real-height - 2 * ($controls-border + $controls-padding);
 
-$canvas-start: $stats-height + $controls-height;
+$canvas-start: $stats-real-height + $controls-real-height + 10px;
 $canvas-border-bottom: 50px;
 $canvas-border-top: 0px;
 $canvas-border-left: 100px;
@@ -12,13 +18,34 @@ $canvas-border-right: 50px;
 $label-width-x: 75px;
 $label-width-y: 75px;
 
-
 body {
   position: absolute;
   top: 0;
   bottom:0;
   right: 0;
   left: 0;
+}
+
+.stats {
+  border: $stats-border solid black;
+  height: $stats-height;
+  padding: $stats-padding;
+
+  .stat-group {
+    display: inline-block;
+    width: $stat-width;
+
+    input {
+      display: inline;
+      width: 100%;
+    }
+  }
+}
+
+.controls {
+  border: $controls-border solid black;
+  height: $controls-height;
+  padding: $controls-padding;
 }
 
 #main-container {
@@ -83,15 +110,4 @@ body {
 
 }
 
-.stats {
-  height: $stats-height;
-  .stat-group {
-    display: inline-block;
-    width: $stat-width;
 
-    input {
-      display: inline;
-      width: 100%;
-    }
-  }
-}
