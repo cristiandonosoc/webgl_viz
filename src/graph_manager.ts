@@ -131,7 +131,7 @@ class GraphManager {
 
   // Applies the graph max bounds
   ApplyMaxBounds() : void {
-    this.renderer.bounds = this.state.graph_info.bounds;
+    this.renderer.bounds = this.state.graph_info.bounds.Copy();
   }
 
   /*******************************************

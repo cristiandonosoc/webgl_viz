@@ -76,6 +76,14 @@ class Renderer {
     this._state.offset = offset;
   }
 
+  get width() : number {
+    return this.gl.canvas.width;
+  }
+
+  get height() : number {
+    return this.gl.canvas.height;
+  }
+
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this._state = {

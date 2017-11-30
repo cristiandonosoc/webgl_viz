@@ -26,10 +26,21 @@ class Vec2 {
     this.y = y;
   }
 
+  Copy() : Vec2 {
+    return new Vec2(this.x, this.y);
+  }
+
 
   static Sum(v1: Vec2, v2: Vec2) : Vec2 {
-    return new Vec2(v1.x + v2.x,
-                    v1.y + v2.y);
+    return new Vec2(v1.x + v2.x, v1.y + v2.y);
+  }
+
+  static Sub(v1: Vec2, v2: Vec2) : Vec2 {
+    return new Vec2(v1.x - v2.x, v1.y - v2.y);
+  }
+
+  static Mul(v1: Vec2, v2: Vec2) : Vec2 {
+    return new Vec2(v1.x * v2.x, v1.y * v2.y);
   }
 
   static get Zero() : Vec2 {
@@ -40,6 +51,10 @@ class Vec2 {
 class Bounds {
   x: Vec2
   y: Vec2
+
+  Copy() : Bounds {
+    return Bounds.FromVecs(this.x.Copy(), this.y.Copy());
+  }
 
   static FromPoints(x1: number, x2: number, y1: number, y2: number) : Bounds {
     let b = new Bounds();
