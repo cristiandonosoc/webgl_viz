@@ -1,5 +1,5 @@
 import GraphManager from "./graph_manager";
-import {Renderer} from "./renderer";
+import {RendererInterface} from "./renderer";
 
 import {RendererCanvasToLocal} from "./transforms";
 import {TempAddEventListener} from "./type_fixes";
@@ -25,7 +25,7 @@ class MousePosition {
     return mouse_pos;
   }
 
-  static FromRendererEvent(renderer: Renderer, event: any) : MousePosition {
+  static FromRendererEvent(renderer: RendererInterface, event: any) : MousePosition {
     let mouse_pos = new MousePosition();
     // Screen
     mouse_pos.screen = new Vec2(event.screenX,
@@ -52,7 +52,7 @@ class MousePosition {
 class Interaction {
 
   manager: GraphManager;
-  renderer: Renderer;
+  renderer: RendererInterface;
   private _state: {
     config: {
       wheel_factor: Vec2,

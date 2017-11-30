@@ -12,7 +12,35 @@ enum DrawSpace {
   PIXEL
 }
 
-class Renderer {
+interface RendererInterface {
+  /* GETTERS / SETTERS */
+  offset: Vec2;
+  scale: Vec2;
+  bounds: Bounds;
+  readonly width: number;
+  readonly height: number;
+  readonly canvas: HTMLCanvasElement;
+
+  /* MANAGING INTERFACE */
+  AddGraph(points: number[]) : void;
+  ResizeCanvas() : void;
+
+  /* RENDERING INTERFACE */
+  Clear(color: Color) : void;
+
+  DrawGraph(space: DrawSpace, color: Color) : void;
+
+  DrawLine(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void;
+  DrawHorizontalLine(y: number, space: DrawSpace, color: Color) : void;
+  DrawVerticalLine(x: number, space: DrawSpace, color: Color) : void;
+
+  DrawHorizontalRange(start: number, end: number, space: DrawSpace, color: Color) : void;
+  DrawVerticalRange(start: number, end: number, space: DrawSpace, color: Color) : void;
+
+  DrawIcon(point: Vec2, space: DrawSpace, color: Color) : void;
+}
+
+class Renderer implements RendererInterface {
 
   canvas: HTMLCanvasElement;
   gl: WebGL2RenderingContext;
@@ -147,7 +175,7 @@ class Renderer {
     img.src = "src/resources/cross.png";
   }
 
-  AddGraph(points: number[]) {
+  AddGraph(points: number[]) : void {
     // We set the WebGL points
     let arrays = {
       a_position_coord: points
@@ -155,7 +183,7 @@ class Renderer {
     this.graph_buffer_info = twgl.createBufferInfoFromArrays(this.gl, arrays);
   }
 
-  ResizeCanvas() {
+  ResizeCanvas() : void {
     twgl.resizeCanvasToDisplaySize(this.gl.canvas);
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
   }
@@ -164,29 +192,28 @@ class Renderer {
    * RENDERING FUNCTIONS
    *************************************************/
 
-  Clear(clear_color: Color) {
-    this.gl.clearColor(clear_color.r, clear_color.g,
-                       clear_color.b, clear_color.a);
+  Clear(color: Color) : void {
+    this.gl.clearColor(color.r, color.g,
+                       color.b, color.a);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 
-  DrawGraphLocalSpace(color: Color) {
-    // Set shader program
-    this.gl.useProgram(this.local_program_info.program);
+  DrawGraph(space: DrawSpace, color: Color) : void {
+    if (space == DrawSpace.LOCAL) {
+      this.DrawGraphLocalSpace(color);
+    } else {
+      throw "Unsupported DrawSpace";
+    }
+  }
 
-    // Set the current buffers and attributes
-    twgl.setBuffersAndAttributes(this.gl, this.local_program_info, this.graph_buffer_info);
-
-    // Set the uniforms
-    let uniforms = {
-      u_offset: this._state.offset.AsArray(),
-      u_scale: this._state.scale.AsArray(),
-      u_color: color.AsArray(),
-    };
-    twgl.setUniforms(this.local_program_info, uniforms);
-
-    // We draw
-    twgl.drawBufferInfo(this.gl, this.graph_buffer_info, this.gl.LINE_STRIP);
+  DrawLine(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void {
+    if (space == DrawSpace.LOCAL) {
+      this.DrawLineLocalSpace(p1, p2, color);
+    } else if (space == DrawSpace.PIXEL) {
+      this.DrawLinePixelSpace(p1, p2, color);
+    } else {
+      throw "Unsupported DrawSpace";
+    }
   }
 
   DrawHorizontalLine(y: number, space: DrawSpace, color: Color) : void {
@@ -201,15 +228,7 @@ class Renderer {
     this.DrawLine(p1, p2, space, color);
   }
 
-  DrawLine(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void {
-    if (space == DrawSpace.LOCAL) {
-      this.DrawLineLocalSpace(p1, p2, color);
-    } else if (space == DrawSpace.PIXEL) {
-      this.DrawLinePixelSpace(p1, p2, color);
-    } else {
-      throw "Unsupported DrawSpace";
-    }
-  }
+  /* RANGES */
 
   DrawHorizontalRange(start: number, end: number, space: DrawSpace, color: Color) : void {
     let min = Math.min(start, end);
@@ -241,6 +260,8 @@ class Renderer {
     }
   }
 
+  /* ICON */
+
   DrawIcon(point: Vec2, space: DrawSpace, color: Color) : void {
     if (space == DrawSpace.LOCAL) {
       this.DrawIconLocalSpace(point, color);
@@ -254,6 +275,29 @@ class Renderer {
   /******************************************************
    * PRIVATE FUNCTIONS
    ******************************************************/
+
+  /* DRAW GRAPH */
+
+  private DrawGraphLocalSpace(color: Color) : void {
+    // Set shader program
+    this.gl.useProgram(this.local_program_info.program);
+
+    // Set the current buffers and attributes
+    twgl.setBuffersAndAttributes(this.gl, this.local_program_info, this.graph_buffer_info);
+
+    // Set the uniforms
+    let uniforms = {
+      u_offset: this._state.offset.AsArray(),
+      u_scale: this._state.scale.AsArray(),
+      u_color: color.AsArray(),
+    };
+    twgl.setUniforms(this.local_program_info, uniforms);
+
+    // We draw
+    twgl.drawBufferInfo(this.gl, this.graph_buffer_info, this.gl.LINE_STRIP);
+  }
+
+
 
   /* DRAW LINE */
 
@@ -379,3 +423,4 @@ class Renderer {
 
 export {DrawSpace};
 export {Renderer};
+export {RendererInterface};

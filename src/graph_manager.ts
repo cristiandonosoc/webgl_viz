@@ -3,7 +3,7 @@
 import {Color, AllColors} from "./colors"
 import Interaction from "./interaction";
 import LabelManager from "./label_manager";
-import {DrawSpace, Renderer} from "./renderer";
+import {DrawSpace, Renderer, RendererInterface} from "./renderer";
 import {Bounds, Vec2} from "./vectors";
 
 let g_inf = 9007199254740991;
@@ -13,8 +13,8 @@ class GraphManager {
 
   /* WebGL programs */
   interaction: Interaction;   /* Manages interaction with browser (mostly mouse) */
-  renderer: Renderer;
   label_manager: LabelManager;
+  renderer: RendererInterface;
 
   // Internal state of the renderer
   state: {
@@ -167,7 +167,7 @@ class GraphManager {
     this.renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("green"));
     this.renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("green"));
 
-    this.renderer.DrawGraphLocalSpace(this.state.graph_info.line_color);
+    this.renderer.DrawGraph(DrawSpace.LOCAL, this.state.graph_info.line_color);
 
     // Draw mouse vertical line
     // this.DrawLinePixelSpace([10, 10], [200, 200]);
