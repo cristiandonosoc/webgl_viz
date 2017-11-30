@@ -96,6 +96,8 @@ class LabelManager {
     this.canvas_y_box.value = String(manager.interaction.state.mouse.canvas.y);
     this.offset_x_box.value = String(manager.renderer.offset.x);
     this.offset_y_box.value = String(manager.renderer.offset.y);
+    this.local_x_box.value = String(manager.interaction.state.mouse.local.x);
+    this.local_y_box.value = String(manager.interaction.state.mouse.local.y);
     this.scale_x_box.value =  String(manager.renderer.scale.x);
     this.scale_y_box.value =  String(manager.renderer.scale.y);
 

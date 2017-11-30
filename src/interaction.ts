@@ -94,7 +94,7 @@ class Interaction {
 
     // Canvas relative
     let client_pos = new Vec2(event.clientX, event.clientY);
-    let canvas_pos = this.GetCanvasRelativePos(client_pos);
+    let canvas_pos = this.GetCanvasRelativePos(event.target, client_pos);
     this.state.temp.last_down = canvas_pos;
     this.state.mouse.canvas = canvas_pos;
 
@@ -167,14 +167,14 @@ class Interaction {
     // We log the variables
     // Screen
     let prev_pos = this.state.mouse.screen;
-    let current_pos = new Vec2(event.screenX, event.screenY);
+    let current_pos = new Vec2(event.screenX, screen.height - event.screenY);
     this.state.mouse.screen = current_pos;
     this.state.internal.prev_pos = prev_pos;
     this.state.internal.current_pos = current_pos;
 
     // Canvas relative
     let client_pos = new Vec2(event.clientX, event.clientY);
-    let canvas_pos = this.GetCanvasRelativePos(client_pos);
+    let canvas_pos = this.GetCanvasRelativePos(event.target, client_pos);
     this.state.mouse.canvas = canvas_pos;
 
     // var local = this.CanvasToLocal(canvas_pos);
@@ -276,10 +276,11 @@ class Interaction {
   }
 
 
-  private GetCanvasRelativePos(pos: Vec2) : Vec2 {
-    let bounds = this.renderer.canvas.getBoundingClientRect();
+  private GetCanvasRelativePos(target: any, pos: Vec2) : Vec2 {
+    // let bounds = this.renderer.canvas.getBoundingClientRect();
+    let bounds = target.getBoundingClientRect();
     let rel_pos = new Vec2(pos.x - bounds.left,
-                           pos.y - bounds.top);
+                           bounds.height - (pos.y - bounds.top));
     return rel_pos;
   }
 }
