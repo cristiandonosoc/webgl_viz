@@ -231,8 +231,8 @@ class Renderer implements RendererInterface {
   /* BOX */
 
   DrawBox(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void {
-    let min = new Vec2(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y));
-    let max = new Vec2(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y));
+    let min = Vec2.Min(p1, p2);
+    let max = Vec2.Max(p1, p2);
     if (space == DrawSpace.PIXEL) {
       let points = Array<Vec2>(4);
       points[0] = new Vec2(min.x, min.y);
