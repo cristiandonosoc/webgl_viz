@@ -228,6 +228,23 @@ class Renderer implements RendererInterface {
     }
   }
 
+  /* BOX */
+
+  DrawBox(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void {
+    let min = new Vec2(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y));
+    let max = new Vec2(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y));
+    if (space == DrawSpace.PIXEL) {
+      let points = Array<Vec2>(4);
+      points[0] = new Vec2(min.x, min.y);
+      points[1] = new Vec2(min.x, max.y);
+      points[2] = new Vec2(max.x, min.y);
+      points[3] = new Vec2(max.x, max.y);
+      this.DrawTriangleStripPixelSpace(points, color);
+    } else {
+      throw "Unsupported DrawSpace";
+    }
+  }
+
   /* ICON */
 
   DrawIcon(point: Vec2, space: DrawSpace, color: Color) : void {
@@ -264,8 +281,6 @@ class Renderer implements RendererInterface {
     // We draw
     twgl.drawBufferInfo(this.gl, this.graph_buffer_info, this.gl.LINE_STRIP);
   }
-
-
 
   /* DRAW LINE */
 
@@ -358,7 +373,7 @@ class Renderer implements RendererInterface {
     this.gl.drawArrays(this.gl.POINTS, 0, 1);
   }
 
-  /* DRAW RANGE */
+  /* DRAW TRIANGLE_STRIP */
 
   private DrawTriangleStripPixelSpace(points: Vec2[], color: Color) {
     this.gl.useProgram(this.pixel_program_info.program);

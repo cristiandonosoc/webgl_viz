@@ -31,6 +31,8 @@ interface RendererInterface {
   DrawHorizontalRange(start: number, end: number, space: DrawSpace, color: Color) : void;
   DrawVerticalRange(start: number, end: number, space: DrawSpace, color: Color) : void;
 
+  DrawBox(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void;
+
   DrawIcon(point: Vec2, space: DrawSpace, color: Color) : void;
 }
 

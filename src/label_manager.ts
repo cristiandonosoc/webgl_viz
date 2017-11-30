@@ -29,6 +29,7 @@ class LabelManager {
 
   vertical_zoom_radio: HTMLInputElement;
   horizontal_zoom_radio: HTMLInputElement;
+  box_zoom_radio: HTMLInputElement;
 
   constructor(manager: GraphManager, canvas: HTMLCanvasElement) {
     this.manager = manager;
@@ -58,6 +59,7 @@ class LabelManager {
 
     this.vertical_zoom_radio = <HTMLInputElement> document.getElementById("control-vertical-zoom");
     this.horizontal_zoom_radio = <HTMLInputElement> document.getElementById("control-horizontal-zoom");
+    this.box_zoom_radio = <HTMLInputElement> document.getElementById("control-box-zoom");
 
     // Setup changes
     this.labels.x.bottom.addEventListener("change", this.DimensionChange);
@@ -82,6 +84,10 @@ class LabelManager {
 
   get HorizontalZoom() : boolean {
     return this.horizontal_zoom_radio.checked;
+  }
+
+  get BoxZoom() : boolean {
+    return this.box_zoom_radio.checked;
   }
 
   Update() {

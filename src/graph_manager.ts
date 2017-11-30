@@ -59,7 +59,7 @@ class GraphManager {
   HandleDapFile = (content: string) => {
     // We split into lines
     let lines = content.split("\n");
-    console.log("Read %d lines", lines.length);
+    console.info("Read %d lines", lines.length);
 
     // We go over the lines
     let base = new Array<number>();
@@ -77,11 +77,11 @@ class GraphManager {
         for (var j = 1; j < tokens.length; j += 1) {
           base.push(parseFloat(tokens[j]));
         }
-        console.log("Processed: %s", line);
+        console.info("Processed: %s", line);
         continue;
       }
       if (line.lastIndexOf("OFFST", 0) === 0) {
-        console.log("Skipping: %s", line);
+        console.info("Skipping: %s", line);
         continue;
       }
 
@@ -94,7 +94,7 @@ class GraphManager {
       points.push(last - first);
 
       if (i < limit) {
-        console.log("%f -> %f", first, last - first);
+        console.info("%f -> %f", first, last - first);
       }
     }
 
@@ -161,6 +161,10 @@ class GraphManager {
         let start = this.interaction.DownMousePos.canvas.y;
         let end = this.interaction.CurrentMousePos.canvas.y;
         this.renderer.DrawHorizontalRange(start, end, DrawSpace.PIXEL, this.state.graph_info.drag_color);
+      } else if (this.label_manager.BoxZoom) {
+        let p1 = this.interaction.DownMousePos.canvas;
+        let p2 = this.interaction.CurrentMousePos.canvas;
+        this.renderer.DrawBox(p1, p2, DrawSpace.PIXEL, this.state.graph_info.drag_color);
       }
     }
 
