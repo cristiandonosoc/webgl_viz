@@ -31,6 +31,8 @@ class LabelManager {
   horizontal_zoom_radio: HTMLInputElement;
   box_zoom_radio: HTMLInputElement;
 
+  ctrl_label: HTMLElement;
+
   constructor(manager: GraphManager, canvas: HTMLCanvasElement) {
     this.manager = manager;
     var graph_container = canvas.parentNode.parentNode;
@@ -66,6 +68,8 @@ class LabelManager {
     this.labels.x.top.addEventListener("change", this.DimensionChange);
     this.labels.y.bottom.addEventListener("change", this.DimensionChange);
     this.labels.y.top.addEventListener("change", this.DimensionChange);
+
+    this.ctrl_label = document.getElementById("ctrl-key");
   }
 
   private DimensionChange = (event: any) => {
@@ -92,7 +96,16 @@ class LabelManager {
 
   Update() {
     var renderer = this.manager.renderer;
-    this.UpdateStats(this.manager);
+
+    if (this.manager.interaction.CtrlPressed) {
+      this.ctrl_label.classList.remove("hidden");
+    } else {
+      this.ctrl_label.classList.add("hidden");
+    }
+
+    if (this.manager.graph_loaded) {
+      this.UpdateStats(this.manager);
+    }
   }
 
   private UpdateStats(manager: GraphManager) {

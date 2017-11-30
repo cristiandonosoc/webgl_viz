@@ -65,6 +65,9 @@ class Interaction {
       last_pos: MousePosition,
       up_pos: MousePosition,
     },
+    keys: {
+      ctrl: boolean,
+    }
   };
 
   constructor(manager: GraphManager) {
@@ -82,6 +85,9 @@ class Interaction {
         dragging: false,
         last_pos: MousePosition.Zero,
         up_pos: MousePosition.Zero,
+      },
+      keys: {
+        ctrl: false,
       }
     }
     this.SetupInteraction();
@@ -108,6 +114,10 @@ class Interaction {
     return this._state.mouse.up_pos;
   }
 
+  get CtrlPressed() : boolean {
+    return this._state.keys.ctrl;
+  }
+
   /*****************************************************************
    * HANDLERS
    *****************************************************************/
@@ -116,12 +126,23 @@ class Interaction {
     this.renderer.canvas.addEventListener("mousedown", this.MouseDown);
     document.addEventListener("mouseup", this.MouseUp);
     this.renderer.canvas.addEventListener("mousemove", this.MouseMove);
+    document.addEventListener("keydown", (event) => {
+      this._state.keys.ctrl = event.ctrlKey;
+      this.PostChange();
+    });
+    document.addEventListener("keyup", (event) => {
+      this._state.keys.ctrl = event.ctrlKey;
+      this.PostChange();
+    });
 
     // Mouse wheel
+    console.info("This app wants to preventDefault scroll Behavior on Canvas.\n" +
+                 "This is intended behaviour, but I don't know how to " +
+                 "remove the Warning");
     (this.renderer.canvas.addEventListener as TempAddEventListener)(
       "mousewheel",
       this.MouseWheel, {
-      passive: true     /* chrome warns that this helps with latency */
+      passive: false /* chrome warns that this helps with latency */
     });
   }
 
@@ -161,13 +182,23 @@ class Interaction {
   }
 
   private MouseWheel = (event: any) => {
+    event.preventDefault();
     let pin_point = RendererCanvasToLocal(this.renderer,
                                           this._state.mouse.current_pos.canvas);
 
+    // let delta = -event.deltaY;
+    // let scale_change = new Vec2(delta * this._state.config.wheel_factor.x,
+    //                             delta * this._state.config.wheel_factor.y);
+
     // We change the scale
-    let delta = -event.deltaY;
-    let scale_change = new Vec2(delta * this._state.config.wheel_factor.x,
-                                delta * this._state.config.wheel_factor.y);
+    let delta = Vec2.Zero;
+    if (!this.CtrlPressed) {
+      delta.x = -event.deltaY;
+    } else {
+      delta.y = -event.deltaY;
+    }
+
+    let scale_change = Vec2.Mul(this._state.config.wheel_factor, delta);
     let old_scale = this.renderer.scale;
     let new_scale = Vec2.Sum(this.renderer.scale, scale_change);
     if (new_scale.x < 0) { new_scale.x = 0; }
@@ -232,7 +263,7 @@ class Interaction {
     let offset = new Vec2(diff.x / this.renderer.width,
                           diff.y / this.renderer.height);
     // We invert the y-axis
-    offset.y *= -1;
+    // offset.y *= -1;
 
     this.renderer.offset = Vec2.Sum(this.renderer.offset, offset);
   }

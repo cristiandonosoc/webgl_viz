@@ -148,6 +148,8 @@ class GraphManager {
     // Clear Canvas
     this.renderer.Clear(this.state.graph_info.background_color);
 
+    this.label_manager.Update();
+
     if (!this.graph_loaded) {
       return;
     }
@@ -184,7 +186,6 @@ class GraphManager {
       this.renderer.DrawIcon(this.closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));
     }
 
-    this.label_manager.Update();
   }
 }
 
