@@ -88,29 +88,34 @@ class Interaction {
   }
 
   private MouseDown = (event: any) => {
+    this.SetPointsFromEvent(event);
+
+    // Mouse Down Specific
     this.state.mouse.dragging = true;
     this.state.mouse.button = event.button;
-    this.state.mouse.screen.Set(event.screenX, event.screenY);
+    this.state.temp.last_down = this.state.mouse.canvas;
 
-    // Canvas relative
-    let client_pos = new Vec2(event.clientX, event.clientY);
-    let canvas_pos = this.GetCanvasRelativePos(event.target, client_pos);
-    this.state.temp.last_down = canvas_pos;
-    this.state.mouse.canvas = canvas_pos;
-
+    console.log("DOWN: ", this.state.mouse.canvas);
     this.PostChange();
   }
 
   private MouseUp = (event: any) => {
+    if (!this.state.mouse.dragging) {
+      return;
+    }
+    this.SetPointsFromEvent(event);
+
+    // Mouse Up Specific
     let button = this.state.mouse.button;
     this.state.mouse.dragging = false;
     this.state.mouse.button = -1;
-    let canvas_pos = new Vec2(event.clientX, event.clientY);
-    this.state.temp.last_up = canvas_pos;
+    this.state.temp.last_up = this.state.mouse.canvas;
 
+    console.log("UP: ", this.state.mouse.canvas);
     if (button == MouseButtons.RIGHT) {
       this.ProcessZoomDrag(event);
     }
+
     this.PostChange();
   }
 
@@ -164,23 +169,8 @@ class Interaction {
       return;
     }
 
-    // We log the variables
-    // Screen
-    let prev_pos = this.state.mouse.screen;
-    let current_pos = new Vec2(event.screenX, screen.height - event.screenY);
-    this.state.mouse.screen = current_pos;
-    this.state.internal.prev_pos = prev_pos;
-    this.state.internal.current_pos = current_pos;
-
-    // Canvas relative
-    let client_pos = new Vec2(event.clientX, event.clientY);
-    let canvas_pos = this.GetCanvasRelativePos(event.target, client_pos);
-    this.state.mouse.canvas = canvas_pos;
-
-    // var local = this.CanvasToLocal(canvas_pos);
-    var local = RendererCanvasToLocal(this.renderer, canvas_pos);
-    this.state.mouse.local = local;
-    this.manager.closest_point = this.SearchForClosestPoint(local);
+    this.SetPointsFromEvent(event);
+    this.manager.closest_point = this.SearchForClosestPoint(this.state.mouse.local);
   }
 
   private ProcessDrag(event: any) {
@@ -192,7 +182,6 @@ class Interaction {
       this.ProcessMoveDrag(event);
     } else if (this.state.mouse.button == MouseButtons.RIGHT) {
       // Drag is handled at mouse up
-      // TODO(donosoc): Do visual indication of zoom
     } else {
       throw "unsupported drag event";
     }
@@ -215,6 +204,7 @@ class Interaction {
     // Get the old bounds
     let start = RendererCanvasToLocal(this.renderer, this.state.temp.last_down);
     let end = RendererCanvasToLocal(this.renderer, this.state.temp.last_up);
+    console.log("START: ", start, " END: ", end);
 
     let bounds = this.renderer.bounds;
     if (this.manager.label_manager.VerticalZoom) {
@@ -275,14 +265,36 @@ class Interaction {
     }
   }
 
+  private SetPointsFromEvent(event: any) {
+    // Screen
+    let current_pos = this.GetScreenPosFromEvent(event);
+    this.state.mouse.screen = current_pos;
+    this.state.internal.prev_pos = this.state.internal.current_pos;
+    this.state.internal.current_pos = current_pos;
 
-  private GetCanvasRelativePos(target: any, pos: Vec2) : Vec2 {
-    // let bounds = this.renderer.canvas.getBoundingClientRect();
-    let bounds = target.getBoundingClientRect();
-    let rel_pos = new Vec2(pos.x - bounds.left,
-                           bounds.height - (pos.y - bounds.top));
-    return rel_pos;
+    // Canvas relative
+    let canvas_pos = this.GetCanvasPosFromEvent(event);
+    this.state.mouse.canvas = canvas_pos;
+
+    // var local = this.CanvasToLocal(canvas_pos);
+    var local = RendererCanvasToLocal(this.renderer, canvas_pos);
+    this.state.mouse.local = local;
   }
+
+  private GetScreenPosFromEvent(event: any) {
+    let screen_pos = new Vec2(event.screenX,
+                              window.screen.height - event.screenY);
+    return screen_pos;
+  }
+
+  private GetCanvasPosFromEvent(event: any) {
+    let client_pos = new Vec2(event.clientX, event.clientY);
+    let bounds = event.target.getBoundingClientRect();
+    let canvas_pos = new Vec2(event.clientX - bounds.left,
+                           bounds.height - (event.clientY - bounds.top));
+    return canvas_pos;
+  }
+
 }
 
 export default Interaction;
