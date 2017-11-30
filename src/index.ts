@@ -15,10 +15,10 @@ var manager = new GraphManager(canvas);
 //   positions[i + 1] = offset + 0.3 * Math.random(); - 0.15;
 // }
 
-import positions from "./test_points";
+// import positions from "./test_points";
 
-// We add our positions
-manager.AddGraph(positions);
+// // We add our positions
+// manager.AddGraph(positions);
 
 // We set the controllers
 document.getElementById("control-expand").addEventListener("click", (event) => {
@@ -26,12 +26,20 @@ document.getElementById("control-expand").addEventListener("click", (event) => {
   requestAnimationFrame(DrawScene);
 });
 
+document.getElementById("control-file").addEventListener("change", (event: any) => {
+  console.log("Creating FileReader");
+  let reader = new FileReader();
+  reader.addEventListener("loadend", (event: any) => {
+    console.log("Loaded file");
+    manager.HandleDapFile(reader.result);
+    console.log("Processed dap file");
+    requestAnimationFrame(DrawScene);
+  });
+  reader.readAsText(event.target.files[0]);
+});
 
-// We create a fast "game-loop"
 function DrawScene(time: number) {
   manager.Draw();
 }
-
-
 
 requestAnimationFrame(DrawScene);

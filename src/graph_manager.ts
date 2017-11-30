@@ -12,8 +12,6 @@ class GraphManager {
   canvas: HTMLCanvasElement;
 
   /* WebGL programs */
-  graph_buffer_info: any;     /* Holds a graph, should be one per graph */
-
   interaction: Interaction;   /* Manages interaction with browser (mostly mouse) */
   renderer: Renderer;
   labels: LabelManager;
@@ -28,6 +26,7 @@ class GraphManager {
     },
   };
 
+  graph_loaded: boolean;
   points: number[];
   custom_points: Array<Vec2>;
   closest_point: Vec2;
@@ -38,6 +37,7 @@ class GraphManager {
     this.renderer = new Renderer(this.canvas);
     this.interaction = new Interaction(this);
     this.labels = new LabelManager(this, canvas);
+    this.graph_loaded = false;
   }
 
   private CreateDefaults() {
@@ -53,7 +53,53 @@ class GraphManager {
     };
   }
 
-  AddGraph(points: number[]) {
+  HandleDapFile = (content: string) => {
+    // We split into lines
+    let lines = content.split("\n");
+    console.log("Read %d lines", lines.length);
+
+    // We go over the lines
+    let base = new Array<number>();
+    let points = new Array<number>();
+    points.push(0);
+    points.push(0);
+    points.push(0.5);
+    points.push(0.5);
+
+    let limit = 40;
+    for (let i = 0; i < lines.length; i += 1) {
+      let line = lines[i];
+      if (line.lastIndexOf("TSBASE", 0) === 0) {
+        let tokens = line.split(" ");
+        for (var j = 1; j < tokens.length; j += 1) {
+          base.push(parseFloat(tokens[j]));
+        }
+        console.log("Processed: %s", line);
+        continue;
+      }
+      if (line.lastIndexOf("OFFST", 0) === 0) {
+        console.log("Skipping: %s", line);
+        continue;
+      }
+
+      let tokens = line.split(" ");
+      // We look for the first number
+      let first = parseFloat(tokens[3]) + base[0];
+      let last = parseFloat(tokens[tokens.length - 1]) + base[base.length - 1];
+
+      points.push(first);
+      points.push(last - first);
+
+      if (i < limit) {
+        console.log("%f -> %f", first, last - first);
+      }
+    }
+
+    this.AddGraph(points);
+    this.graph_loaded = true;
+  }
+
+  AddGraph(points: number[]) : void {
     // We pass the points straight down
     this.renderer.AddGraph(points);
 
@@ -75,7 +121,6 @@ class GraphManager {
 
     // We set the bounds
     this.state.graph_info.bounds = Bounds.FromPoints(min.x, max.x, min.y, max.y);
-    console.log(this.state.graph_info.bounds);
 
     // We sort
     this.custom_points = arr.sort((p1: Vec2, p2: Vec2) => {
@@ -84,7 +129,7 @@ class GraphManager {
   }
 
   // Applies the graph max bounds
-  ApplyMaxBounds() {
+  ApplyMaxBounds() : void {
     this.renderer.bounds = this.state.graph_info.bounds;
   }
 
@@ -92,12 +137,16 @@ class GraphManager {
    * DRAWING
    *******************************************/
 
-  Draw() {
+  Draw() : void {
     // Resize
     this.renderer.ResizeCanvas();
 
     // Clear Canvas
     this.renderer.Clear(this.state.graph_info.background_color);
+
+    if (!this.graph_loaded) {
+      return;
+    }
 
     this.renderer.DrawGraphLocalSpace(this.state.graph_info.line_color);
 
