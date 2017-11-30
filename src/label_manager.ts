@@ -90,14 +90,16 @@ class LabelManager {
   }
 
   private UpdateStats(manager: GraphManager) {
-    this.screen_x_box.value = String(manager.interaction.state.mouse.screen.x);
-    this.screen_y_box.value = String(manager.interaction.state.mouse.screen.y);
-    this.canvas_x_box.value = String(manager.interaction.state.mouse.canvas.x);
-    this.canvas_y_box.value = String(manager.interaction.state.mouse.canvas.y);
+    let mouse_pos = this.manager.interaction.state.mouse.current_pos;
+    this.screen_x_box.value = String(mouse_pos.screen.x);
+    this.screen_y_box.value = String(mouse_pos.screen.y);
+    this.canvas_x_box.value = String(mouse_pos.canvas.x);
+    this.canvas_y_box.value = String(mouse_pos.canvas.y);
+    this.local_x_box.value = String(mouse_pos.local.x);
+    this.local_y_box.value = String(mouse_pos.local.y);
+
     this.offset_x_box.value = String(manager.renderer.offset.x);
     this.offset_y_box.value = String(manager.renderer.offset.y);
-    this.local_x_box.value = String(manager.interaction.state.mouse.local.x);
-    this.local_y_box.value = String(manager.interaction.state.mouse.local.y);
     this.scale_x_box.value =  String(manager.renderer.scale.x);
     this.scale_y_box.value =  String(manager.renderer.scale.y);
 

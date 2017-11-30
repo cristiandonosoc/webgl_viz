@@ -8,7 +8,38 @@ import {Vec2} from "./vectors";
 enum MouseButtons {
   LEFT = 0,
   MIDDLE = 1,
-  RIGHT = 2
+  RIGHT = 2,
+  NONE = 1000
+}
+
+class MousePosition {
+  screen: Vec2
+  canvas: Vec2
+  local: Vec2
+
+  static get Zero() : MousePosition {
+    let mouse_pos = new MousePosition();
+    mouse_pos.screen = Vec2.Zero;
+    mouse_pos.canvas = Vec2.Zero;
+    mouse_pos.local = Vec2.Zero;
+    return mouse_pos;
+  }
+
+  static FromRendererEvent(renderer: Renderer, event: any) : MousePosition {
+    let mouse_pos = new MousePosition();
+    // Screen
+    mouse_pos.screen = new Vec2(event.screenX,
+                                window.screen.height - event.screenY);
+    // Canvas
+    let client_pos = new Vec2(event.clientX, event.clientY);
+    let bounds = event.target.getBoundingClientRect();
+    mouse_pos.canvas = new Vec2(event.clientX - bounds.left,
+                                bounds.height - (event.clientY - bounds.top));
+    // Local
+    mouse_pos.local = RendererCanvasToLocal(renderer, mouse_pos.canvas);
+    return mouse_pos;
+  }
+
 }
 
 /**
@@ -24,22 +55,17 @@ class Interaction {
   manager: GraphManager;
   renderer: Renderer;
   state: {
-    internal: {
-      prev_pos: Vec2,
-      current_pos: Vec2,
-    }
-    temp: {
-      last_down: Vec2,
-      last_up: Vec2,
+    config: {
+      wheel_factor: Vec2,
     },
     mouse: {
-      local: Vec2,
-      canvas: Vec2,
-      screen: Vec2,
-      wheel_factor: Vec2,
-      dragging: boolean
-      button: number;
-    }
+      button: MouseButtons,
+      current_pos: MousePosition,
+      down_pos: MousePosition,
+      dragging: boolean,
+      last_pos: MousePosition,
+      up_pos: MousePosition,
+    },
   };
 
   constructor(manager: GraphManager) {
@@ -47,24 +73,18 @@ class Interaction {
     this.renderer = manager.renderer;
 
     this.state = {
-      internal: {
-        prev_pos: new Vec2(0, 0),
-        current_pos: new Vec2(0, 0),
-      },
-      temp: {
-        last_down: new Vec2(0, 0),
-        last_up: new Vec2(0, 0),
+      config: {
+        wheel_factor: new Vec2(0.001, 0.001),
       },
       mouse: {
-        local: new Vec2(0, 0),
-        canvas: new Vec2(0, 0),
-        screen: new Vec2(0, 0),
-        wheel_factor: new Vec2(0.001, 0.001),
+        button: MouseButtons.NONE,
+        current_pos: MousePosition.Zero,
+        down_pos: MousePosition.Zero,
         dragging: false,
-        button: -1,
-      },
-    };
-
+        last_pos: MousePosition.Zero,
+        up_pos: MousePosition.Zero,
+      }
+    }
     this.SetupInteraction();
   }
 
@@ -72,7 +92,6 @@ class Interaction {
     return this.state.mouse.dragging &&
            (this.state.mouse.button == MouseButtons.RIGHT);
   }
-
 
   private SetupInteraction() {
     this.renderer.canvas.addEventListener("mousedown", this.MouseDown);
@@ -88,14 +107,13 @@ class Interaction {
   }
 
   private MouseDown = (event: any) => {
-    this.SetPointsFromEvent(event);
-
     // Mouse Down Specific
+    let mouse_pos = MousePosition.FromRendererEvent(this.renderer, event);
+    this.state.mouse.down_pos = mouse_pos;
     this.state.mouse.dragging = true;
     this.state.mouse.button = event.button;
-    this.state.temp.last_down = this.state.mouse.canvas;
+    console.log("DOWN: ", this.state.mouse.down_pos);
 
-    console.log("DOWN: ", this.state.mouse.canvas);
     this.PostChange();
   }
 
@@ -103,16 +121,14 @@ class Interaction {
     if (!this.state.mouse.dragging) {
       return;
     }
-    this.SetPointsFromEvent(event);
-
-    // Mouse Up Specific
-    let button = this.state.mouse.button;
+    let old_button = this.state.mouse.button;
+    let mouse_pos = MousePosition.FromRendererEvent(this.renderer, event);
     this.state.mouse.dragging = false;
-    this.state.mouse.button = -1;
-    this.state.temp.last_up = this.state.mouse.canvas;
+    this.state.mouse.button = MouseButtons.NONE;
+    this.state.mouse.up_pos = mouse_pos;
 
-    console.log("UP: ", this.state.mouse.canvas);
-    if (button == MouseButtons.RIGHT) {
+    console.log("UP: ", this.state.mouse.up_pos);
+    if (old_button == MouseButtons.RIGHT) {
       this.ProcessZoomDrag(event);
     }
 
@@ -128,12 +144,13 @@ class Interaction {
   }
 
   private MouseWheel = (event: any) => {
-    let pin_point = RendererCanvasToLocal(this.renderer, this.state.mouse.canvas);
+    let pin_point = RendererCanvasToLocal(this.renderer,
+                                          this.state.mouse.current_pos.canvas);
 
     // We change the scale
     let delta = -event.deltaY;
-    let scale_change = new Vec2(delta * this.state.mouse.wheel_factor.x,
-                                delta * this.state.mouse.wheel_factor.y);
+    let scale_change = new Vec2(delta * this.state.config.wheel_factor.x,
+                                delta * this.state.config.wheel_factor.y);
     let old_scale = this.renderer.scale;
     let new_scale = Vec2.Sum(this.renderer.scale, scale_change);
     if (new_scale.x < 0) { new_scale.x = 0; }
@@ -169,8 +186,10 @@ class Interaction {
       return;
     }
 
-    this.SetPointsFromEvent(event);
-    this.manager.closest_point = this.SearchForClosestPoint(this.state.mouse.local);
+    this.state.mouse.last_pos = this.state.mouse.current_pos;
+    this.state.mouse.current_pos = MousePosition.FromRendererEvent(this.renderer, event);
+
+    this.manager.closest_point = this.SearchForClosestPoint(this.state.mouse.current_pos.local);
   }
 
   private ProcessDrag(event: any) {
@@ -188,12 +207,12 @@ class Interaction {
   }
 
   private ProcessMoveDrag(event: any) {
-    let prev_pos = this.state.internal.prev_pos;
-    let current_pos = this.state.internal.current_pos;
-    let diff = new Vec2(current_pos.x - prev_pos.x,
-                        current_pos.y - prev_pos.y);
+    let prev_pos = this.state.mouse.last_pos;
+    let current_pos = this.state.mouse.current_pos;
+    let diff = new Vec2(current_pos.screen.x - prev_pos.screen.x,
+                        current_pos.screen.y - prev_pos.screen.y);
     let offset = new Vec2(diff.x / this.renderer.width,
-                           diff.y / this.renderer.height);
+                          diff.y / this.renderer.height);
     // We invert the y-axis
     offset.y *= -1;
 
@@ -202,8 +221,8 @@ class Interaction {
 
   private ProcessZoomDrag(event: any) {
     // Get the old bounds
-    let start = RendererCanvasToLocal(this.renderer, this.state.temp.last_down);
-    let end = RendererCanvasToLocal(this.renderer, this.state.temp.last_up);
+    let start = RendererCanvasToLocal(this.renderer, this.state.mouse.down_pos.canvas);
+    let end = RendererCanvasToLocal(this.renderer, this.state.mouse.up_pos.canvas);
     console.log("START: ", start, " END: ", end);
 
     let bounds = this.renderer.bounds;
@@ -263,36 +282,6 @@ class Interaction {
     } else {
       return max_point;
     }
-  }
-
-  private SetPointsFromEvent(event: any) {
-    // Screen
-    let current_pos = this.GetScreenPosFromEvent(event);
-    this.state.mouse.screen = current_pos;
-    this.state.internal.prev_pos = this.state.internal.current_pos;
-    this.state.internal.current_pos = current_pos;
-
-    // Canvas relative
-    let canvas_pos = this.GetCanvasPosFromEvent(event);
-    this.state.mouse.canvas = canvas_pos;
-
-    // var local = this.CanvasToLocal(canvas_pos);
-    var local = RendererCanvasToLocal(this.renderer, canvas_pos);
-    this.state.mouse.local = local;
-  }
-
-  private GetScreenPosFromEvent(event: any) {
-    let screen_pos = new Vec2(event.screenX,
-                              window.screen.height - event.screenY);
-    return screen_pos;
-  }
-
-  private GetCanvasPosFromEvent(event: any) {
-    let client_pos = new Vec2(event.clientX, event.clientY);
-    let bounds = event.target.getBoundingClientRect();
-    let canvas_pos = new Vec2(event.clientX - bounds.left,
-                           bounds.height - (event.clientY - bounds.top));
-    return canvas_pos;
   }
 
 }
