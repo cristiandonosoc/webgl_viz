@@ -2,8 +2,9 @@
 
 import {Color, AllColors} from "./colors"
 import Interaction from "./interaction";
+import InteractionInterface from "./interaction_interface";
 import LabelManager from "./label_manager";
-import {Renderer} from "./renderer";
+import Renderer from "./renderer";
 import {DrawSpace, RendererInterface} from "./renderer_interface";
 import {Bounds, Vec2} from "./vectors";
 
@@ -13,7 +14,7 @@ class GraphManager {
   canvas: HTMLCanvasElement;
 
   /* WebGL programs */
-  interaction: Interaction;   /* Manages interaction with browser (mostly mouse) */
+  interaction: InteractionInterface;   /* Manages interaction with browser (mostly mouse) */
   label_manager: LabelManager;
   renderer: RendererInterface;
 

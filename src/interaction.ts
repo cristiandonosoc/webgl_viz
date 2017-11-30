@@ -5,41 +5,9 @@ import {RendererCanvasToLocal} from "./transforms";
 import {TempAddEventListener} from "./type_fixes";
 import {Bounds, Vec2} from "./vectors";
 
-enum MouseButtons {
-  LEFT = 0,
-  MIDDLE = 1,
-  RIGHT = 2,
-  NONE = 1000
-}
+import {MouseButtons, MousePosition} from "./mouse";
 
-class MousePosition {
-  screen: Vec2
-  canvas: Vec2
-  local: Vec2
-
-  static get Zero() : MousePosition {
-    let mouse_pos = new MousePosition();
-    mouse_pos.screen = Vec2.Zero;
-    mouse_pos.canvas = Vec2.Zero;
-    mouse_pos.local = Vec2.Zero;
-    return mouse_pos;
-  }
-
-  static FromRendererEvent(renderer: RendererInterface, event: any) : MousePosition {
-    let mouse_pos = new MousePosition();
-    // Screen
-    mouse_pos.screen = new Vec2(event.screenX,
-                                window.screen.height - event.screenY);
-    // Canvas
-    let client_pos = new Vec2(event.clientX, event.clientY);
-    let bounds = event.target.getBoundingClientRect();
-    mouse_pos.canvas = new Vec2(event.clientX - bounds.left,
-                                bounds.height - (event.clientY - bounds.top));
-    // Local
-    mouse_pos.local = RendererCanvasToLocal(renderer, mouse_pos.canvas);
-    return mouse_pos;
-  }
-}
+import InteractionInterface from "./interaction_interface";
 
 /**
  * Interaction
@@ -49,7 +17,7 @@ class MousePosition {
  * Basically maintains the tracking of how the mouse has changed on top of the
  * canvas.
  **/
-class Interaction {
+class Interaction implements InteractionInterface {
 
   manager: GraphManager;
   renderer: RendererInterface;
@@ -116,6 +84,10 @@ class Interaction {
 
   get CtrlPressed() : boolean {
     return this._state.keys.ctrl;
+  }
+
+  get CurrentMouseButton() : MouseButtons {
+    return this._state.mouse.button;
   }
 
   /*****************************************************************

@@ -405,3 +405,4 @@ class Renderer implements RendererInterface {
 }
 
 export {Renderer};
+export default Renderer;
