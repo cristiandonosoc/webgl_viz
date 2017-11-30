@@ -153,12 +153,12 @@ class GraphManager {
 
     if (this.interaction.ZoomDragging) {
       if (this.label_manager.VerticalZoom) {
-        let start = this.interaction.state.mouse.down_pos.canvas.x;
-        let end = this.interaction.state.mouse.current_pos.canvas.x;
+        let start = this.interaction.DownMousePos.canvas.x;
+        let end = this.interaction.CurrentMousePos.canvas.x;
         this.renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, this.state.graph_info.drag_color);
       } else if (this.label_manager.HorizontalZoom) {
-        let start = this.interaction.state.mouse.down_pos.canvas.y;
-        let end = this.interaction.state.mouse.current_pos.canvas.y;
+        let start = this.interaction.DownMousePos.canvas.y;
+        let end = this.interaction.CurrentMousePos.canvas.y;
         this.renderer.DrawHorizontalRange(start, end, DrawSpace.PIXEL, this.state.graph_info.drag_color);
       }
     }
@@ -171,7 +171,7 @@ class GraphManager {
 
     // Draw mouse vertical line
     // this.DrawLinePixelSpace([10, 10], [200, 200]);
-    let canvas_pos = this.interaction.state.mouse.current_pos.canvas;
+    let canvas_pos = this.interaction.CurrentMousePos.canvas;
     this.renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
                                    AllColors.Get("orange"));
 

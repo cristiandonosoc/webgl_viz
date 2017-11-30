@@ -90,7 +90,7 @@ class LabelManager {
   }
 
   private UpdateStats(manager: GraphManager) {
-    let mouse_pos = this.manager.interaction.state.mouse.current_pos;
+    let mouse_pos = this.manager.interaction.CurrentMousePos;
     this.screen_x_box.value = String(mouse_pos.screen.x);
     this.screen_y_box.value = String(mouse_pos.screen.y);
     this.canvas_x_box.value = String(mouse_pos.canvas.x);
