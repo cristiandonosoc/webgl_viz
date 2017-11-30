@@ -8,6 +8,7 @@ import {Bounds, Vec2} from "./vectors";
 import {MouseButtons, MousePosition} from "./mouse";
 
 import InteractionInterface from "./interaction_interface";
+import {ZoomType} from "./label_manager_interface";
 
 /**
  * Interaction
@@ -245,15 +246,16 @@ class Interaction implements InteractionInterface {
     let end = this.UpMousePos.local;
 
     let bounds = this.renderer.bounds;
-    if (this.manager.label_manager.VerticalZoom) {
+    let zoom_type = this.manager.label_manager.Zoom;
+    if (zoom_type == ZoomType.VERTICAL) {
       let min = Math.min(start.x, end.x);
       let max = Math.max(start.x, end.x);
       bounds.x.Set(min, max);
-    } else if (this.manager.label_manager.HorizontalZoom) {
+    } else if (zoom_type == ZoomType.HORIZONTAL) {
       let min = Math.min(start.y, end.y);
       let max = Math.max(start.y, end.y);
       bounds.y.Set(min, max);
-    } else if (this.manager.label_manager.BoxZoom) {
+    } else if (zoom_type == ZoomType.BOX) {
       let min = Vec2.Min(start, end);
       let max = Vec2.Max(start, end);
       bounds = Bounds.FromPoints(min.x, max.x, min.y, max.y);

@@ -4,7 +4,9 @@ import GraphManagerInterface from "./graph_manager_interface";
 import {RendererCanvasToLocal} from "./transforms";
 import {Bounds, Vec2} from "./vectors";
 
-class LabelManager {
+import {ZoomType, LabelManagerInterface} from "./label_manager_interface";
+
+class LabelManager implements LabelManagerInterface {
   private _manager: GraphManagerInterface;
   labels: {
     x: {
@@ -73,26 +75,11 @@ class LabelManager {
     this.ctrl_label = document.getElementById("ctrl-key");
   }
 
-  private DimensionChange = (event: any) => {
-    // We calculate the new dimensions
-    let dim_x = new Vec2(Number(this.labels.x.bottom.value),
-                         Number(this.labels.x.top.value));
-    let dim_y = new Vec2(Number(this.labels.y.bottom.value),
-                         Number(this.labels.y.top.value));
-    this._manager.renderer.bounds = Bounds.FromVecs(dim_x, dim_y);
-    this._manager.Draw();
-  };
-
-  get VerticalZoom() : boolean {
-    return this.vertical_zoom_radio.checked;
-  }
-
-  get HorizontalZoom() : boolean {
-    return this.horizontal_zoom_radio.checked;
-  }
-
-  get BoxZoom() : boolean {
-    return this.box_zoom_radio.checked;
+  get Zoom() : ZoomType {
+    if (this.VerticalZoom) { return ZoomType.VERTICAL; }
+    if (this.HorizontalZoom) { return ZoomType.HORIZONTAL; }
+    if (this.BoxZoom) { return ZoomType.BOX; }
+    return ZoomType.NONE;
   }
 
   Update() {
@@ -108,6 +95,32 @@ class LabelManager {
       this.UpdateStats();
     }
   }
+
+  /*******************************************************
+   * PRIVATE FUNCTIONS
+   *******************************************************/
+
+  private get VerticalZoom() : boolean {
+    return this.vertical_zoom_radio.checked;
+  }
+
+  private get HorizontalZoom() : boolean {
+    return this.horizontal_zoom_radio.checked;
+  }
+
+  private get BoxZoom() : boolean {
+    return this.box_zoom_radio.checked;
+  }
+
+  private DimensionChange = (event: any) => {
+    // We calculate the new dimensions
+    let dim_x = new Vec2(Number(this.labels.x.bottom.value),
+                         Number(this.labels.x.top.value));
+    let dim_y = new Vec2(Number(this.labels.y.bottom.value),
+                         Number(this.labels.y.top.value));
+    this._manager.renderer.bounds = Bounds.FromVecs(dim_x, dim_y);
+    this._manager.Draw();
+  };
 
   private UpdateStats() {
     let mouse_pos = this._manager.interaction.CurrentMousePos;

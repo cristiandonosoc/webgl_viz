@@ -1,6 +1,6 @@
 import InteractionInterface from "./interaction_interface";
 import RendererInterface from "./renderer_interface";
-import LabelManager from "./label_manager";
+import LabelManagerInterface from "./label_manager_interface";
 
 import {Vec2} from "./vectors";
 
@@ -8,7 +8,7 @@ interface GraphManagerInterface {
   /* COMPONENTS */
   interaction: InteractionInterface;
   renderer: RendererInterface;
-  label_manager: LabelManager;
+  label_manager: LabelManagerInterface;
 
   /* STATE */
   Valid: boolean;

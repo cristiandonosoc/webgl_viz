@@ -4,6 +4,7 @@ import {Color, AllColors} from "./colors"
 import Interaction from "./interaction";
 import InteractionInterface from "./interaction_interface";
 import LabelManager from "./label_manager";
+import {ZoomType, LabelManagerInterface} from "./label_manager_interface";
 import Renderer from "./renderer";
 import {DrawSpace, RendererInterface} from "./renderer_interface";
 import {Bounds, Vec2} from "./vectors";
@@ -14,7 +15,7 @@ let g_inf = 9007199254740991;
 class GraphManager implements GraphManagerInterface {
   /* WebGL programs */
   interaction: InteractionInterface;   /* Manages interaction with browser (mostly mouse) */
-  label_manager: LabelManager;
+  label_manager: LabelManagerInterface;
   renderer: RendererInterface;
 
   // Internal state of the renderer
@@ -149,15 +150,16 @@ class GraphManager implements GraphManagerInterface {
     }
 
     if (this.interaction.ZoomDragging) {
-      if (this.label_manager.VerticalZoom) {
+      let zoom = this.label_manager.Zoom;
+      if (zoom == ZoomType.VERTICAL) {
         let start = this.interaction.DownMousePos.canvas.x;
         let end = this.interaction.CurrentMousePos.canvas.x;
         this.renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, this._state.graph_info.drag_color);
-      } else if (this.label_manager.HorizontalZoom) {
+      } else if (zoom == ZoomType.HORIZONTAL) {
         let start = this.interaction.DownMousePos.canvas.y;
         let end = this.interaction.CurrentMousePos.canvas.y;
         this.renderer.DrawHorizontalRange(start, end, DrawSpace.PIXEL, this._state.graph_info.drag_color);
-      } else if (this.label_manager.BoxZoom) {
+      } else if (zoom == ZoomType.BOX) {
         let p1 = this.interaction.DownMousePos.canvas;
         let p2 = this.interaction.CurrentMousePos.canvas;
         this.renderer.DrawBox(p1, p2, DrawSpace.PIXEL, this._state.graph_info.drag_color);
