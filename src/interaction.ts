@@ -24,9 +24,11 @@ class Interaction {
   manager: GraphManager;
   renderer: Renderer;
   state: {
+    internal: {
+      prev_pos: Vec2,
+      current_pos: Vec2,
+    }
     temp: {
-      last_pos: Vec2,
-      current_pos: Vec2
       last_down: Vec2,
       last_up: Vec2,
     },
@@ -45,9 +47,11 @@ class Interaction {
     this.renderer = manager.renderer;
 
     this.state = {
-      temp: {
-        last_pos: new Vec2(0, 0),
+      internal: {
+        prev_pos: new Vec2(0, 0),
         current_pos: new Vec2(0, 0),
+      },
+      temp: {
         last_down: new Vec2(0, 0),
         last_up: new Vec2(0, 0),
       },
@@ -162,12 +166,11 @@ class Interaction {
 
     // We log the variables
     // Screen
-    let last_pos = this.state.mouse.screen;
+    let prev_pos = this.state.mouse.screen;
     let current_pos = new Vec2(event.screenX, event.screenY);
     this.state.mouse.screen = current_pos;
-
-    this.state.temp.last_pos = last_pos;
-    this.state.temp.current_pos = current_pos;
+    this.state.internal.prev_pos = prev_pos;
+    this.state.internal.current_pos = current_pos;
 
     // Canvas relative
     let client_pos = new Vec2(event.clientX, event.clientY);
@@ -196,10 +199,10 @@ class Interaction {
   }
 
   private ProcessMoveDrag(event: any) {
-    let last_pos = this.state.temp.last_pos;
-    let current_pos = this.state.temp.current_pos;
-    let diff = new Vec2(current_pos.x - last_pos.x,
-                        current_pos.y - last_pos.y);
+    let prev_pos = this.state.internal.prev_pos;
+    let current_pos = this.state.internal.current_pos;
+    let diff = new Vec2(current_pos.x - prev_pos.x,
+                        current_pos.y - prev_pos.y);
     let offset = new Vec2(diff.x / this.renderer.width,
                            diff.y / this.renderer.height);
     // We invert the y-axis

@@ -113,7 +113,7 @@ class Renderer {
 
     // We create the overlay buffers
     let arrays = {
-      a_position_coord: Array<number>(4)
+      a_position_coord: Array<number>(100)
     };
     // this.pixel_buffer_info = twgl.createBufferInfoFromArrays(this.gl, arrays);
     // this.local_buffer_info = twgl.createBufferInfoFromArrays(this.gl, arrays);
@@ -211,6 +211,19 @@ class Renderer {
     }
   }
 
+  DrawVerticalRange(start: number, end: number, space: DrawSpace, color: Color) : void {
+    if (space == DrawSpace.PIXEL) {
+      let points = Array<Vec2>(4);
+      points[0] = new Vec2(start, -g_inf);
+      points[1] = new Vec2(start, +g_inf);
+      points[2] = new Vec2(end, -g_inf);
+      points[3] = new Vec2(end, +g_inf);
+      this.DrawRangePixelSpace(points, color);
+    } else {
+      throw "unsupported DrawSpace";
+    }
+  }
+
   DrawIcon(point: Vec2, space: DrawSpace, color: Color) : void {
     if (space == DrawSpace.LOCAL) {
       this.DrawIconLocalSpace(point, color);
@@ -229,8 +242,9 @@ class Renderer {
 
   private DrawLinePixelSpace(p1: Vec2, p2: Vec2, color: Color) : void {
     this.gl.useProgram(this.pixel_program_info.program);
-    let new_pos = [p1.x, p1.y, p2.x, p2.y];
     twgl.setBuffersAndAttributes(this.gl, this.pixel_program_info, this.buffer_info);
+
+    let new_pos = [p1.x, p1.y, p2.x, p2.y];
     twgl.setAttribInfoBufferFromArray(this.gl, this.buffer_info.attribs.a_position_coord, new_pos);
 
     let uniforms = {
@@ -240,7 +254,7 @@ class Renderer {
     twgl.setUniforms(this.pixel_program_info, uniforms);
 
     // We draw
-    twgl.drawBufferInfo(this.gl, this.buffer_info, this.gl.LINES);
+    this.gl.drawArrays(this.gl.LINES, 0, 2);
   }
 
   private DrawLineLocalSpace(p1: Vec2, p2: Vec2, color: Color) : void {
@@ -258,7 +272,7 @@ class Renderer {
       u_color: color.AsArray(),
     };
     twgl.setUniforms(this.local_program_info, uniforms);
-    twgl.drawBufferInfo(this.gl, this.buffer_info, this.gl.LINES);
+    this.gl.drawArrays(this.gl.LINES, 0, 2);
   }
 
   /* DRAW ICON */
@@ -313,6 +327,36 @@ class Renderer {
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.cross_texture);
     this.gl.drawArrays(this.gl.POINTS, 0, 1);
+  }
+
+  /* DRAW RANGE */
+
+  private DrawRangePixelSpace(points: Vec2[], color: Color) {
+    this.gl.useProgram(this.pixel_program_info.program);
+
+    twgl.setBuffersAndAttributes(this.gl, this.pixel_program_info, this.buffer_info);
+    // this.gl.frontFace(this.gl.CCW);
+
+    // TODO(donosoc): Use indexes and not hardcoded indexing :(
+    // First triangle
+    let v_points = Array<number>();
+    v_points.push(points[0].x);
+    v_points.push(points[0].y);
+    v_points.push(points[1].x);
+    v_points.push(points[1].y);
+    v_points.push(points[2].x);
+    v_points.push(points[2].y);
+    // Second triangle
+    v_points.push(points[3].x);
+    v_points.push(points[3].y);
+    twgl.setAttribInfoBufferFromArray(this.gl, this.buffer_info.attribs.a_position_coord, v_points);
+
+    let uniforms = {
+      u_resolution: [this.gl.canvas.width, this.gl.canvas.height],
+      u_color: color.AsArray(),
+    }
+    twgl.setUniforms(this.pixel_program_info, uniforms);
+    this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, v_points.length / 2);
   }
 }
 

@@ -152,10 +152,13 @@ class GraphManager {
     }
 
     if (this.interaction.ZoomDragging) {
-      this.renderer.DrawVerticalLine(this.interaction.state.temp.last_down.x, DrawSpace.PIXEL,
-                                     this.state.graph_info.drag_color);
-      this.renderer.DrawVerticalLine(this.interaction.state.temp.current_pos.x, DrawSpace.PIXEL,
-                                     this.state.graph_info.drag_color);
+      // this.renderer.DrawVerticalLine(this.interaction.state.temp.last_down.x, DrawSpace.PIXEL,
+      //                                this.state.graph_info.drag_color);
+      // this.renderer.DrawVerticalLine(this.interaction.state.temp.current_pos.x, DrawSpace.PIXEL,
+      //                                this.state.graph_info.drag_color);
+      let start = this.interaction.state.temp.last_down.x;
+      let end = this.interaction.state.mouse.canvas.x;
+      this.renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, this.state.graph_info.drag_color);
     }
 
     // Draw x/y Axis
