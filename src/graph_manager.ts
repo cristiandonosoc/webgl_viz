@@ -21,6 +21,7 @@ class GraphManager {
     graph_info: {
       bounds: Bounds,
       background_color: Color,
+      drag_color: Color,
       line_color: Color,
       line_width: number
     },
@@ -44,6 +45,7 @@ class GraphManager {
     let graph_info = {
       bounds: Bounds.Zero,
       background_color: AllColors.Get("black"),
+      drag_color: AllColors.Get("lightblue"),
       line_color: AllColors.Get("white"),
       line_width: 1
     };
@@ -149,11 +151,18 @@ class GraphManager {
       return;
     }
 
-    this.renderer.DrawGraphLocalSpace(this.state.graph_info.line_color);
+    if (this.interaction.ZoomDragging) {
+      this.renderer.DrawVerticalLine(this.interaction.state.temp.last_down.x, DrawSpace.PIXEL,
+                                     this.state.graph_info.drag_color);
+      this.renderer.DrawVerticalLine(this.interaction.state.temp.current_pos.x, DrawSpace.PIXEL,
+                                     this.state.graph_info.drag_color);
+    }
 
     // Draw x/y Axis
     this.renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("green"));
     this.renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("green"));
+
+    this.renderer.DrawGraphLocalSpace(this.state.graph_info.line_color);
 
     // Draw mouse vertical line
     // this.DrawLinePixelSpace([10, 10], [200, 200]);

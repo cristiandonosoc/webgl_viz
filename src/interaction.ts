@@ -64,6 +64,11 @@ class Interaction {
     this.SetupInteraction();
   }
 
+  get ZoomDragging() : boolean {
+    return this.state.mouse.dragging &&
+           (this.state.mouse.button == MouseButtons.RIGHT);
+  }
+
 
   private SetupInteraction() {
     this.renderer.canvas.addEventListener("mousedown", this.MouseDown);
@@ -82,9 +87,13 @@ class Interaction {
     this.state.mouse.dragging = true;
     this.state.mouse.button = event.button;
     this.state.mouse.screen.Set(event.screenX, event.screenY);
-    let canvas_pos = new Vec2(event.clientX, event.clientY);
+
+    // Canvas relative
+    let client_pos = new Vec2(event.clientX, event.clientY);
+    let canvas_pos = this.GetCanvasRelativePos(client_pos);
     this.state.temp.last_down = canvas_pos;
     this.state.mouse.canvas = canvas_pos;
+
     this.PostChange();
   }
 
@@ -110,10 +119,6 @@ class Interaction {
   }
 
   private MouseWheel = (event: any) => {
-
-    let proportions = new Vec2(this.state.mouse.canvas.x / this.renderer.width,
-                               this.state.mouse.canvas.y / this.renderer.height);
-
     let pin_point = RendererCanvasToLocal(this.renderer, this.state.mouse.canvas);
 
     // We change the scale
@@ -165,9 +170,8 @@ class Interaction {
     this.state.temp.current_pos = current_pos;
 
     // Canvas relative
-    let bounds = this.renderer.canvas.getBoundingClientRect();
-    let canvas_pos = new Vec2(event.clientX - bounds.left,
-                               event.clientY - bounds.top);
+    let client_pos = new Vec2(event.clientX, event.clientY);
+    let canvas_pos = this.GetCanvasRelativePos(client_pos);
     this.state.mouse.canvas = canvas_pos;
 
     // var local = this.CanvasToLocal(canvas_pos);
@@ -196,8 +200,8 @@ class Interaction {
     let current_pos = this.state.temp.current_pos;
     let diff = new Vec2(current_pos.x - last_pos.x,
                         current_pos.y - last_pos.y);
-    let offset = new Vec2(diff.x / this.renderer.gl.canvas.width,
-                           diff.y / this.renderer.gl.canvas.height);
+    let offset = new Vec2(diff.x / this.renderer.width,
+                           diff.y / this.renderer.height);
     // We invert the y-axis
     offset.y *= -1;
 
@@ -264,6 +268,13 @@ class Interaction {
     }
   }
 
+
+  private GetCanvasRelativePos(pos: Vec2) : Vec2 {
+    let bounds = this.renderer.canvas.getBoundingClientRect();
+    let rel_pos = new Vec2(pos.x - bounds.left,
+                           pos.y - bounds.top);
+    return rel_pos;
+  }
 }
 
 export default Interaction;
