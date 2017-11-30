@@ -14,9 +14,9 @@ let g_inf = 9007199254740991;
 
 class GraphManager implements GraphManagerInterface {
   /* WebGL programs */
-  interaction: InteractionInterface;   /* Manages interaction with browser (mostly mouse) */
-  label_manager: LabelManagerInterface;
-  renderer: RendererInterface;
+  private _interaction: Interaction;   /* Manages interaction with browser (mostly mouse) */
+  private _label_manager: LabelManager;
+  private _renderer: Renderer;
 
   // Internal state of the renderer
   private _state: {
@@ -37,17 +37,32 @@ class GraphManager implements GraphManagerInterface {
    * GETTERS / SETTERS
    *******************************************************/
 
+  get Renderer() : RendererInterface {
+    return this._renderer;
+  }
+
+  get Interaction() : InteractionInterface {
+    return this._interaction;
+  }
+
+  get LabelManager() : LabelManagerInterface {
+    return this._label_manager;
+  }
+
   get Valid() : boolean {
     return this._state.graph_loaded;
 
   }
 
+  /*******************************************************
+   * CONSTRUCTOR
+   *******************************************************/
+
   constructor(canvas: HTMLCanvasElement) {
     this.CreateDefaults();
-    this.renderer = new Renderer(canvas);
-    this.interaction = new Interaction(this);
-    this.label_manager = new LabelManager(this);
-
+    this._renderer = new Renderer(canvas);
+    this._interaction = new Interaction(this);
+    this._label_manager = new LabelManager(this);
     this._state.graph_loaded = false;
   }
 
@@ -98,7 +113,7 @@ class GraphManager implements GraphManagerInterface {
 
   AddGraph(points: number[]) : void {
     // We pass the points straight down
-    this.renderer.AddGraph(points);
+    this._renderer.AddGraph(points);
 
     // We post-process the points
     let min = new Vec2(+g_inf, +g_inf);
@@ -129,7 +144,7 @@ class GraphManager implements GraphManagerInterface {
 
   // Applies the graph max bounds
   ApplyMaxBounds() : void {
-    this.renderer.bounds = this._state.graph_info.bounds.Copy();
+    this._renderer.bounds = this._state.graph_info.bounds.Copy();
   }
 
   /*******************************************
@@ -138,48 +153,48 @@ class GraphManager implements GraphManagerInterface {
 
   Draw() : void {
     // Resize
-    this.renderer.ResizeCanvas();
+    this.Renderer.ResizeCanvas();
 
     // Clear Canvas
-    this.renderer.Clear(this._state.graph_info.background_color);
+    this.Renderer.Clear(this._state.graph_info.background_color);
 
-    this.label_manager.Update();
+    this._label_manager.Update();
 
     if (!this.Valid) {
       return;
     }
 
-    if (this.interaction.ZoomDragging) {
-      let zoom = this.label_manager.Zoom;
+    if (this.Interaction.ZoomDragging) {
+      let zoom = this._label_manager.Zoom;
       if (zoom == ZoomType.VERTICAL) {
-        let start = this.interaction.DownMousePos.canvas.x;
-        let end = this.interaction.CurrentMousePos.canvas.x;
-        this.renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, this._state.graph_info.drag_color);
+        let start = this.Interaction.DownMousePos.canvas.x;
+        let end = this.Interaction.CurrentMousePos.canvas.x;
+        this.Renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, this._state.graph_info.drag_color);
       } else if (zoom == ZoomType.HORIZONTAL) {
-        let start = this.interaction.DownMousePos.canvas.y;
-        let end = this.interaction.CurrentMousePos.canvas.y;
-        this.renderer.DrawHorizontalRange(start, end, DrawSpace.PIXEL, this._state.graph_info.drag_color);
+        let start = this.Interaction.DownMousePos.canvas.y;
+        let end = this.Interaction.CurrentMousePos.canvas.y;
+        this.Renderer.DrawHorizontalRange(start, end, DrawSpace.PIXEL, this._state.graph_info.drag_color);
       } else if (zoom == ZoomType.BOX) {
-        let p1 = this.interaction.DownMousePos.canvas;
-        let p2 = this.interaction.CurrentMousePos.canvas;
-        this.renderer.DrawBox(p1, p2, DrawSpace.PIXEL, this._state.graph_info.drag_color);
+        let p1 = this.Interaction.DownMousePos.canvas;
+        let p2 = this.Interaction.CurrentMousePos.canvas;
+        this.Renderer.DrawBox(p1, p2, DrawSpace.PIXEL, this._state.graph_info.drag_color);
       }
     }
 
     // Draw x/y Axis
-    this.renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("green"));
-    this.renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("green"));
+    this.Renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("green"));
+    this.Renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("green"));
 
-    this.renderer.DrawGraph(DrawSpace.LOCAL, this._state.graph_info.line_color);
+    this.Renderer.DrawGraph(DrawSpace.LOCAL, this._state.graph_info.line_color);
 
     // Draw mouse vertical line
     // this.DrawLinePixelSpace([10, 10], [200, 200]);
-    let canvas_pos = this.interaction.CurrentMousePos.canvas;
-    this.renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
+    let canvas_pos = this.Interaction.CurrentMousePos.canvas;
+    this.Renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
                                    AllColors.Get("orange"));
 
     if (this._state.closest_point) {
-      this.renderer.DrawIcon(this._state.closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));
+      this.Renderer.DrawIcon(this._state.closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));
     }
 
   }

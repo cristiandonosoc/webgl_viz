@@ -6,9 +6,9 @@ import {Vec2} from "./vectors";
 
 interface GraphManagerInterface {
   /* COMPONENTS */
-  interaction: InteractionInterface;
-  renderer: RendererInterface;
-  label_manager: LabelManagerInterface;
+  Interaction: InteractionInterface;
+  Renderer: RendererInterface;
+  LabelManager: LabelManagerInterface;
 
   /* STATE */
   Valid: boolean;
