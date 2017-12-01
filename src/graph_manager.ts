@@ -120,6 +120,7 @@ class GraphManager implements GraphManagerInterface {
     }
 
     this.AddGraph(points);
+    this.ApplyMaxBounds();
   }
 
   AddGraph(points: number[]) : void {

@@ -56,35 +56,47 @@ class AxisManager implements AxisManagerInterface {
 
   private _state: {
     axes: {
-      x: {
-        context: CanvasRenderingContext2D,
-        scale: number,
-        steps: number,
+      contexts: {
+        x: CanvasRenderingContext2D,
+        y: CanvasRenderingContext2D,
       },
-      y: {
-        context: CanvasRenderingContext2D,
-        scale: number,
-        steps: number,
-      }
-    }
+      scales: Vec2,
+      steps: Vec2,
+      step_dividers: Vec2,
+      step_breaks: Vec2,
+    },
   };
 
   get Scales() : Vec2 {
-    return new Vec2(this._state.axes.x.scale,
-                    this._state.axes.y.scale);
+    return this._state.axes.scales;
   }
 
-  get TotalSteps() : Vec2 {
-    return new Vec2(this._state.axes.x.steps,
-                    this._state.axes.y.steps);
+  set Scales(scales: Vec2) {
+    this._state.axes.scales = scales;
+  }
+
+  get Steps() : Vec2 {
+    return this._state.axes.steps;
+  }
+
+  set Steps(steps: Vec2) {
+    this._state.axes.steps = steps;
+  }
+
+  get StepDividers() : Vec2 {
+    return this._state.axes.step_dividers;
+  }
+
+  get StepBreaks() : Vec2 {
+    return this._state.axes.step_breaks;
   }
 
   get CanvasX() : CanvasRenderingContext2D {
-    return this._state.axes.x.context;
+    return this._state.axes.contexts.x;
   }
 
   get CanvasY() : CanvasRenderingContext2D {
-    return this._state.axes.y.context;
+    return this._state.axes.contexts.y;
   }
 
   /****************************************************
@@ -97,16 +109,14 @@ class AxisManager implements AxisManagerInterface {
     this._manager = manager;
     this._state = {
       axes: {
-        x: {
-          context: x_axis.getContext("2d"),
-          scale: 1,
-          steps: 0,
+        contexts: {
+          x: x_axis.getContext("2d"),
+          y: y_axis.getContext("2d"),
         },
-        y: {
-          context: y_axis.getContext("2d"),
-          scale: 1,
-          steps: 0,
-        }
+        scales: new Vec2(1, 1),
+        steps: new Vec2(0, 0),
+        step_dividers: new Vec2(10, 8),
+        step_breaks: new Vec2(10, 6),
       },
     };
   }
@@ -116,8 +126,7 @@ class AxisManager implements AxisManagerInterface {
     let bounds = this._manager.Renderer.Bounds;
     let diffs = new Vec2(Math.abs(bounds.x.x - bounds.x.y),
                          Math.abs(bounds.y.x - bounds.y.y));
-    let step_counts = new Vec2(10, 5);
-    let step_sizes = Vec2.Div(diffs, step_counts);
+    let step_sizes = Vec2.Div(diffs, this.StepDividers);
 
     // We obtain the closest power of 10 for this step size
     let ctx = this;
@@ -126,24 +135,10 @@ class AxisManager implements AxisManagerInterface {
     });
 
     // We set the scale
-    this._state.axes.x.scale = scales.x;
-    this._state.axes.y.scale = scales.y;
+    this.Scales = scales;
 
     // We set the amount of steps
-    let steps = Vec2.Div(diffs, scales);
-    this._state.axes.x.steps = steps.x;
-    this._state.axes.y.steps = steps.y;
-
-    // // X axis
-    // let bounds_x = Math.abs(bounds.x.x - bounds.x.y);
-    // let diff_x = bounds_x / 10;
-    // let closest_power = this.ClosestPowerOfTen(diff_x);
-    // // let step = Math.floor(diff_x / closest_power) * closest_power;
-    // let scale = closest_power;
-    // let total_steps = bounds_x / scale;
-
-    // this._state.axes.x.scale = scale;
-    // this._state.axes.x.total_steps = total_steps;
+    this.Steps = Vec2.Div(diffs, scales);
   }
 
   Draw() : void {
@@ -152,9 +147,8 @@ class AxisManager implements AxisManagerInterface {
     }
     // We Draw The Axes
     let scales = this.Scales;
-    let steps = this.TotalSteps;
     let centers = this.CalculateAxisCenters(scales);
-    let points = this.CalculateAxisPoints(centers, scales, steps);
+    let points = this.CalculateAxisPoints(centers, scales, this.Steps, this.StepBreaks);
 
     this.DrawAxisX(points.x, scales.x);
     this.DrawAxisY(points.y, scales.y);
@@ -173,6 +167,10 @@ class AxisManager implements AxisManagerInterface {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.fillStyle = "black";
 
+    // We draw the units
+    let entry = this.ScaleToScaleEntry(scale);
+    ctx.fillText(entry.CalculatedString, ctx.canvas.width / 2 - 30, 30);
+
     // for (var i = 0; i < points.length; i += 1) {
     for (let x of points) {
       // We draw the vertical line
@@ -181,13 +179,14 @@ class AxisManager implements AxisManagerInterface {
       // We transform the point to Canvas space
       let canvas_x = RendererLocalToCanvas(renderer, new Vec2(x, 0)).x;
 
+      // We get the "scaled" number
+      let scaled = x / entry.scale;
+      let text = this.DecimalTextFormatting(scaled.toFixed(3));
+
       // We draw the axis label
-      ctx.fillText(x.toPrecision(3), canvas_x - 10, 10);
+      ctx.fillText(text, canvas_x - 10, 10);
     }
 
-    // We draw the units
-    let entry = this.ScaleToScaleEntry(scale);
-    ctx.fillText(entry.CalculatedString, ctx.canvas.width / 2 - 30, 30);
   }
 
   private DrawAxisY(points: Array<number>, scale: number) : void {
@@ -214,11 +213,7 @@ class AxisManager implements AxisManagerInterface {
 
       // We get the "scaled" number
       let scaled = y / entry.scale;
-      let text = scaled.toFixed(3);
-      let index = text.indexOf(".000");
-      if (index >= 0) {
-        text = text.substr(0, index);
-      }
+      let text = this.DecimalTextFormatting(scaled.toFixed(3));
 
       // We draw the axis label
       ctx.textAlign = "right";
@@ -257,14 +252,14 @@ class AxisManager implements AxisManagerInterface {
     return centers;
   }
 
-  private CalculateAxisPoints(centers: Vec2, scales: Vec2, steps: Vec2) :
+  private CalculateAxisPoints(centers: Vec2, scales: Vec2, steps: Vec2, step_breaks: Vec2) :
     { x: Array<number>, y: Array<number> } {
 
     // Create a function that generates the numbers
     let gen_points_func = function(center: number, scale: number,
-                                   steps: number) : Array<number> {
+                                   steps: number, step_break: number) : Array<number> {
       let it_advance = 1;
-      if (steps > 10) {
+      if (steps > step_break) {
         it_advance = 2;
       }
 
@@ -283,8 +278,8 @@ class AxisManager implements AxisManagerInterface {
     }
 
     return {
-      x: gen_points_func(centers.x, scales.x, steps.x),
-      y: gen_points_func(centers.y, scales.y, steps.y),
+      x: gen_points_func(centers.x, scales.x, steps.x, step_breaks.x),
+      y: gen_points_func(centers.y, scales.y, steps.y, step_breaks.y),
     };
   }
 
@@ -300,6 +295,14 @@ class AxisManager implements AxisManagerInterface {
       }
     }
     return empty_scale;
+  }
+
+  private DecimalTextFormatting(text: string) : string {
+    let index = text.indexOf(".000");
+    if (index >= 0) {
+      return text.substr(0, index);
+    }
+    return text;
   }
 
 }
