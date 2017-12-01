@@ -165,12 +165,15 @@ class Interaction implements InteractionInterface {
     if (!this.CtrlPressed) {
       delta.x = -event.deltaY;
     } else {
+      delta.x = -event.deltaY;
       delta.y = -event.deltaY;
     }
 
     let scale_change = Vec2.Mul(this._state.config.wheel_factor, delta);
+    console.log(scale_change);
     let old_scale = this._manager.Renderer.Scale;
-    let new_scale = Vec2.Sum(this._manager.Renderer.Scale, scale_change);
+    let new_scale = Vec2.Sum(old_scale,
+                             Vec2.Mul(old_scale, scale_change));
     if (new_scale.x < 0) { new_scale.x = 0; }
     if (new_scale.y < 0) { new_scale.y = 0; }
     this._manager.Renderer.Scale = new_scale;
