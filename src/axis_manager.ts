@@ -58,22 +58,22 @@ class AxisManager implements AxisManagerInterface {
     axes: {
       x: {
         context: CanvasRenderingContext2D,
-        step: number,
+        scale: number,
         total_steps: number,
         points?: Array<number>,
       },
       y: {
         context: CanvasRenderingContext2D,
-        step: number,
+        scale: number,
         total_steps: number,
         points?: Array<number>,
       }
     }
   };
 
-  get Step() : Vec2 {
-    return new Vec2(this._state.axes.x.step,
-                    this._state.axes.y.step);
+  get Scales() : Vec2 {
+    return new Vec2(this._state.axes.x.scale,
+                    this._state.axes.y.scale);
   }
 
   get TotalSteps() : Vec2 {
@@ -101,12 +101,12 @@ class AxisManager implements AxisManagerInterface {
       axes: {
         x: {
           context: x_axis.getContext("2d"),
-          step: 0,
+          scale: 1,
           total_steps: 0,
         },
         y: {
           context: y_axis.getContext("2d"),
-          step: 0,
+          scale: 1,
           total_steps: 0,
         }
       },
@@ -121,86 +121,48 @@ class AxisManager implements AxisManagerInterface {
     let diff_x = bounds_x / 10;
     let closest_power = this.ClosestPowerOfTen(diff_x);
     // let step = Math.floor(diff_x / closest_power) * closest_power;
-    let step = closest_power;
-    let total_steps = bounds_x / step;
+    let scale = closest_power;
+    let total_steps = bounds_x / scale;
 
-    this._state.axes.x.step = step;
+    this._state.axes.x.scale = scale;
     this._state.axes.x.total_steps = total_steps;
   }
 
   Draw() : void {
-    let step = this.Step;
-    if ((step.x == 0)) {
+    if (!this._manager.Valid) {
       return;
     }
     // We Draw The Axes
-    let total_steps = this.TotalSteps;
+    let scales = this.Scales;
+    let steps = this.TotalSteps;
+    let centers = this.CalculateAxisCenters(scales);
+    let points = this.CalculateAxisPoints(centers, scales, steps);
 
-    this.DrawAxisX(step.x, total_steps.x);
+    this.DrawAxisX(points.x, scales.x);
   }
 
   /****************************************************
    * PRIVATE METHODS
    ****************************************************/
 
-  private DrawAxisX(scale: number, total_steps: number) : void {
-    // If there are too many steps, we draw half of them
-    let it_advance = 1;
-    if (total_steps > 20) {
-      it_advance = 2;
-    }
-
-    // We calculate from where the points should be centered
+  private DrawAxisX(points: Array<number>, scale: number) : void {
     let renderer = this._manager.Renderer;
-    let offset = renderer.Offset;
-    let renderer_scale = renderer.Scale;
-    let offset_x = offset.x / renderer_scale.x;
-    // We want an even amount
-    let amounts = Math.floor(offset_x / scale);
-    // We always want a odd amount
-    if (amounts % 2 == 0) {
-      amounts += 1;
-    }
-    let new_center = -amounts * scale;
-
-    // We calculate the points
-    let points = Array<number>();
-    // if ((it_advance == 1) || (amounts % 2) == 0) {
-    // }
-    if (it_advance == 1) {
-      points.push(new_center);
-    }
-    for (let i = 1; i < total_steps; i += it_advance) {
-      points.push(new_center + i * scale);
-      points.push(new_center - i * scale);
-    }
-
-    // We draw the lines
-    console.log("SCALE", scale, "OFFSET", offset_x, "AMOUNTS", amounts, "NEW_CENTER", new_center,
-                "TOTAL_STEPS", total_steps, "IT_ADVANCE", it_advance);
-    renderer.DrawIcon(new Vec2(new_center, 0), DrawSpace.LOCAL, AllColors.Get("purple"));
-
-
-    let canvas_points = Array<number>();
-    for (var i = 0; i < points.length; i += 1) {
-      let point = points[i];
-      // We transform the point to Canvas space
-      let canvas_x = RendererLocalToCanvas(renderer, new Vec2(point, 0)).x;
-      canvas_points.push(canvas_x);
-
-      // We draw the vertical line
-      renderer.DrawVerticalLine(point, DrawSpace.LOCAL,
-                                AllColors.Get("darkgreen"));
-    }
 
     // We clear the axis canvas
     let ctx = this.CanvasX;
     twgl.resizeCanvasToDisplaySize(ctx.canvas);
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.fillStyle = "black";
-    for (var i = 0; i < canvas_points.length; i += 1) {
-      let x = points[i];
-      let canvas_x = canvas_points[i];
+
+    // for (var i = 0; i < points.length; i += 1) {
+    for (let x of points) {
+      // We draw the vertical line
+      renderer.DrawVerticalLine(x, DrawSpace.LOCAL, AllColors.Get("darkgreen"));
+
+      // We transform the point to Canvas space
+      let canvas_x = RendererLocalToCanvas(renderer, new Vec2(x, 0)).x;
+
+      // We draw the axis label
       ctx.fillText(x.toPrecision(3), canvas_x - 10, 10);
     }
 
@@ -212,6 +174,56 @@ class AxisManager implements AxisManagerInterface {
   /****************************************************
    * HELPERS METHODS
    ****************************************************/
+
+  private CalculateAxisCenters(scales: Vec2) : Vec2 {
+    let renderer = this._manager.Renderer;
+    let final_offset = Vec2.Div(renderer.Offset, renderer.Scale);
+
+    // We create a mapping function
+    let center_func = function(i: number, scale: number) : number {
+      let amount = Math.floor(i / scale);
+      // We always want odd amounts
+      if (amount % 2 == 0) {
+        amount += 1;
+      }
+      return -amount * scale;
+    };
+
+    let centers = new Vec2(center_func(final_offset.x, scales.x),
+                           center_func(final_offset.y, scales.y));
+    return centers;
+  }
+
+  private CalculateAxisPoints(centers: Vec2, scales: Vec2, steps: Vec2) :
+    { x: Array<number>, y: Array<number> } {
+
+    // Create a function that generates the numbers
+    let gen_points_func = function(center: number, scale: number,
+                                   steps: number) : Array<number> {
+      let it_advance = 1;
+      if (steps > 10) {
+        it_advance = 2;
+      }
+
+      // We calculate the points
+      let points = Array<number>();
+      // Only on odd range, we print the center axis
+        points.push(center);
+      if (it_advance == 1) {
+      }
+      // We create the points outwardly from the center
+      for (let i = 1; i < steps; i += 1) {
+        points.push(center + i * scale);
+        points.push(center - i * scale);
+      }
+      return points;
+    }
+
+    return {
+      x: gen_points_func(centers.x, scales.x, steps.x),
+      y: gen_points_func(centers.y, scales.y, steps.y),
+    };
+  }
 
   private ClosestPowerOfTen(x: number) : number {
     return 10 ** Math.floor(Math.log10(2 * x));
