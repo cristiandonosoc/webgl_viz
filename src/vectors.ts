@@ -46,12 +46,20 @@ class Vec2 {
     return new Vec2(v1.x * v2.x, v1.y * v2.y);
   }
 
+  static Div(v1: Vec2, v2: Vec2) : Vec2 {
+    return new Vec2(v1.x / v2.x, v1.y / v2.y);
+  }
+
   static Min(v1: Vec2, v2: Vec2) : Vec2 {
     return new Vec2(Math.min(v1.x, v2.x), Math.min(v1.y, v2.y));
   }
 
   static Max(v1: Vec2, v2: Vec2) : Vec2 {
     return new Vec2(Math.max(v1.x, v2.x), Math.max(v1.y, v2.y));
+  }
+
+  static Map(v: Vec2, map_func: ((_: number) => number)) : Vec2 {
+    return new Vec2(map_func(v.x), map_func(v.y));
   }
 
   static get Zero() : Vec2 {

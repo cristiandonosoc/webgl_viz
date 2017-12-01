@@ -143,22 +143,44 @@ class AxisManager implements AxisManagerInterface {
    * PRIVATE METHODS
    ****************************************************/
 
-  private DrawAxisX(step: number, total_steps: number) : void {
+  private DrawAxisX(scale: number, total_steps: number) : void {
     // If there are too many steps, we draw half of them
     let it_advance = 1;
     if (total_steps > 20) {
       it_advance = 2;
     }
 
+    // We calculate from where the points should be centered
+    let renderer = this._manager.Renderer;
+    let offset = renderer.Offset;
+    let renderer_scale = renderer.Scale;
+    let offset_x = offset.x / renderer_scale.x;
+    // We want an even amount
+    let amounts = Math.floor(offset_x / scale);
+    // We always want a odd amount
+    if (amounts % 2 == 0) {
+      amounts += 1;
+    }
+    let new_center = -amounts * scale;
+
     // We calculate the points
     let points = Array<number>();
+    // if ((it_advance == 1) || (amounts % 2) == 0) {
+    // }
+    if (it_advance == 1) {
+      points.push(new_center);
+    }
     for (let i = 1; i < total_steps; i += it_advance) {
-      points.push(+i * step);
-      points.push(-i * step);
+      points.push(new_center + i * scale);
+      points.push(new_center - i * scale);
     }
 
     // We draw the lines
-    let renderer = this._manager.Renderer;
+    console.log("SCALE", scale, "OFFSET", offset_x, "AMOUNTS", amounts, "NEW_CENTER", new_center,
+                "TOTAL_STEPS", total_steps, "IT_ADVANCE", it_advance);
+    renderer.DrawIcon(new Vec2(new_center, 0), DrawSpace.LOCAL, AllColors.Get("purple"));
+
+
     let canvas_points = Array<number>();
     for (var i = 0; i < points.length; i += 1) {
       let point = points[i];
@@ -183,8 +205,8 @@ class AxisManager implements AxisManagerInterface {
     }
 
     // We draw the units
-    let scale = this.ScaleToScaleEntry(step);
-    ctx.fillText(scale.CalculatedString, ctx.canvas.width / 2 - 30, 30);
+    let entry = this.ScaleToScaleEntry(scale);
+    ctx.fillText(entry.CalculatedString, ctx.canvas.width / 2 - 30, 30);
   }
 
   /****************************************************
