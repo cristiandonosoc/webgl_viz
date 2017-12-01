@@ -30,6 +30,9 @@ class Vec2 {
     return new Vec2(this.x, this.y);
   }
 
+  /*****************************************************
+   * STATIC HELPERS
+   *****************************************************/
 
   static Sum(v1: Vec2, v2: Vec2) : Vec2 {
     return new Vec2(v1.x + v2.x, v1.y + v2.y);

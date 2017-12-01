@@ -1,10 +1,10 @@
-///<reference path="resources/webgl2.d.ts" />
 
 import {Color, AllColors} from "./colors"
 import Interaction from "./interaction";
 import LabelManager from "./label_manager";
 import Renderer from "./renderer";
 import {Bounds, Vec2} from "./vectors";
+import AxisManager from "./axis_manager";
 
 import {DrawSpace, RendererInterface} from "./renderer_interface";
 import InteractionInterface from "./interaction_interface";
@@ -18,6 +18,7 @@ class GraphManager implements GraphManagerInterface {
   private _interaction: Interaction;   /* Manages interaction with browser (mostly mouse) */
   private _label_manager: LabelManager;
   private _renderer: Renderer;
+  private _axis_manager: AxisManager;
 
   // Internal state of the renderer
   private _state: {
@@ -60,10 +61,12 @@ class GraphManager implements GraphManagerInterface {
    *******************************************************/
 
   constructor(canvas: HTMLCanvasElement) {
-    this.CreateDefaults();
     this._renderer = new Renderer(canvas);
     this._interaction = new Interaction(this);
     this._label_manager = new LabelManager(this);
+    this._axis_manager = new AxisManager(this);
+
+    this.CreateDefaults();
     this._state.graph_loaded = false;
   }
 
@@ -161,6 +164,9 @@ class GraphManager implements GraphManagerInterface {
     // Resize
     this.Renderer.ResizeCanvas();
     this.LabelManager.Update();
+    if (this.Valid) {
+      this._axis_manager.Update();
+    }
   }
 
   private Draw() : void {
@@ -190,8 +196,10 @@ class GraphManager implements GraphManagerInterface {
     }
 
     // Draw x/y Axis
-    this.Renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("green"));
-    this.Renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("green"));
+    this._axis_manager.Draw();
+
+    this.Renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
+    this.Renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
 
     this.Renderer.DrawGraph(DrawSpace.LOCAL, this._state.graph_info.line_color);
 
@@ -273,8 +281,6 @@ class GraphManager implements GraphManagerInterface {
       return max_point;
     }
   }
-
-
 }
 
 export default GraphManager;
