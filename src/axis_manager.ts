@@ -18,6 +18,39 @@ declare interface Math {
 // Globally loaded script
 declare let twgl: any;
 
+class ScaleEntry {
+  range: number;
+  name: string;
+  unit: string;
+
+  // Calculated
+  private _expr: string;
+
+  get CalculatedString() : string {
+    return this._expr;
+  }
+
+
+  constructor(range: number, name: string, unit: string) {
+    this.range = range;
+    this.name = name;
+    this.unit = unit;
+    this._expr = name + " (" + unit + ")";
+  }
+
+  static get Empty() : ScaleEntry {
+    return new ScaleEntry(0, "", "");
+  }
+}
+
+let powers_names = [
+  new ScaleEntry(1, "Seconds", "s"),
+  new ScaleEntry(Math.pow(10, -3), "Milliseconds", "ms"),
+  new ScaleEntry(Math.pow(10, -6), "Microseconds", "us"),
+  new ScaleEntry(Math.pow(10, -9), "Nanoseconds", "ns"),
+];
+let empty_scale = ScaleEntry.Empty;
+
 class AxisManager implements AxisManagerInterface {
   private _manager: GraphManagerInterface;
 
@@ -83,18 +116,13 @@ class AxisManager implements AxisManagerInterface {
   Update() : void {
     // We calculate the unit the zoom should be at
     let bounds = this._manager.Renderer.Bounds;
+    // X axis
     let bounds_x = Math.abs(bounds.x.x - bounds.x.y);
     let diff_x = bounds_x / 10;
     let closest_power = this.ClosestPowerOfTen(diff_x);
     // let step = Math.floor(diff_x / closest_power) * closest_power;
     let step = closest_power;
     let total_steps = bounds_x / step;
-    // console.log(
-    //   " TOTAL: ", bounds_x,
-    //   " DIFF: ", diff_x,
-    //   " POWER: ", closest_power,
-    //   " STEP: " , step,
-    //   " TOTAL_STEPS: ", total_steps);
 
     this._state.axes.x.step = step;
     this._state.axes.x.total_steps = total_steps;
@@ -114,7 +142,6 @@ class AxisManager implements AxisManagerInterface {
   /****************************************************
    * PRIVATE METHODS
    ****************************************************/
-
 
   private DrawAxisX(step: number, total_steps: number) : void {
     // If there are too many steps, we draw half of them
@@ -142,8 +169,6 @@ class AxisManager implements AxisManagerInterface {
       // We draw the vertical line
       renderer.DrawVerticalLine(point, DrawSpace.LOCAL,
                                 AllColors.Get("darkgreen"));
-
-
     }
 
     // We clear the axis canvas
@@ -157,15 +182,27 @@ class AxisManager implements AxisManagerInterface {
       ctx.fillText(x.toPrecision(3), canvas_x - 10, 10);
     }
 
-    // We get the points in Canvas Space
-
-    // let ctx = this.CanvasX;
-    // ctx.fillStyle = "green";
-
+    // We draw the units
+    let scale = this.ScaleToScaleEntry(step);
+    ctx.fillText(scale.CalculatedString, ctx.canvas.width / 2 - 30, 30);
   }
+
+  /****************************************************
+   * HELPERS METHODS
+   ****************************************************/
 
   private ClosestPowerOfTen(x: number) : number {
     return 10 ** Math.floor(Math.log10(2 * x));
+  }
+
+  private ScaleToScaleEntry(scale: number) : ScaleEntry {
+
+    for (let entry of powers_names) {
+      if (scale >= entry.range) {
+        return entry;
+      }
+    }
+    return empty_scale;
   }
 
 }
