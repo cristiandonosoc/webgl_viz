@@ -19,7 +19,7 @@ declare interface Math {
 declare let twgl: any;
 
 class ScaleEntry {
-  range: number;
+  scale: number;
   name: string;
   unit: string;
 
@@ -31,8 +31,8 @@ class ScaleEntry {
   }
 
 
-  constructor(range: number, name: string, unit: string) {
-    this.range = range;
+  constructor(scale: number, name: string, unit: string) {
+    this.scale = scale;
     this.name = name;
     this.unit = unit;
     this._expr = name + " (" + unit + ")";
@@ -59,14 +59,12 @@ class AxisManager implements AxisManagerInterface {
       x: {
         context: CanvasRenderingContext2D,
         scale: number,
-        total_steps: number,
-        points?: Array<number>,
+        steps: number,
       },
       y: {
         context: CanvasRenderingContext2D,
         scale: number,
-        total_steps: number,
-        points?: Array<number>,
+        steps: number,
       }
     }
   };
@@ -77,8 +75,8 @@ class AxisManager implements AxisManagerInterface {
   }
 
   get TotalSteps() : Vec2 {
-    return new Vec2(this._state.axes.x.total_steps,
-                    this._state.axes.y.total_steps);
+    return new Vec2(this._state.axes.x.steps,
+                    this._state.axes.y.steps);
   }
 
   get CanvasX() : CanvasRenderingContext2D {
@@ -102,12 +100,12 @@ class AxisManager implements AxisManagerInterface {
         x: {
           context: x_axis.getContext("2d"),
           scale: 1,
-          total_steps: 0,
+          steps: 0,
         },
         y: {
           context: y_axis.getContext("2d"),
           scale: 1,
-          total_steps: 0,
+          steps: 0,
         }
       },
     };
@@ -116,16 +114,36 @@ class AxisManager implements AxisManagerInterface {
   Update() : void {
     // We calculate the unit the zoom should be at
     let bounds = this._manager.Renderer.Bounds;
-    // X axis
-    let bounds_x = Math.abs(bounds.x.x - bounds.x.y);
-    let diff_x = bounds_x / 10;
-    let closest_power = this.ClosestPowerOfTen(diff_x);
-    // let step = Math.floor(diff_x / closest_power) * closest_power;
-    let scale = closest_power;
-    let total_steps = bounds_x / scale;
+    let diffs = new Vec2(Math.abs(bounds.x.x - bounds.x.y),
+                         Math.abs(bounds.y.x - bounds.y.y));
+    let step_counts = new Vec2(10, 5);
+    let step_sizes = Vec2.Div(diffs, step_counts);
 
-    this._state.axes.x.scale = scale;
-    this._state.axes.x.total_steps = total_steps;
+    // We obtain the closest power of 10 for this step size
+    let ctx = this;
+    let scales = Vec2.Map(step_sizes, function(i) {
+      return ctx.ClosestPowerOfTen(i);
+    });
+
+    // We set the scale
+    this._state.axes.x.scale = scales.x;
+    this._state.axes.y.scale = scales.y;
+
+    // We set the amount of steps
+    let steps = Vec2.Div(diffs, scales);
+    this._state.axes.x.steps = steps.x;
+    this._state.axes.y.steps = steps.y;
+
+    // // X axis
+    // let bounds_x = Math.abs(bounds.x.x - bounds.x.y);
+    // let diff_x = bounds_x / 10;
+    // let closest_power = this.ClosestPowerOfTen(diff_x);
+    // // let step = Math.floor(diff_x / closest_power) * closest_power;
+    // let scale = closest_power;
+    // let total_steps = bounds_x / scale;
+
+    // this._state.axes.x.scale = scale;
+    // this._state.axes.x.total_steps = total_steps;
   }
 
   Draw() : void {
@@ -139,10 +157,11 @@ class AxisManager implements AxisManagerInterface {
     let points = this.CalculateAxisPoints(centers, scales, steps);
 
     this.DrawAxisX(points.x, scales.x);
+    this.DrawAxisY(points.y, scales.y);
   }
 
   /****************************************************
-   * PRIVATE METHODS
+   * PRIVATE DRAW METHODS
    ****************************************************/
 
   private DrawAxisX(points: Array<number>, scale: number) : void {
@@ -169,6 +188,50 @@ class AxisManager implements AxisManagerInterface {
     // We draw the units
     let entry = this.ScaleToScaleEntry(scale);
     ctx.fillText(entry.CalculatedString, ctx.canvas.width / 2 - 30, 30);
+  }
+
+  private DrawAxisY(points: Array<number>, scale: number) : void {
+    let renderer = this._manager.Renderer;
+
+    // We clear the axis canvas
+    let ctx = this.CanvasY;
+    twgl.resizeCanvasToDisplaySize(ctx.canvas);
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.fillStyle = "black";
+
+    // We get the units
+    let entry = this.ScaleToScaleEntry(scale);
+    let point = new Vec2(20, ctx.canvas.height / 2 + 30);
+
+    // The drawing changes some settings
+    ctx.save();
+    for (let y of points) {
+      // We draw the horizontal lines
+      renderer.DrawHorizontalLine(y, DrawSpace.LOCAL, AllColors.Get("darkgreen"));
+
+      // We transform the point to Canvas Space
+      let canvas_y = RendererLocalToCanvas(renderer, new Vec2(0, y)).y;
+
+      // We get the "scaled" number
+      let scaled = y / entry.scale;
+      let text = scaled.toFixed(3);
+      let index = text.indexOf(".000");
+      if (index >= 0) {
+        text = text.substr(0, index);
+      }
+
+      // We draw the axis label
+      ctx.textAlign = "right";
+      ctx.fillText(text, 70, ctx.canvas.height - (canvas_y - 2));
+    }
+    ctx.restore();
+
+    // We draw it rotated
+    ctx.save();
+    ctx.translate(point.x, point.y);
+    ctx.rotate(-Math.PI/2);
+    ctx.fillText(entry.CalculatedString, 0, 0);
+    ctx.restore();
   }
 
   /****************************************************
@@ -232,7 +295,7 @@ class AxisManager implements AxisManagerInterface {
   private ScaleToScaleEntry(scale: number) : ScaleEntry {
 
     for (let entry of powers_names) {
-      if (scale >= entry.range) {
+      if (scale >= entry.scale) {
         return entry;
       }
     }
