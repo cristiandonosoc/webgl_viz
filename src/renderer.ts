@@ -5,6 +5,7 @@ import {Color} from "./colors";
 
 import {RendererCalculateBounds} from "./transforms";
 
+// Globally loaded script
 declare let twgl: any;
 let g_inf = 9999999999999999;   /* BIG NUMBER */
 

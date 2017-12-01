@@ -15,6 +15,9 @@ $canvas-border-top: 0px;
 $canvas-border-left: 100px;
 $canvas-border-right: 50px;
 
+$canvas-x-axis-height: 25px;
+$canvas-y-axis-width: 75px;
+
 $label-width-x: 75px;
 $label-width-y: 75px;
 
@@ -67,10 +70,31 @@ body {
       top: $canvas-border-top;
       position: absolute;
 
-      canvas {
+      #main-canvas {
         border: 1px solid black;
         width: 100%;
         height: 100%;
+      }
+      #main-canvas-x-axis {
+        position: absolute;
+        // We force it to be at the bottom
+        top: 100%;
+
+        width: 100%;
+        height: $canvas-x-axis-height;
+
+        border: 1px solid green;
+      }
+      #main-canvas-y-axis {
+        position: absolute;
+        // We force it to be at the left
+        top: 0;
+        right: 100%;
+
+        width: $canvas-y-axis-width;
+        height: 100%;
+
+        border: 1px solid blue;
       }
     }
   }

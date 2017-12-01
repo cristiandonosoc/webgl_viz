@@ -10,6 +10,7 @@ import {DrawSpace, RendererInterface} from "./renderer_interface";
 import InteractionInterface from "./interaction_interface";
 import {ZoomType, LabelManagerInterface} from "./label_manager_interface";
 import GraphManagerInterface from "./graph_manager_interface";
+import AxisManagerInterface from "./axis_manager_interface";
 
 let g_inf = 9007199254740991;
 
@@ -51,6 +52,10 @@ class GraphManager implements GraphManagerInterface {
     return this._label_manager;
   }
 
+  get AxisManager() : AxisManagerInterface {
+    return this._axis_manager;
+  }
+
   get Valid() : boolean {
     return this._state.graph_loaded;
 
@@ -60,11 +65,13 @@ class GraphManager implements GraphManagerInterface {
    * CONSTRUCTOR
    *******************************************************/
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement,
+              x_axis: HTMLCanvasElement,
+              y_axis: HTMLCanvasElement) {
     this._renderer = new Renderer(canvas);
     this._interaction = new Interaction(this);
     this._label_manager = new LabelManager(this);
-    this._axis_manager = new AxisManager(this);
+    this._axis_manager = new AxisManager(this, x_axis, y_axis);
 
     this.CreateDefaults();
     this._state.graph_loaded = false;
@@ -165,7 +172,7 @@ class GraphManager implements GraphManagerInterface {
     this.Renderer.ResizeCanvas();
     this.LabelManager.Update();
     if (this.Valid) {
-      this._axis_manager.Update();
+      this.AxisManager.Update();
     }
   }
 

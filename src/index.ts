@@ -2,7 +2,9 @@ import GraphManager from "./graph_manager"
 
 // We "cast" the instance"
 var canvas = <HTMLCanvasElement> document.getElementById("main-canvas");
-var manager = new GraphManager(canvas);
+var x_axis = <HTMLCanvasElement> document.getElementById("main-canvas-x-axis");
+var y_axis = <HTMLCanvasElement> document.getElementById("main-canvas-y-axis");
+var manager = new GraphManager(canvas, x_axis, y_axis);
 
 // We add some points
 // var size = 500;

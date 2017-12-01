@@ -170,7 +170,6 @@ class Interaction implements InteractionInterface {
     }
 
     let scale_change = Vec2.Mul(this._state.config.wheel_factor, delta);
-    console.log(scale_change);
     let old_scale = this._manager.Renderer.Scale;
     let new_scale = Vec2.Sum(old_scale,
                              Vec2.Mul(old_scale, scale_change));
