@@ -38,6 +38,28 @@ class GraphManager implements GraphManagerInterface {
 
   graph_id: RendererElemId;
 
+  graphs: Array<RendererElemId>;
+
+  /*******************************************************
+   * CONSTRUCTOR
+   *******************************************************/
+
+  constructor(canvas: HTMLCanvasElement,
+              x_axis: HTMLCanvasElement,
+              y_axis: HTMLCanvasElement) {
+    this._renderer = new Renderer(canvas);
+    this._interaction = new Interaction(this);
+    this._label_manager = new LabelManager(this);
+    this._axis_manager = new AxisManager(this, x_axis, y_axis);
+
+    this.CreateDefaults();
+    this._state.graph_loaded = false;
+
+    this.graphs = new Array<RendererElemId>();
+  }
+
+
+
   /*******************************************************
    * GETTERS / SETTERS
    *******************************************************/
@@ -63,44 +85,36 @@ class GraphManager implements GraphManagerInterface {
 
   }
 
-  /*******************************************************
-   * CONSTRUCTOR
-   *******************************************************/
-
-  constructor(canvas: HTMLCanvasElement,
-              x_axis: HTMLCanvasElement,
-              y_axis: HTMLCanvasElement) {
-    this._renderer = new Renderer(canvas);
-    this._interaction = new Interaction(this);
-    this._label_manager = new LabelManager(this);
-    this._axis_manager = new AxisManager(this, x_axis, y_axis);
-
-    this.CreateDefaults();
-    this._state.graph_loaded = false;
-  }
-
   HandleDapFile = (content: string) => {
     // We split into lines
     let lines = content.split("\n");
     console.info("Read %d lines", lines.length);
 
-    // We go over the lines
+    // We count how many graphs
+    let first_line = lines[0];
+    if (first_line.lastIndexOf("TSBASE", 0) != 0) {
+      throw "Invalid file";
+    }
+
+    // We get the base times for each pcap
+    let first_split = first_line.split(" ");
     let base = new Array<number>();
-    let points = new Array<number>();
-    // points.push(0);
-    // points.push(0);
-    // points.push(0.5);
-    // points.push(0.5);
+    for (var j = 1; j < first_split.length; j += 1) {
+      base.push(parseFloat(first_split[j]));
+    }
+
+
+    // We go over the lines
+    let graphs = new Array<Array<number>>(base.length);
+    for (var i = 0; i < graphs.length; i += 1) {
+      graphs[i] = new Array<number>();
+    }
 
     let limit = 40;
     for (let i = 0; i < lines.length; i += 1) {
       let line = lines[i];
       if (line.lastIndexOf("TSBASE", 0) === 0) {
-        let tokens = line.split(" ");
-        for (var j = 1; j < tokens.length; j += 1) {
-          base.push(parseFloat(tokens[j]));
-        }
-        console.info("Processed: %s", line);
+        console.info("Skipping: %s", line);
         continue;
       }
       if (line.lastIndexOf("OFFST", 0) === 0) {
@@ -108,26 +122,42 @@ class GraphManager implements GraphManagerInterface {
         continue;
       }
 
-      let tokens = line.split(" ");
-      // We look for the first number
-      let first = parseFloat(tokens[3]);
-      let last = parseFloat(tokens[tokens.length - 1]);
-
-      points.push(first);
-      points.push(last - first);
-
-      if (i < limit) {
-        console.info("%f -> %f", first, last - first);
+      let split = line.split(" ");
+      let tokens = split.slice(3, split.length);
+      if (tokens.length != base.length) {
+        console.error("Wrongly formatted line");
+        continue;
       }
+
+      // We add the graphs
+      let parsed = tokens.map(function(i: string) : number {
+        return parseFloat(i);
+      });
+      for (var j = 0; j < tokens.length - 1; j += 1) {
+        graphs[j].push(parsed[j]);
+        graphs[j].push(parsed[j + 1] - parsed[j]);
+      }
+      graphs[graphs.length - 1].push(parsed[0]);
+      graphs[graphs.length - 1].push(parsed[parsed.length - 1] - parsed[0]);
+
+      // // We look for the first number
+      // let first = parseFloat(tokens[3]);
+      // let last = parseFloat(tokens[tokens.length - 1]);
+
+      // points.push(first);
+      // points.push(last - first);
     }
 
-    this.AddGraph(points);
-    this.ApplyMaxBounds();
+    for (let graph of graphs) {
+      this.graphs.push(this.AddGraph(graph));
+      // this.AddGraph(graphs[graphs.length - 1]);
+    }
+    // this.ApplyMaxBounds();
   }
 
-  AddGraph(points: number[]) : void {
+  AddGraph(points: number[]) : RendererElemId {
     // We pass the points straight down
-    this.graph_id = this._renderer.AddGraph(points);
+    let graph_id = this._renderer.AddGraph(points);
 
     // We post-process the points
     let min = new Vec2(+g_inf, +g_inf);
@@ -154,6 +184,7 @@ class GraphManager implements GraphManagerInterface {
     });
 
     this._state.graph_loaded = true;
+    return graph_id;
   }
 
   // Applies the graph max bounds
@@ -211,8 +242,12 @@ class GraphManager implements GraphManagerInterface {
     this.Renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
     this.Renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
 
-    if (this.graph_id) {
-      this.Renderer.DrawElement(this.graph_id, DrawSpace.LOCAL, this._state.graph_info.line_color);
+    // if (this.graph_id) {
+    //   this.Renderer.DrawElement(this.graph_id, DrawSpace.LOCAL, this._state.graph_info.line_color);
+    // }
+    let color = AllColors.Get("white");
+    for (let graph_id of this.graphs) {
+      this.Renderer.DrawElement(graph_id, DrawSpace.LOCAL, color);
     }
 
     // Draw mouse vertical line
