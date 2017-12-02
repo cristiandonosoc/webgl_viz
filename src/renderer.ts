@@ -1,4 +1,4 @@
-import {DrawSpace, RendererInterface} from "./renderer_interface";
+import {DrawSpace, RendererElemId, RendererInterface} from "./renderer_interface";
 import AllShaders from "./shaders";
 import {Bounds, Vec2} from "./vectors";
 import {Color} from "./colors";
@@ -8,6 +8,52 @@ import {RendererCalculateBounds} from "./transforms";
 // Globally loaded script
 declare let twgl: any;
 let g_inf = 9999999999999999;   /* BIG NUMBER */
+
+/**
+ * RendererElem
+ * ------------
+ *
+ * An element registered within the Renderer.
+ * Holds all the information to render it correctly.
+ **/
+class RendererElem {
+  buffer_info: any;
+  // What GL primitive use to draw this
+  gl_primitive: any;
+};
+
+/**
+ * RendererElemRegistry
+ * --------------------
+ *
+ * Helper class for registering
+ **/
+class RendererElemRegistry {
+  private _elements: Array<RendererElem>;
+
+  constructor() {
+    this._elements = new Array<RendererElem>();
+  }
+
+  get Count() : number {
+    return this._elements.length;
+  }
+
+  Get(elem_id: RendererElemId) : RendererElem {
+    return this._elements[elem_id.id];
+  }
+
+  Register(elem: RendererElem) : RendererElemId {
+    let id = this._elements.length;
+    this._elements.push(elem);
+
+    // We "abuse" the interface
+    let elem_id = {
+      id: id,
+    }
+    return elem_id;
+  }
+}
 
 class Renderer implements RendererInterface {
 
@@ -19,21 +65,44 @@ class Renderer implements RendererInterface {
     scale: Vec2,
   };
 
-  // "Normal" programs
-  local_program_info: any;
-  pixel_program_info: any;
-  // Point Sprite programs
-  local_ps_program_info: any;
-  pixel_ps_program_info: any;
+  private _program_infos: {
+    // "Normal" programs
+    local: any,
+    pixel: any,
+    // Point Sprite programs
+    local_ps: any,
+    pixel_ps: any,
+  };
 
-  graph_buffer_info: any;           /* Holds the points of the graph */
+  private _elems: RendererElemRegistry;
+
   buffer_info: any;                 /* Holds up to 2 points */
 
   cross_texture: any;
 
+  constructor(canvas: HTMLCanvasElement) {
+    this._gl = canvas.getContext("webgl2");
+    this._state = {
+      bounds: Bounds.FromPoints(/* x */ -1, 1, /* y */ -1, 1),
+      offset: new Vec2(0, 0),
+      scale: new Vec2(1, 1),
+    };
+    this._elems = new RendererElemRegistry();
+    this.SetupWebGL();
+    this.SetupTextures();
+  }
+
   /*************************************************
    * GETTERS/SETTERS
    *************************************************/
+
+  private get Elements() : RendererElemRegistry {
+    return this._elems;
+  }
+
+  private get ProgramInfos() : any {
+    return this._program_infos;
+  }
 
   get Canvas() : HTMLCanvasElement {
     return this._gl.canvas;
@@ -84,31 +153,22 @@ class Renderer implements RendererInterface {
     return this._gl.canvas.height;
   }
 
-  constructor(canvas: HTMLCanvasElement) {
-    this._gl = canvas.getContext("webgl2");
-    this._state = {
-      bounds: Bounds.FromPoints(/* x */ -1, 1, /* y */ -1, 1),
-      offset: new Vec2(0, 0),
-      scale: new Vec2(1, 1),
-    };
-    this.SetupWebGL();
-    this.SetupTextures();
-  }
-
   private SetupWebGL() {
-    this.local_program_info = twgl.createProgramInfo(this._gl, [
+    let p = <any>{};
+    p.local = twgl.createProgramInfo(this._gl, [
       AllShaders.GetVertexShader("direct"),
       AllShaders.GetFragmentShader("simple")]);
-    this.pixel_program_info = twgl.createProgramInfo(this._gl, [
+    p.pixel = twgl.createProgramInfo(this._gl, [
       AllShaders.GetVertexShader("pixel"),
       AllShaders.GetFragmentShader("simple")]);
 
-    this.local_ps_program_info = twgl.createProgramInfo(this._gl, [
+    p.local_ps = twgl.createProgramInfo(this._gl, [
       AllShaders.GetVertexShader("direct"),
       AllShaders.GetFragmentShader("point_sprite")]);
-    this.pixel_ps_program_info = twgl.createProgramInfo(this._gl, [
+    p.pixel_ps = twgl.createProgramInfo(this._gl, [
       AllShaders.GetVertexShader("pixel"),
       AllShaders.GetFragmentShader("point_sprite")]);
+    this._program_infos = p;
 
     // We create the overlay buffers
     let arrays = {
@@ -146,12 +206,18 @@ class Renderer implements RendererInterface {
     img.src = "src/resources/cross.png";
   }
 
-  AddGraph(points: number[]) : void {
+  AddGraph(points: number[]) : RendererElemId {
     // We set the WebGL points
     let arrays = {
       a_position_coord: points
     };
-    this.graph_buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays);
+
+    // We create the renderer elem
+    let elem = new RendererElem();
+    elem.buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays)
+    elem.gl_primitive = this._gl.LINE_STRIP;
+    let elem_id = this.Elements.Register(elem);
+    return elem_id;
   }
 
   ResizeCanvas() : void {
@@ -167,14 +233,6 @@ class Renderer implements RendererInterface {
     this._gl.clearColor(color.r, color.g,
                        color.b, color.a);
     this._gl.clear(this._gl.COLOR_BUFFER_BIT);
-  }
-
-  DrawGraph(space: DrawSpace, color: Color) : void {
-    if (space == DrawSpace.LOCAL) {
-      this.DrawGraphLocalSpace(color);
-    } else {
-      throw "Unsupported DrawSpace";
-    }
   }
 
   DrawLine(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void {
@@ -260,36 +318,42 @@ class Renderer implements RendererInterface {
     }
   }
 
+  DrawElement(elem_id: RendererElemId, space: DrawSpace, color: Color) : void {
+    let elem = this.Elements.Get(elem_id);
+    if (!elem) {
+      throw "Cannot find element";
+    }
+    if (space == DrawSpace.LOCAL) {
+      this.DrawElementLocalSpace(elem, color);
+    } else {
+      throw "Unsupported DrawSpace";
+    }
+  }
+
   /******************************************************
    * PRIVATE FUNCTIONS
    ******************************************************/
 
   /* DRAW GRAPH */
 
-  private DrawGraphLocalSpace(color: Color) : void {
-    // Set shader program
-    this._gl.useProgram(this.local_program_info.program);
-
-    // Set the current buffers and attributes
-    twgl.setBuffersAndAttributes(this._gl, this.local_program_info, this.graph_buffer_info);
-
-    // Set the uniforms
+  private DrawElementLocalSpace(elem: RendererElem, color: Color) : void {
+    let program_info = this.ProgramInfos.local;
+    this._gl.useProgram(program_info.program);
+    twgl.setBuffersAndAttributes(this._gl, program_info, elem.buffer_info);
     let uniforms = {
-      u_offset: this._state.offset.AsArray(),
-      u_scale: this._state.scale.AsArray(),
+      u_offset: this.Offset.AsArray(),
+      u_scale: this.Scale.AsArray(),
       u_color: color.AsArray(),
     };
-    twgl.setUniforms(this.local_program_info, uniforms);
-
-    // We draw
-    twgl.drawBufferInfo(this._gl, this.graph_buffer_info, this._gl.LINE_STRIP);
+    twgl.setUniforms(program_info, uniforms);
+    twgl.drawBufferInfo(this._gl, elem.buffer_info, elem.gl_primitive);
   }
 
   /* DRAW LINE */
 
   private DrawLinePixelSpace(p1: Vec2, p2: Vec2, color: Color) : void {
-    this._gl.useProgram(this.pixel_program_info.program);
-    twgl.setBuffersAndAttributes(this._gl, this.pixel_program_info, this.buffer_info);
+    this._gl.useProgram(this.ProgramInfos.pixel.program);
+    twgl.setBuffersAndAttributes(this._gl, this.ProgramInfos.pixel, this.buffer_info);
 
     let new_pos = [p1.x, p1.y, p2.x, p2.y];
     twgl.setAttribInfoBufferFromArray(this._gl, this.buffer_info.attribs.a_position_coord, new_pos);
@@ -298,16 +362,16 @@ class Renderer implements RendererInterface {
       u_resolution: [this._gl.canvas.width, this._gl.canvas.height],
       u_color: color.AsArray(),
     };
-    twgl.setUniforms(this.pixel_program_info, uniforms);
+    twgl.setUniforms(this.ProgramInfos.pixel, uniforms);
 
     // We draw
     this._gl.drawArrays(this._gl.LINES, 0, 2);
   }
 
   private DrawLineLocalSpace(p1: Vec2, p2: Vec2, color: Color) : void {
-    this._gl.useProgram(this.local_program_info.program);
+    this._gl.useProgram(this.ProgramInfos.local.program);
     twgl.setBuffersAndAttributes(this._gl,
-                                 this.local_program_info,
+                                 this.ProgramInfos.local,
                                  this.buffer_info);
     let new_pos = [p1.x, p1.y, p2.x, p2.y];
     twgl.setAttribInfoBufferFromArray(this._gl,
@@ -318,7 +382,7 @@ class Renderer implements RendererInterface {
       u_scale: this._state.scale.AsArray(),
       u_color: color.AsArray(),
     };
-    twgl.setUniforms(this.local_program_info, uniforms);
+    twgl.setUniforms(this.ProgramInfos.local, uniforms);
     this._gl.drawArrays(this._gl.LINES, 0, 2);
   }
 
@@ -330,9 +394,9 @@ class Renderer implements RendererInterface {
     }
 
     this._gl.enable(this._gl.BLEND);
-    this._gl.useProgram(this.pixel_ps_program_info.program);
+    this._gl.useProgram(this.ProgramInfos.pixel_ps.program);
     twgl.setBuffersAndAttributes(this._gl,
-                                 this.pixel_ps_program_info,
+                                 this.ProgramInfos.pixel_ps,
                                  this.buffer_info);
     twgl.setAttribInfoBufferFromArray(this._gl,
       this.buffer_info.attribs.a_position_coord, point.AsArray());
@@ -343,7 +407,7 @@ class Renderer implements RendererInterface {
       u_point_size: 10,
       u_sampler: 0
     };
-    twgl.setUniforms(this.pixel_ps_program_info, uniforms);
+    twgl.setUniforms(this.ProgramInfos.pixel_ps, uniforms);
     this._gl.activeTexture(this._gl.TEXTURE0);
     this._gl.bindTexture(this._gl.TEXTURE_2D, this.cross_texture);
     this._gl.drawArrays(this._gl.POINTS, 0, 1);
@@ -354,9 +418,9 @@ class Renderer implements RendererInterface {
       return;
     }
     this._gl.enable(this._gl.BLEND);
-    this._gl.useProgram(this.local_ps_program_info.program);
+    this._gl.useProgram(this.ProgramInfos.local_ps.program);
     twgl.setBuffersAndAttributes(this._gl,
-                                 this.local_ps_program_info,
+                                 this.ProgramInfos.local_ps,
                                  this.buffer_info);
     // We update the point
     twgl.setAttribInfoBufferFromArray(this._gl,
@@ -370,7 +434,7 @@ class Renderer implements RendererInterface {
       u_point_size: 10,
       u_sampler: 0
     };
-    twgl.setUniforms(this.local_ps_program_info, uniforms);
+    twgl.setUniforms(this.ProgramInfos.local_ps, uniforms);
     this._gl.activeTexture(this._gl.TEXTURE0);
     this._gl.bindTexture(this._gl.TEXTURE_2D, this.cross_texture);
     this._gl.drawArrays(this._gl.POINTS, 0, 1);
@@ -379,9 +443,9 @@ class Renderer implements RendererInterface {
   /* DRAW TRIANGLE_STRIP */
 
   private DrawTriangleStripPixelSpace(points: Vec2[], color: Color) {
-    this._gl.useProgram(this.pixel_program_info.program);
+    this._gl.useProgram(this.ProgramInfos.pixel.program);
 
-    twgl.setBuffersAndAttributes(this._gl, this.pixel_program_info, this.buffer_info);
+    twgl.setBuffersAndAttributes(this._gl, this.ProgramInfos.pixel, this.buffer_info);
     // this._gl.frontFace(this._gl.CCW);
 
     // TODO(donosoc): Use indexes and not hardcoded indexing :(
@@ -402,7 +466,7 @@ class Renderer implements RendererInterface {
       u_resolution: [this._gl.canvas.width, this._gl.canvas.height],
       u_color: color.AsArray(),
     }
-    twgl.setUniforms(this.pixel_program_info, uniforms);
+    twgl.setUniforms(this.ProgramInfos.pixel, uniforms);
     this._gl.drawArrays(this._gl.TRIANGLE_STRIP, 0, v_points.length / 2);
   }
 }

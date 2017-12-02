@@ -6,7 +6,7 @@ import Renderer from "./renderer";
 import {Bounds, Vec2} from "./vectors";
 import AxisManager from "./axis_manager";
 
-import {DrawSpace, RendererInterface} from "./renderer_interface";
+import {DrawSpace, RendererElemId, RendererInterface} from "./renderer_interface";
 import InteractionInterface from "./interaction_interface";
 import {ZoomType, LabelManagerInterface} from "./label_manager_interface";
 import GraphManagerInterface from "./graph_manager_interface";
@@ -35,6 +35,8 @@ class GraphManager implements GraphManagerInterface {
     custom_points?: Array<Vec2>;
     closest_point?: Vec2;
   };
+
+  graph_id: RendererElemId;
 
   /*******************************************************
    * GETTERS / SETTERS
@@ -125,7 +127,7 @@ class GraphManager implements GraphManagerInterface {
 
   AddGraph(points: number[]) : void {
     // We pass the points straight down
-    this._renderer.AddGraph(points);
+    this.graph_id = this._renderer.AddGraph(points);
 
     // We post-process the points
     let min = new Vec2(+g_inf, +g_inf);
@@ -209,7 +211,9 @@ class GraphManager implements GraphManagerInterface {
     this.Renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
     this.Renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
 
-    this.Renderer.DrawGraph(DrawSpace.LOCAL, this._state.graph_info.line_color);
+    if (this.graph_id) {
+      this.Renderer.DrawElement(this.graph_id, DrawSpace.LOCAL, this._state.graph_info.line_color);
+    }
 
     // Draw mouse vertical line
     // this.DrawLinePixelSpace([10, 10], [200, 200]);
