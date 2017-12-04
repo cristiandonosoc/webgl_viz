@@ -203,7 +203,7 @@ class Renderer implements RendererInterface {
     });
 
     img.crossOrigin = "";
-    img.src = "src/resources/cross.png";
+    img.src = "resources/cross.png";
   }
 
   AddGraph(points: number[]) : RendererElemId {
