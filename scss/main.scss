@@ -11,7 +11,7 @@ $controls-height: $controls-real-height - 2 * ($controls-border + $controls-padd
 
 $canvas-start: $stats-real-height + $controls-real-height + 10px;
 $canvas-border-bottom: 50px;
-$canvas-border-top: 0px;
+$canvas-border-top: 25px;
 $canvas-border-left: 100px;
 $canvas-border-right: 50px;
 
@@ -70,6 +70,15 @@ body {
       top: $canvas-border-top;
       position: absolute;
 
+      #main-canvas-labels {
+        // It margins to the top
+        position: absolute;
+        bottom: 100%;
+        width: 100%;
+        height: $canvas-border-top;
+
+        border: 1px solid red;
+      }
       #main-canvas {
         border: 1px solid black;
         width: 100%;
@@ -82,6 +91,8 @@ body {
 
         width: 100%;
         height: $canvas-x-axis-height;
+
+        border: 1px solid green;
       }
       #main-canvas-y-axis {
         position: absolute;
@@ -91,6 +102,8 @@ body {
 
         width: $canvas-y-axis-width;
         height: 100%;
+
+        border: 1px solid blue;
       }
     }
   }
