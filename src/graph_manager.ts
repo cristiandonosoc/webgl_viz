@@ -14,31 +14,31 @@ import AxisManagerInterface from "./axis_manager_interface";
 
 let g_inf = 9007199254740991;
 
+
+class GraphInfo {
+  elem_id: RendererElemId;    // The points registered with the renderer
+  points: Array<Vec2>;       // The points loaded and sorted (by X-axis)
+  color: Color;               // The color on which to render the graph
+  bounds: Bounds;            // The max X and Y bounds of this graph
+}
+
 class GraphManager implements GraphManagerInterface {
-  /* WebGL programs */
-  private _interaction: Interaction;   /* Manages interaction with browser (mostly mouse) */
-  private _label_manager: LabelManager;
-  private _renderer: Renderer;
-  private _axis_manager: AxisManager;
+  private _interaction: Interaction;      // Manages interaction with browser (mostly mouse)
+  private _label_manager: LabelManager;   // Manages interaction with DOM
+  private _renderer: Renderer;            // Manages WebGL rendering
+  private _axis_manager: AxisManager;     // Manages axis and scales
 
   // Internal state of the renderer
   private _state: {
-    graph_info: {
-      bounds: Bounds,
+    colors: {
       background_color: Color,
       drag_color: Color,
-      line_color: Color,
-      line_width: number
     },
-    graph_loaded: boolean;
-
-    custom_points?: Array<Vec2>;
-    closest_point?: Vec2;
+    bounds: Bounds,                       // The containing bounds of all the graphs
+    graphs: Array<GraphInfo>,             // The graph elements added
+    closest_point?: Vec2,                 // The closest point to the mouse (x-wise)
   };
 
-  graph_id: RendererElemId;
-
-  graphs: Array<RendererElemId>;
 
   /*******************************************************
    * CONSTRUCTOR
@@ -52,12 +52,17 @@ class GraphManager implements GraphManagerInterface {
     this._label_manager = new LabelManager(this);
     this._axis_manager = new AxisManager(this, x_axis, y_axis);
 
-    this.CreateDefaults();
-    this._state.graph_loaded = false;
+        let bounds = Bounds.FromPoints(-1, 1, -1, 1);
 
-    this.graphs = new Array<RendererElemId>();
+    this._state = {
+      colors: {
+        background_color: AllColors.Get("black"),
+        drag_color: AllColors.Get("lightblue"),
+      },
+      bounds: Bounds.FromPoints(-1, 1, -1, 1),
+      graphs: new Array<GraphInfo>(),
+    };
   }
-
 
 
   /*******************************************************
@@ -80,9 +85,20 @@ class GraphManager implements GraphManagerInterface {
     return this._axis_manager;
   }
 
-  get Valid() : boolean {
-    return this._state.graph_loaded;
+  get Graphs() : Array<GraphInfo> {
+    return this._state.graphs;
+  }
 
+  get Colors() : any {
+    return this._state.colors;
+  }
+
+  get Valid() : boolean {
+    return this.Graphs.length > 0;
+  }
+
+  get Bounds() :  Bounds {
+    return this._state.bounds;
   }
 
   HandleDapFile = (content: string) => {
@@ -148,14 +164,15 @@ class GraphManager implements GraphManagerInterface {
       // points.push(last - first);
     }
 
-    for (let graph of graphs) {
-      this.graphs.push(this.AddGraph(graph));
+    for (let graph_points of graphs) {
+      this.AddGraph(graph_points);
+      // this.Graphs.push(this.AddGraph(graph));
       // this.AddGraph(graphs[graphs.length - 1]);
     }
     // this.ApplyMaxBounds();
   }
 
-  AddGraph(points: number[]) : RendererElemId {
+  AddGraph(points: number[]) : void {
     // We pass the points straight down
     let graph_id = this._renderer.AddGraph(points);
 
@@ -175,21 +192,25 @@ class GraphManager implements GraphManagerInterface {
       if (p.y > max.y) { max.y = p.y; }
     }
 
-    // We set the bounds
-    this._state.graph_info.bounds = Bounds.FromPoints(min.x, max.x, min.y, max.y);
-
-    // We sort
-    this._state.custom_points = arr.sort((p1: Vec2, p2: Vec2) => {
+    let graph_info = new GraphInfo();
+    graph_info.elem_id = graph_id;
+    graph_info.points = arr.sort((p1: Vec2, p2: Vec2) => {
       return p1.x - p2.x;
     });
+    graph_info.color = AllColors.Get("white");
+    graph_info.bounds = Bounds.FromPoints(min.x, max.x, min.y, max.y);
 
-    this._state.graph_loaded = true;
-    return graph_id;
+    // We add the graph
+    this.Graphs.push(graph_info);
+
+    // We recalculate the graph bounds
+    this.RecalculateBounds();
   }
 
   // Applies the graph max bounds
   ApplyMaxBounds() : void {
-    this.Renderer.Bounds = this._state.graph_info.bounds.Copy();
+    // We don't want a reference here
+    this.Renderer.Bounds = this.Bounds.Copy();
   }
 
   FrameLoop() : void {
@@ -216,7 +237,7 @@ class GraphManager implements GraphManagerInterface {
     }
 
     // Clear Canvas
-    this.Renderer.Clear(this._state.graph_info.background_color);
+    this.Renderer.Clear(this.Colors.background_color);
     this.LabelManager.Draw();
 
     if (this.Interaction.ZoomDragging) {
@@ -224,15 +245,15 @@ class GraphManager implements GraphManagerInterface {
       if (zoom == ZoomType.VERTICAL) {
         let start = this.Interaction.DownMousePos.canvas.x;
         let end = this.Interaction.CurrentMousePos.canvas.x;
-        this.Renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, this._state.graph_info.drag_color);
+        this.Renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, this.Colors.drag_color);
       } else if (zoom == ZoomType.HORIZONTAL) {
         let start = this.Interaction.DownMousePos.canvas.y;
         let end = this.Interaction.CurrentMousePos.canvas.y;
-        this.Renderer.DrawHorizontalRange(start, end, DrawSpace.PIXEL, this._state.graph_info.drag_color);
+        this.Renderer.DrawHorizontalRange(start, end, DrawSpace.PIXEL, this.Colors.drag_color);
       } else if (zoom == ZoomType.BOX) {
         let p1 = this.Interaction.DownMousePos.canvas;
         let p2 = this.Interaction.CurrentMousePos.canvas;
-        this.Renderer.DrawBox(p1, p2, DrawSpace.PIXEL, this._state.graph_info.drag_color);
+        this.Renderer.DrawBox(p1, p2, DrawSpace.PIXEL, this.Colors.drag_color);
       }
     }
 
@@ -242,12 +263,9 @@ class GraphManager implements GraphManagerInterface {
     this.Renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
     this.Renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
 
-    // if (this.graph_id) {
-    //   this.Renderer.DrawElement(this.graph_id, DrawSpace.LOCAL, this._state.graph_info.line_color);
-    // }
     let color = AllColors.Get("white");
-    for (let graph_id of this.graphs) {
-      this.Renderer.DrawElement(graph_id, DrawSpace.LOCAL, color);
+    for (let graph_id of this.Graphs) {
+      this.Renderer.DrawElement(graph_id.elem_id, DrawSpace.LOCAL, color);
     }
 
     // Draw mouse vertical line
@@ -273,28 +291,22 @@ class GraphManager implements GraphManagerInterface {
    * PRIVATE IMPLEMENTATION
    ********************************************************************/
 
-  private CreateDefaults() {
-    let graph_info = {
-      bounds: Bounds.Zero,
-      background_color: AllColors.Get("black"),
-      drag_color: AllColors.Get("lightblue"),
-      line_color: AllColors.Get("white"),
-      line_width: 1
-    };
-
-    this._state = {
-      graph_info: graph_info,
-      graph_loaded: false,
-    };
-  }
-
   private SearchForClosestPoint(pos: Vec2) : Vec2 {
-    var len = this._state.custom_points.length;
-    if (pos.x <= this._state.custom_points[0].x) {
-      return this._state.custom_points[0];
+    // No points to search
+    if (this.Graphs.length < 1) {
+      return;
     }
-    if (pos.x >= this._state.custom_points[len-1].x) {
-      return this._state.custom_points[len-1];
+
+    // For now we search on the last graph
+    let last_graph = this.Graphs[this.Graphs.length - 1];
+    let points = last_graph.points;
+
+    var len = points.length;
+    if (pos.x <= points[0].x) {
+      return points[0];
+    }
+    if (pos.x >= points[len-1].x) {
+      return points[len-1];
     }
 
     // We do binary search
@@ -303,7 +315,7 @@ class GraphManager implements GraphManagerInterface {
 
     while (min_index < max_index) {
       var half = Math.floor((min_index + max_index) / 2);
-      var val = this._state.custom_points[half].x;
+      var val = points[half].x;
 
       if (val > pos.x) {
         if (max_index == half) { break; }
@@ -315,8 +327,8 @@ class GraphManager implements GraphManagerInterface {
     }
 
     // We now have two points
-    var min_point = this._state.custom_points[min_index];
-    var max_point = this._state.custom_points[max_index];
+    var min_point = points[min_index];
+    var max_point = points[max_index];
 
     // We want to return the closest (x-wise)
     var dist1 = Math.abs(min_point.x - pos.x);
@@ -327,6 +339,18 @@ class GraphManager implements GraphManagerInterface {
     } else {
       return max_point;
     }
+  }
+
+  private RecalculateBounds() : void {
+    let bounds = Bounds.Zero;
+    for (let graph of this.Graphs) {
+      // We compare the bounds
+      if (graph.bounds.x.x < bounds.x.x) { bounds.x.x = graph.bounds.x.x; }
+      if (graph.bounds.x.y > bounds.x.y) { bounds.x.y = graph.bounds.x.y; }
+      if (graph.bounds.y.x < bounds.y.x) { bounds.y.x = graph.bounds.y.x; }
+      if (graph.bounds.y.y < bounds.y.y) { bounds.y.y = graph.bounds.y.y; }
+    }
+    this._state.bounds = bounds;
   }
 }
 
