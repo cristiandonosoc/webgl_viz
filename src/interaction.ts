@@ -98,11 +98,16 @@ class Interaction implements InteractionInterface {
     this._manager.Renderer.Canvas.addEventListener("mousemove", this.MouseMove);
     document.addEventListener("keydown", (event) => {
       this._state.keys.ctrl = event.ctrlKey;
-      this.PostChange();
+      // We only change on control for now
+      if (event.key == "Control") {
+        this.PostChange();
+      }
     });
     document.addEventListener("keyup", (event) => {
       this._state.keys.ctrl = event.ctrlKey;
-      this.PostChange();
+      if (event.key == "Control") {
+        this.PostChange();
+      }
     });
 
     // Mouse wheel

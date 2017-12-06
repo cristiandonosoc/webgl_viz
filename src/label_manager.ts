@@ -92,10 +92,10 @@ class LabelManager implements LabelManagerInterface {
     this.box_zoom_radio = <HTMLInputElement> document.getElementById("control-box-zoom");
 
     // Setup changes
-    this.labels.x.bottom.addEventListener("change", this.DimensionChange);
-    this.labels.x.top.addEventListener("change", this.DimensionChange);
-    this.labels.y.bottom.addEventListener("change", this.DimensionChange);
-    this.labels.y.top.addEventListener("change", this.DimensionChange);
+    this.bounds_x.min.addEventListener("change", this.DimensionChange);
+    this.bounds_x.max.addEventListener("change", this.DimensionChange);
+    this.bounds_y.min.addEventListener("change", this.DimensionChange);
+    this.bounds_y.max.addEventListener("change", this.DimensionChange);
 
     this.ctrl_label = document.getElementById("ctrl-key");
   }
@@ -138,10 +138,10 @@ class LabelManager implements LabelManagerInterface {
 
   private DimensionChange = (event: any) => {
     // We calculate the new dimensions
-    let dim_x = new Vec2(Number(this.labels.x.bottom.value),
-                         Number(this.labels.x.top.value));
-    let dim_y = new Vec2(Number(this.labels.y.bottom.value),
-                         Number(this.labels.y.top.value));
+    let dim_x = new Vec2(Number(this.bounds_x.min.value),
+                         Number(this.bounds_x.max.value));
+    let dim_y = new Vec2(Number(this.bounds_y.min.value),
+                         Number(this.bounds_y.max.value));
     this._manager.Renderer.Bounds = Bounds.FromVecs(dim_x, dim_y);
     this._manager.FrameLoop();
   };
@@ -168,10 +168,10 @@ class LabelManager implements LabelManagerInterface {
     this.bounds_y.max.value = String(manager.Renderer.Bounds.y.y);
 
     // Labels
-    this.labels.x.bottom.value = String(manager.Renderer.Bounds.x.first);
-    this.labels.x.top.value = String(manager.Renderer.Bounds.x.last);
-    this.labels.y.bottom.value = String(manager.Renderer.Bounds.y.first);
-    this.labels.y.top.value = String(manager.Renderer.Bounds.y.last);
+    // this.labels.x.bottom.value = String(manager.Renderer.Bounds.x.first);
+    // this.labels.x.top.value = String(manager.Renderer.Bounds.x.last);
+    // this.labels.y.bottom.value = String(manager.Renderer.Bounds.y.first);
+    // this.labels.y.top.value = String(manager.Renderer.Bounds.y.last);
   }
 
   private DrawGraphLabels() : void {
