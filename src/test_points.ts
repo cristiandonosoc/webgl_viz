@@ -257,14 +257,16 @@ function GetPositions() : Array<Array<number>> {
   let pp = new Array<Array<number>>();
   pp.push(positions);
 
-  let points = new Array<number>();
 
-  for (var i = 0; i < positions.length; i += 2) {
-    points.push(positions[i]);
-    points.push(positions[i + 1] + (range * Math.random() - range));
+  for (var i = 0; i < 5; i += 1) {
+    let points = new Array<number>();
+    for (var j = 0; j < positions.length; j += 2) {
+      points.push(pp[i][j]);
+      points.push(pp[i][j + 1] + (range * Math.random() - range));
+    }
+    pp.push(points);
   }
 
-  pp.push(points);
 
   return pp;
 }
