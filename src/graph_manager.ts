@@ -6,21 +6,14 @@ import Renderer from "./renderer";
 import {Bounds, Vec2} from "./vectors";
 import AxisManager from "./axis_manager";
 
-import {DrawSpace, RendererElemId, RendererInterface} from "./renderer_interface";
+import {DrawSpace, RendererInterface} from "./renderer_interface";
 import InteractionInterface from "./interaction_interface";
 import {ZoomType, LabelManagerInterface} from "./label_manager_interface";
-import GraphManagerInterface from "./graph_manager_interface";
+import {GraphInfo, GraphManagerInterface} from "./graph_manager_interface";
 import AxisManagerInterface from "./axis_manager_interface";
 
 let g_inf = 9007199254740991;
 
-
-class GraphInfo {
-  elem_id: RendererElemId;    // The points registered with the renderer
-  points: Array<Vec2>;       // The points loaded and sorted (by X-axis)
-  color: Color;               // The color on which to render the graph
-  bounds: Bounds;            // The max X and Y bounds of this graph
-}
 
 class GraphManager implements GraphManagerInterface {
   private _interaction: Interaction;      // Manages interaction with browser (mostly mouse)
@@ -47,10 +40,11 @@ class GraphManager implements GraphManagerInterface {
 
   constructor(canvas: HTMLCanvasElement,
               x_axis: HTMLCanvasElement,
-              y_axis: HTMLCanvasElement) {
+              y_axis: HTMLCanvasElement,
+              label_canvas: HTMLCanvasElement) {
     this._renderer = new Renderer(canvas);
     this._interaction = new Interaction(this);
-    this._label_manager = new LabelManager(this);
+    this._label_manager = new LabelManager(this, label_canvas);
     this._axis_manager = new AxisManager(this, x_axis, y_axis);
 
     let bounds = Bounds.FromPoints(-1, 1, -1, 1);
@@ -166,12 +160,14 @@ class GraphManager implements GraphManagerInterface {
       graphs[graphs.length - 1].push(parsed[parsed.length - 1] - parsed[0]);
     }
 
-    for (let graph_points of graphs) {
-      this.AddGraph(graph_points);
+    for (var i = 0; i < graphs.length; i += 1) {
+      let name = `Graph ${i}`;
+      let graph_points = graphs[i];
+      this.AddGraph(name, graph_points);
     }
   }
 
-  AddGraph(points: number[]) : void {
+  AddGraph(name: string, points: number[]) : void {
     // We pass the points straight down
     let graph_id = this._renderer.AddGraph(points);
 
@@ -192,6 +188,7 @@ class GraphManager implements GraphManagerInterface {
     }
 
     let graph_info = new GraphInfo();
+    graph_info.name = name;
     graph_info.elem_id = graph_id;
     graph_info.points = arr.sort((p1: Vec2, p2: Vec2) => {
       return p1.x - p2.x;

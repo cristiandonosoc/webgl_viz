@@ -4,7 +4,8 @@ import GraphManager from "./graph_manager"
 var canvas = <HTMLCanvasElement> document.getElementById("main-canvas");
 var x_axis = <HTMLCanvasElement> document.getElementById("main-canvas-x-axis");
 var y_axis = <HTMLCanvasElement> document.getElementById("main-canvas-y-axis");
-var manager = new GraphManager(canvas, x_axis, y_axis);
+var labels = <HTMLCanvasElement> document.getElementById("main-canvas-labels");
+var manager = new GraphManager(canvas, x_axis, y_axis, labels);
 
 // We add some points
 // var size = 500;
@@ -28,8 +29,10 @@ document.getElementById("control-expand").addEventListener("click", (event) => {
 
 document.getElementById("control-load-default-data").addEventListener("click", (event) => {
   let graphs = GetPositions();
-  for (let graph of graphs) {
-    manager.AddGraph(graph);
+  for (var i = 0; i < graphs.length; i += 1) {
+    let name = `Graph ${i}`;
+    let graph = graphs[i];
+    manager.AddGraph(name, graph);
   }
   requestAnimationFrame(ProcessFrame);
 });

@@ -6,8 +6,14 @@ import {Bounds, Vec2} from "./vectors";
 
 import {ZoomType, LabelManagerInterface} from "./label_manager_interface";
 
+// Globally loaded script
+declare let twgl: any;
+
 class LabelManager implements LabelManagerInterface {
   private _manager: GraphManagerInterface;
+
+  label_canvas: CanvasRenderingContext2D;
+
   labels: {
     x: {
       bottom: HTMLInputElement,
@@ -44,8 +50,10 @@ class LabelManager implements LabelManagerInterface {
 
   ctrl_label: HTMLElement;
 
-  constructor(manager: GraphManagerInterface) {
+  constructor(manager: GraphManagerInterface,
+              label_canvas: HTMLCanvasElement) {
     this._manager = manager;
+    this.label_canvas = label_canvas.getContext("2d");
     var graph_container = this._manager.Renderer.Canvas.parentNode.parentNode;
 
     this.labels = {
@@ -108,7 +116,8 @@ class LabelManager implements LabelManagerInterface {
   }
 
   Draw() : void {
-    this.UpdateStats();
+    this.DrawStats();
+    this.DrawGraphLabels();
   }
 
   /*******************************************************
@@ -137,7 +146,7 @@ class LabelManager implements LabelManagerInterface {
     this._manager.FrameLoop();
   };
 
-  private UpdateStats() {
+  private DrawStats() {
     let mouse_pos = this._manager.Interaction.CurrentMousePos;
     var manager = this._manager;
     this.screen_x_box.value = String(mouse_pos.screen.x);
@@ -158,12 +167,38 @@ class LabelManager implements LabelManagerInterface {
     this.bounds_y.min.value = String(manager.Renderer.Bounds.y.x);
     this.bounds_y.max.value = String(manager.Renderer.Bounds.y.y);
 
-
     // Labels
     this.labels.x.bottom.value = String(manager.Renderer.Bounds.x.first);
     this.labels.x.top.value = String(manager.Renderer.Bounds.x.last);
     this.labels.y.bottom.value = String(manager.Renderer.Bounds.y.first);
     this.labels.y.top.value = String(manager.Renderer.Bounds.y.last);
+  }
+
+  private DrawGraphLabels() : void {
+    let ctx = this.label_canvas;
+
+    let sqr_size = 10;
+    let height = (ctx.canvas.height) / 2;
+
+    let label_width = 100;
+
+    twgl.resizeCanvasToDisplaySize(ctx.canvas);
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+    for (var i = 0; i < this._manager.Graphs.length; i += 1) {
+      let graph_info = this._manager.Graphs[i];
+
+      let sqr_x = label_width * i + 10;
+      let sqr_y = height - sqr_size / 2;
+
+      ctx.strokeStyle = "black";
+      ctx.strokeRect(sqr_x, sqr_y, sqr_size, sqr_size);
+      ctx.fillStyle = graph_info.color.RgbString;
+      ctx.fillRect(sqr_x, sqr_y, sqr_size, sqr_size);
+
+      ctx.fillStyle = "black";
+      ctx.fillText(graph_info.name, label_width * i + 12 + sqr_size, height + sqr_size / 3, label_width);
+    }
   }
 }
 

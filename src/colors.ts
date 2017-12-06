@@ -1,31 +1,44 @@
 class Color {
   name: string;
   private _value: number[];
+  private _rgb_string: string;
 
   constructor(values: number[]) {
     this.name = "";
+    this._rgb_string = "";
     this._value = [0, 0, 0, 0];
     this.SetCoord(0, values[0]);
     this.SetCoord(1, values[1]);
     this.SetCoord(2, values[2]);
     this.SetCoord(3, values[3]);
+    this.Update();
   }
 
   // GETTERS
   get R() : number { return this._value[0]; }
-  set R(val: number) { this.SetCoord(0, val); }
+  set R(val: number) { this.SetCoordAndUpdate(0, val); }
   get G() : number { return this._value[1]; }
-  set G(val: number) { this.SetCoord(1, val); }
+  set G(val: number) { this.SetCoordAndUpdate(1, val); }
   get B() : number { return this._value[2]; }
-  set B(val: number) { this.SetCoord(2, val); }
+  set B(val: number) { this.SetCoordAndUpdate(2, val); }
   get A() : number { return this._value[3]; }
-  set A(val: number) { this.SetCoord(3, val); }
+  set A(val: number) { this.SetCoordAndUpdate(3, val); }
 
   AsArray() : number[] {
     return this._value;
   }
 
+  get RgbString() : string {
+    return this._rgb_string;
+  }
+
+
   // Private
+  private SetCoordAndUpdate(index: number, val: number) : void {
+    this.SetCoord(index, val);
+    this.Update();
+  }
+
   private SetCoord(index: number, val: number) : void {
     if (val < 0) {
       val = 0;
@@ -33,6 +46,14 @@ class Color {
       val = 1;
     }
     this._value[index] = val;
+  }
+
+  private Update() : void {
+    let r = String(Math.floor(255 * this.R));
+    let g = String(Math.floor(255 * this.G));
+    let b = String(Math.floor(255 * this.B));
+    let a = String(Math.floor(255 * this.R));
+    this._rgb_string = `rgb(${r},${g},${b})`;
   }
 
   // STATIC
