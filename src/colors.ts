@@ -1,21 +1,52 @@
 class Color {
   name: string;
-  value: number[];
+  private _value: number[];
 
-  constructor(value: number[]) {
+  constructor(values: number[]) {
     this.name = "";
-    this.value = value;
+    this._value = [0, 0, 0, 0];
+    this.SetCoord(0, values[0]);
+    this.SetCoord(1, values[1]);
+    this.SetCoord(2, values[2]);
+    this.SetCoord(3, values[3]);
   }
 
   // GETTERS
-  get r() : number { return this.value[0]; }
-  get g() : number { return this.value[1]; }
-  get b() : number { return this.value[2]; }
-  get a() : number { return this.value[3]; }
+  get R() : number { return this._value[0]; }
+  set R(val: number) { this.SetCoord(0, val); }
+  get G() : number { return this._value[1]; }
+  set G(val: number) { this.SetCoord(1, val); }
+  get B() : number { return this._value[2]; }
+  set B(val: number) { this.SetCoord(2, val); }
+  get A() : number { return this._value[3]; }
+  set A(val: number) { this.SetCoord(3, val); }
 
   AsArray() : number[] {
-    return this.value;
+    return this._value;
   }
+
+  // Private
+  private SetCoord(index: number, val: number) : void {
+    if (val < 0) {
+      val = 0;
+    } else if (val > 1) {
+      val = 1;
+    }
+    this._value[index] = val;
+  }
+
+  // STATIC
+  static Sum(c1: Color, c2: Color) : Color {
+    return new Color([c1.R + c2.R, c1.G + c2.G,
+                      c1.G + c2.G, c1.A + c2.A]);
+  }
+
+  static Sub(c1: Color, c2: Color) : Color {
+    return new Color([c1.R - c2.R, c1.G - c2.G,
+                      c1.G - c2.G, c1.A - c2.A]);
+  }
+
+
 }
 
 class ColorRegistry {

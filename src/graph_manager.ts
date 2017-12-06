@@ -33,6 +33,7 @@ class GraphManager implements GraphManagerInterface {
     colors: {
       background_color: Color,
       drag_color: Color,
+      graph_colors: Array<Color>,
     },
     bounds: Bounds,                       // The containing bounds of all the graphs
     graphs: Array<GraphInfo>,             // The graph elements added
@@ -52,12 +53,20 @@ class GraphManager implements GraphManagerInterface {
     this._label_manager = new LabelManager(this);
     this._axis_manager = new AxisManager(this, x_axis, y_axis);
 
-        let bounds = Bounds.FromPoints(-1, 1, -1, 1);
+    let bounds = Bounds.FromPoints(-1, 1, -1, 1);
+
+    let graph_colors = new Array<Color>();
+    graph_colors.push(AllColors.Get("deeppink"));
+    graph_colors.push(AllColors.Get("cyan"));
+    graph_colors.push(AllColors.Get("midnightblue"));
+    graph_colors.push(AllColors.Get("white"));
+    graph_colors.push(AllColors.Get("orange"));
 
     this._state = {
       colors: {
         background_color: AllColors.Get("black"),
         drag_color: AllColors.Get("lightblue"),
+        graph_colors: graph_colors,
       },
       bounds: Bounds.FromPoints(-1, 1, -1, 1),
       graphs: new Array<GraphInfo>(),
@@ -155,21 +164,11 @@ class GraphManager implements GraphManagerInterface {
       }
       graphs[graphs.length - 1].push(parsed[0]);
       graphs[graphs.length - 1].push(parsed[parsed.length - 1] - parsed[0]);
-
-      // // We look for the first number
-      // let first = parseFloat(tokens[3]);
-      // let last = parseFloat(tokens[tokens.length - 1]);
-
-      // points.push(first);
-      // points.push(last - first);
     }
 
     for (let graph_points of graphs) {
       this.AddGraph(graph_points);
-      // this.Graphs.push(this.AddGraph(graph));
-      // this.AddGraph(graphs[graphs.length - 1]);
     }
-    // this.ApplyMaxBounds();
   }
 
   AddGraph(points: number[]) : void {
@@ -197,7 +196,9 @@ class GraphManager implements GraphManagerInterface {
     graph_info.points = arr.sort((p1: Vec2, p2: Vec2) => {
       return p1.x - p2.x;
     });
-    graph_info.color = AllColors.Get("white");
+
+    let color_index = this.Graphs.length % this.Colors.graph_colors.length;
+    graph_info.color = this.Colors.graph_colors[color_index];
     graph_info.bounds = Bounds.FromPoints(min.x, max.x, min.y, max.y);
 
     // We add the graph
@@ -264,9 +265,8 @@ class GraphManager implements GraphManagerInterface {
     this.Renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
     this.Renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
 
-    let color = AllColors.Get("white");
-    for (let graph_id of this.Graphs) {
-      this.Renderer.DrawElement(graph_id.elem_id, DrawSpace.LOCAL, color);
+    for (let graph_info of this.Graphs) {
+      this.Renderer.DrawElement(graph_info.elem_id, DrawSpace.LOCAL, graph_info.color);
     }
 
     // Draw mouse vertical line

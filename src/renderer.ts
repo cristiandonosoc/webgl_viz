@@ -230,8 +230,7 @@ class Renderer implements RendererInterface {
    *************************************************/
 
   Clear(color: Color) : void {
-    this._gl.clearColor(color.r, color.g,
-                       color.b, color.a);
+    this._gl.clearColor(color.R, color.G, color.B, color.A);
     this._gl.clear(this._gl.COLOR_BUFFER_BIT);
   }
 
