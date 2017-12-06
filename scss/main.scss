@@ -36,11 +36,16 @@ body {
 
   .stat-group {
     display: inline-block;
-    width: $stat-width;
+
+    .label {
+      display: inline-block;
+      text-align: right;
+      width: 70px;
+    }
 
     input {
       display: inline;
-      width: 100%;
+      width: 75px;
     }
   }
 }

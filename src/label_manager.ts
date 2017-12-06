@@ -29,6 +29,14 @@ class LabelManager implements LabelManagerInterface {
   local_y_box: HTMLInputElement;
   scale_x_box: HTMLInputElement;
   scale_y_box: HTMLInputElement;
+  bounds_x: {
+    min: HTMLInputElement,
+    max: HTMLInputElement,
+  };
+  bounds_y: {
+    min: HTMLInputElement,
+    max: HTMLInputElement,
+  };
 
   vertical_zoom_radio: HTMLInputElement;
   horizontal_zoom_radio: HTMLInputElement;
@@ -42,12 +50,12 @@ class LabelManager implements LabelManagerInterface {
 
     this.labels = {
       x: {
-        bottom: document.querySelector(".x-labels .bottom"),
-        top: document.querySelector(".x-labels .top")
+        bottom: <HTMLInputElement> document.querySelector(".x-labels .bottom"),
+        top: <HTMLInputElement> document.querySelector(".x-labels .top")
       },
       y: {
-        bottom: document.querySelector(".y-labels .bottom"),
-        top: document.querySelector(".y-labels .top")
+        bottom: <HTMLInputElement> document.querySelector(".y-labels .bottom"),
+        top: <HTMLInputElement> document.querySelector(".y-labels .top")
       }
     };
 
@@ -61,6 +69,15 @@ class LabelManager implements LabelManagerInterface {
     this.local_y_box = <HTMLInputElement> document.getElementById("local-y");
     this.scale_x_box = <HTMLInputElement> document.getElementById("scale-x");
     this.scale_y_box = <HTMLInputElement> document.getElementById("scale-y");
+    this.bounds_x = {
+      min: <HTMLInputElement> document.getElementById("bounds-x-min"),
+      max: <HTMLInputElement> document.getElementById("bounds-x-max"),
+    };
+    this.bounds_y = {
+      min: <HTMLInputElement> document.getElementById("bounds-y-min"),
+      max: <HTMLInputElement> document.getElementById("bounds-y-max"),
+    };
+
 
     this.vertical_zoom_radio = <HTMLInputElement> document.getElementById("control-vertical-zoom");
     this.horizontal_zoom_radio = <HTMLInputElement> document.getElementById("control-horizontal-zoom");
@@ -134,6 +151,13 @@ class LabelManager implements LabelManagerInterface {
     this.offset_y_box.value = String(manager.Renderer.Offset.y);
     this.scale_x_box.value =  String(manager.Renderer.Scale.x);
     this.scale_y_box.value =  String(manager.Renderer.Scale.y);
+
+    // Bounds
+    this.bounds_x.min.value = String(manager.Renderer.Bounds.x.x);
+    this.bounds_x.max.value = String(manager.Renderer.Bounds.x.y);
+    this.bounds_y.min.value = String(manager.Renderer.Bounds.y.x);
+    this.bounds_y.max.value = String(manager.Renderer.Bounds.y.y);
+
 
     // Labels
     this.labels.x.bottom.value = String(manager.Renderer.Bounds.x.first);

@@ -17,7 +17,7 @@ var manager = new GraphManager(canvas, x_axis, y_axis);
 //   positions[i + 1] = offset + 0.3 * Math.random(); - 0.15;
 // }
 
-import positions from "./test_points";
+import {GetPositions} from "./test_points";
 
 
 // We set the controllers
@@ -27,7 +27,10 @@ document.getElementById("control-expand").addEventListener("click", (event) => {
 });
 
 document.getElementById("control-load-default-data").addEventListener("click", (event) => {
-  manager.AddGraph(positions);
+  let graphs = GetPositions();
+  for (let graph of graphs) {
+    manager.AddGraph(graph);
+  }
   requestAnimationFrame(ProcessFrame);
 });
 

@@ -250,5 +250,26 @@ var positions = [
 1.9839357429718874, 2.2469714084431005,
 2, 3];
 
+
+let range = 0.5;
+
+function GetPositions() : Array<Array<number>> {
+  let pp = new Array<Array<number>>();
+  pp.push(positions);
+
+  let points = new Array<number>();
+
+  for (var i = 0; i < positions.length; i += 2) {
+    points.push(positions[i]);
+    points.push(positions[i + 1] + (range * Math.random() - range));
+  }
+
+  pp.push(points);
+
+  return pp;
+}
+
+
+export {GetPositions};
 export default positions;
 

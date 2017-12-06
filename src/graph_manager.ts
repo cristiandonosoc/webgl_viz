@@ -205,6 +205,7 @@ class GraphManager implements GraphManagerInterface {
 
     // We recalculate the graph bounds
     this.RecalculateBounds();
+    this.ApplyMaxBounds();
   }
 
   // Applies the graph max bounds
@@ -342,15 +343,20 @@ class GraphManager implements GraphManagerInterface {
   }
 
   private RecalculateBounds() : void {
-    let bounds = Bounds.Zero;
+    let bounds = this.GetMinBounds();
     for (let graph of this.Graphs) {
       // We compare the bounds
       if (graph.bounds.x.x < bounds.x.x) { bounds.x.x = graph.bounds.x.x; }
       if (graph.bounds.x.y > bounds.x.y) { bounds.x.y = graph.bounds.x.y; }
       if (graph.bounds.y.x < bounds.y.x) { bounds.y.x = graph.bounds.y.x; }
-      if (graph.bounds.y.y < bounds.y.y) { bounds.y.y = graph.bounds.y.y; }
+      if (graph.bounds.y.y > bounds.y.y) { bounds.y.y = graph.bounds.y.y; }
     }
     this._state.bounds = bounds;
+  }
+
+  // Get a bounds that will be trivially changed in max comparisons
+  private GetMinBounds() : Bounds {
+    return Bounds.FromPoints(+g_inf, -g_inf, +g_inf, -g_inf);
   }
 }
 
