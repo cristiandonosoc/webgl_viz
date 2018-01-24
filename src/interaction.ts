@@ -8,7 +8,7 @@
  **/
 
 import GraphManagerInterface from "./graph_manager";
-import RendererInterface from "./renderer_interface";
+import RendererInterface from "./renderer";
 
 import {RendererCanvasToLocal} from "./transforms";
 import {TempAddEventListener} from "./type_fixes";

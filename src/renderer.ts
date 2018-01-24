@@ -1,9 +1,71 @@
-import {DrawSpace, RendererElemId, RendererInterface} from "./renderer_interface";
+/**
+ * Renderer
+ * --------
+ *
+ * Logic in charge of actually rendering into screen.
+ * The idea is to be as logic-indepented as possible
+ **/
+
 import AllShaders from "./shaders";
 import {Bounds, Vec2} from "./vectors";
 import {Color} from "./colors";
-
 import {RendererCalculateBounds} from "./transforms";
+
+/**************************************************************************
+ * INTERFACES
+ **************************************************************************/
+
+enum DrawSpace {
+  LOCAL,
+  PIXEL
+}
+
+/**
+ * RendererElemId
+ * --------------
+ *
+ * Identifies an element within the renderer.
+ * The renderer will store the data needed to actually render the element
+ * (VBO, etc).
+ * This is used mainly for issuing the DrawCalls
+ **/
+interface RendererElemId {
+  id: number;
+}
+
+interface RendererInterface {
+  /* GETTERS / SETTERS */
+  Offset: Vec2;
+  Scale: Vec2;
+  Bounds: Bounds;
+  readonly Width: number;
+  readonly Height: number;
+  readonly Canvas: HTMLCanvasElement;
+
+  /* MANAGING INTERFACE */
+  AddGraph(points: number[]) : RendererElemId;
+  ResizeCanvas() : void;
+
+  /* RENDERING INTERFACE */
+  Clear(color: Color) : void;
+
+  DrawElement(id: RendererElemId, space: DrawSpace, color: Color) : void;
+
+  DrawLine(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void;
+  DrawHorizontalLine(y: number, space: DrawSpace, color: Color) : void;
+  DrawVerticalLine(x: number, space: DrawSpace, color: Color) : void;
+
+  DrawHorizontalRange(start: number, end: number, space: DrawSpace, color: Color) : void;
+  DrawVerticalRange(start: number, end: number, space: DrawSpace, color: Color) : void;
+
+  DrawBox(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void;
+
+  DrawIcon(point: Vec2, space: DrawSpace, color: Color) : void;
+}
+
+/**************************************************************************
+ * IMPLEMENTATION
+ **************************************************************************/
 
 // Globally loaded script
 declare let twgl: any;
@@ -57,43 +119,8 @@ class RendererElemRegistry {
 
 class Renderer implements RendererInterface {
 
-  private _gl: WebGL2RenderingContext;
-
-  private _state: {
-    bounds: Bounds,
-    offset: Vec2,
-    scale: Vec2,
-  };
-
-  private _program_infos: {
-    // "Normal" programs
-    local: any,
-    pixel: any,
-    // Point Sprite programs
-    local_ps: any,
-    pixel_ps: any,
-  };
-
-  private _elems: RendererElemRegistry;
-
-  buffer_info: any;                 /* Holds up to 2 points */
-
-  cross_texture: any;
-
-  constructor(canvas: HTMLCanvasElement) {
-    this._gl = canvas.getContext("webgl2");
-    this._state = {
-      bounds: Bounds.FromPoints(/* x */ -1, 1, /* y */ -1, 1),
-      offset: new Vec2(0, 0),
-      scale: new Vec2(1, 1),
-    };
-    this._elems = new RendererElemRegistry();
-    this.SetupWebGL();
-    this.SetupTextures();
-  }
-
   /*************************************************
-   * GETTERS/SETTERS
+   * PUBLIC INTERFACE IMPL
    *************************************************/
 
   private get Elements() : RendererElemRegistry {
@@ -153,59 +180,6 @@ class Renderer implements RendererInterface {
     return this._gl.canvas.height;
   }
 
-  private SetupWebGL() {
-    let p = <any>{};
-    p.local = twgl.createProgramInfo(this._gl, [
-      AllShaders.GetVertexShader("direct"),
-      AllShaders.GetFragmentShader("simple")]);
-    p.pixel = twgl.createProgramInfo(this._gl, [
-      AllShaders.GetVertexShader("pixel"),
-      AllShaders.GetFragmentShader("simple")]);
-
-    p.local_ps = twgl.createProgramInfo(this._gl, [
-      AllShaders.GetVertexShader("direct"),
-      AllShaders.GetFragmentShader("point_sprite")]);
-    p.pixel_ps = twgl.createProgramInfo(this._gl, [
-      AllShaders.GetVertexShader("pixel"),
-      AllShaders.GetFragmentShader("point_sprite")]);
-    this._program_infos = p;
-
-    // We create the overlay buffers
-    let arrays = {
-      a_position_coord: Array<number>(100)
-    };
-    // this.pixel_buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays);
-    // this.local_buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays);
-    // this.ps_buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays);
-
-    this.buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays);
-  }
-
-  private SetupTextures() {
-    // We ge the element
-    const img = new Image();
-    img.addEventListener("load", () => {
-      this.cross_texture = this._gl.createTexture();
-      this._gl.bindTexture(this._gl.TEXTURE_2D, this.cross_texture);
-      this._gl.texImage2D(this._gl.TEXTURE_2D,
-        0,                        // LOD
-        this._gl.RGBA,             // Format
-        img.width,
-        img.height,
-        0,                        // Border
-        this._gl.RGBA,             // Input Format
-        this._gl.UNSIGNED_BYTE,
-        img);
-      this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MAG_FILTER, this._gl.NEAREST);
-      this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.NEAREST);
-
-      this._gl.bindTexture(this._gl.TEXTURE_2D, null);
-    });
-
-    img.crossOrigin = "";
-    img.src = "resources/cross.png";
-  }
-
   AddGraph(points: number[]) : RendererElemId {
     // We set the WebGL points
     let arrays = {
@@ -236,9 +210,9 @@ class Renderer implements RendererInterface {
 
   DrawLine(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void {
     if (space == DrawSpace.LOCAL) {
-      this.DrawLineLocalSpace(p1, p2, color);
+      this._DrawLineLocalSpace(p1, p2, color);
     } else if (space == DrawSpace.PIXEL) {
-      this.DrawLinePixelSpace(p1, p2, color);
+      this._DrawLinePixelSpace(p1, p2, color);
     } else {
       throw "Unsupported DrawSpace";
     }
@@ -267,7 +241,7 @@ class Renderer implements RendererInterface {
       points[1] = new Vec2(+g_inf, min);
       points[2] = new Vec2(-g_inf, max);
       points[3] = new Vec2(+g_inf, max);
-      this.DrawTriangleStripPixelSpace(points, color);
+      this._DrawTriangleStripPixelSpace(points, color);
     } else {
       throw "Unsupported DrawSpace";
     }
@@ -282,7 +256,7 @@ class Renderer implements RendererInterface {
       points[1] = new Vec2(min, +g_inf);
       points[2] = new Vec2(max, -g_inf);
       points[3] = new Vec2(max, +g_inf);
-      this.DrawTriangleStripPixelSpace(points, color);
+      this._DrawTriangleStripPixelSpace(points, color);
     } else {
       throw "unsupported DrawSpace";
     }
@@ -299,7 +273,7 @@ class Renderer implements RendererInterface {
       points[1] = new Vec2(min.x, max.y);
       points[2] = new Vec2(max.x, min.y);
       points[3] = new Vec2(max.x, max.y);
-      this.DrawTriangleStripPixelSpace(points, color);
+      this._DrawTriangleStripPixelSpace(points, color);
     } else {
       throw "Unsupported DrawSpace";
     }
@@ -309,9 +283,9 @@ class Renderer implements RendererInterface {
 
   DrawIcon(point: Vec2, space: DrawSpace, color: Color) : void {
     if (space == DrawSpace.LOCAL) {
-      this.DrawIconLocalSpace(point, color);
+      this._DrawIconLocalSpace(point, color);
     } else if (space == DrawSpace.PIXEL) {
-      this.DrawIconPixelSpace(point, color);
+      this._DrawIconPixelSpace(point, color);
     } else {
       throw "Unsupported DrawSpace";
     }
@@ -323,19 +297,92 @@ class Renderer implements RendererInterface {
       throw "Cannot find element";
     }
     if (space == DrawSpace.LOCAL) {
-      this.DrawElementLocalSpace(elem, color);
+      this._DrawElementLocalSpace(elem, color);
     } else {
       throw "Unsupported DrawSpace";
     }
   }
 
-  /******************************************************
+  /**************************************************************************
+   * CONSTRUCTOR
+   **************************************************************************/
+
+  constructor(canvas: HTMLCanvasElement) {
+    this._gl = canvas.getContext("webgl2");
+    this._state = {
+      bounds: Bounds.FromPoints(/* x */ -1, 1, /* y */ -1, 1),
+      offset: new Vec2(0, 0),
+      scale: new Vec2(1, 1),
+    };
+    this._elems = new RendererElemRegistry();
+    this._SetupWebGL();
+    this._SetupTextures();
+  }
+
+  /**************************************************************************
    * PRIVATE FUNCTIONS
+   **************************************************************************/
+
+  private _SetupWebGL() {
+    let p = <any>{};
+    p.local = twgl.createProgramInfo(this._gl, [
+      AllShaders.GetVertexShader("direct"),
+      AllShaders.GetFragmentShader("simple")]);
+    p.pixel = twgl.createProgramInfo(this._gl, [
+      AllShaders.GetVertexShader("pixel"),
+      AllShaders.GetFragmentShader("simple")]);
+
+    p.local_ps = twgl.createProgramInfo(this._gl, [
+      AllShaders.GetVertexShader("direct"),
+      AllShaders.GetFragmentShader("point_sprite")]);
+    p.pixel_ps = twgl.createProgramInfo(this._gl, [
+      AllShaders.GetVertexShader("pixel"),
+      AllShaders.GetFragmentShader("point_sprite")]);
+    this._program_infos = p;
+
+    // We create the overlay buffers
+    let arrays = {
+      a_position_coord: Array<number>(100)
+    };
+    // this.pixel_buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays);
+    // this.local_buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays);
+    // this.ps_buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays);
+
+    this.buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays);
+  }
+
+  private _SetupTextures() {
+    // We ge the element
+    const img = new Image();
+    img.addEventListener("load", () => {
+      this.cross_texture = this._gl.createTexture();
+      this._gl.bindTexture(this._gl.TEXTURE_2D, this.cross_texture);
+      this._gl.texImage2D(this._gl.TEXTURE_2D,
+        0,                        // LOD
+        this._gl.RGBA,             // Format
+        img.width,
+        img.height,
+        0,                        // Border
+        this._gl.RGBA,             // Input Format
+        this._gl.UNSIGNED_BYTE,
+        img);
+      this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MAG_FILTER, this._gl.NEAREST);
+      this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.NEAREST);
+
+      this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+    });
+
+    img.crossOrigin = "";
+    img.src = "resources/cross.png";
+  }
+
+  /******************************************************
+   * PRIVATE RENDERING FUNCTIONS
    ******************************************************/
 
   /* DRAW GRAPH */
 
-  private DrawElementLocalSpace(elem: RendererElem, color: Color) : void {
+  private _DrawElementLocalSpace(elem: RendererElem, color: Color) : void {
     let program_info = this.ProgramInfos.local;
     this._gl.useProgram(program_info.program);
     twgl.setBuffersAndAttributes(this._gl, program_info, elem.buffer_info);
@@ -350,7 +397,7 @@ class Renderer implements RendererInterface {
 
   /* DRAW LINE */
 
-  private DrawLinePixelSpace(p1: Vec2, p2: Vec2, color: Color) : void {
+  private _DrawLinePixelSpace(p1: Vec2, p2: Vec2, color: Color) : void {
     this._gl.useProgram(this.ProgramInfos.pixel.program);
     twgl.setBuffersAndAttributes(this._gl, this.ProgramInfos.pixel, this.buffer_info);
 
@@ -367,7 +414,7 @@ class Renderer implements RendererInterface {
     this._gl.drawArrays(this._gl.LINES, 0, 2);
   }
 
-  private DrawLineLocalSpace(p1: Vec2, p2: Vec2, color: Color) : void {
+  private _DrawLineLocalSpace(p1: Vec2, p2: Vec2, color: Color) : void {
     this._gl.useProgram(this.ProgramInfos.local.program);
     twgl.setBuffersAndAttributes(this._gl,
                                  this.ProgramInfos.local,
@@ -387,7 +434,7 @@ class Renderer implements RendererInterface {
 
   /* DRAW ICON */
 
-  private DrawIconPixelSpace(point: Vec2, color: Color) : void {
+  private _DrawIconPixelSpace(point: Vec2, color: Color) : void {
     if (!this.cross_texture) {
       return;
     }
@@ -412,7 +459,7 @@ class Renderer implements RendererInterface {
     this._gl.drawArrays(this._gl.POINTS, 0, 1);
   }
 
-  private DrawIconLocalSpace(point: Vec2, color: Color) : void {
+  private _DrawIconLocalSpace(point: Vec2, color: Color) : void {
     if (!this.cross_texture) {
       return;
     }
@@ -441,7 +488,7 @@ class Renderer implements RendererInterface {
 
   /* DRAW TRIANGLE_STRIP */
 
-  private DrawTriangleStripPixelSpace(points: Vec2[], color: Color) {
+  private _DrawTriangleStripPixelSpace(points: Vec2[], color: Color) {
     this._gl.useProgram(this.ProgramInfos.pixel.program);
 
     twgl.setBuffersAndAttributes(this._gl, this.ProgramInfos.pixel, this.buffer_info);
@@ -468,7 +515,41 @@ class Renderer implements RendererInterface {
     twgl.setUniforms(this.ProgramInfos.pixel, uniforms);
     this._gl.drawArrays(this._gl.TRIANGLE_STRIP, 0, v_points.length / 2);
   }
+
+  /**************************************************************************
+   * PRIVATE DATA
+   **************************************************************************/
+
+  private _gl: WebGL2RenderingContext;
+
+  private _state: {
+    bounds: Bounds,
+    offset: Vec2,
+    scale: Vec2,
+  };
+
+  private _program_infos: {
+    // "Normal" programs
+    local: any,
+    pixel: any,
+    // Point Sprite programs
+    local_ps: any,
+    pixel_ps: any,
+  };
+
+  private _elems: RendererElemRegistry;
+
+  buffer_info: any;                 /* Holds up to 2 points */
+
+  cross_texture: any;
 }
 
+/**************************************************************************
+ * INTERFACE
+ **************************************************************************/
+
 export {Renderer};
-export default Renderer;
+export {DrawSpace};
+export {RendererInterface};
+export {RendererElemId};
+export default RendererInterface;

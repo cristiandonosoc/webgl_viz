@@ -5,13 +5,12 @@ import {Vec2} from "./vectors";
 
 import AxisManagerInterface from "./axis_manager_interface";
 
-import RendererInterface from "./renderer";
 
 import {GetCanvasChildByClass} from "./helpers"
 
 import {RendererLocalToCanvas} from "./transforms";
 
-import {DrawSpace} from "./renderer_interface";
+import {DrawSpace, RendererInterface} from "./renderer";
 
 // Fix because Math won't have this function
 declare interface Math {

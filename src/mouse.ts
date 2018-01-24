@@ -1,5 +1,5 @@
 import {Vec2} from "./vectors";
-import RendererInterface from "./renderer_interface";
+import RendererInterface from "./renderer";
 import {RendererCanvasToLocal} from "./transforms";
 
 
@@ -43,4 +43,3 @@ class MousePosition {
 export {MouseButtons};
 export {MousePosition};
 export default MousePosition;
-
