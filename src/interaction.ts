@@ -8,7 +8,7 @@ import {Bounds, Vec2} from "./vectors";
 import {MouseButtons, MousePosition} from "./mouse";
 
 import InteractionInterface from "./interaction_interface";
-import {ZoomType} from "./label_manager_interface";
+import {ZoomType} from "./ui_manager_interface";
 
 /**
  * Interaction
@@ -251,7 +251,7 @@ class Interaction implements InteractionInterface {
     let end = this.UpMousePos.local;
 
     let bounds = this._manager.Renderer.Bounds;
-    let zoom_type = this._manager.LabelManager.Zoom;
+    let zoom_type = this._manager.UIManager.Zoom;
     if (zoom_type == ZoomType.VERTICAL) {
       let min = Math.min(start.x, end.x);
       let max = Math.max(start.x, end.x);

@@ -8,9 +8,11 @@ import AxisManager from "./axis_manager";
 
 import {DrawSpace, RendererInterface} from "./renderer_interface";
 import InteractionInterface from "./interaction_interface";
-import {ZoomType, LabelManagerInterface} from "./label_manager_interface";
+import LabelManagerInterface from "./label_manager_interface";
 import {GraphInfo, GraphManagerInterface} from "./graph_manager_interface";
 import AxisManagerInterface from "./axis_manager_interface";
+
+import {ZoomType, UIManager, UIManagerInterface} from "./ui_manager";
 
 import {GetCanvasChildByClass} from "./helpers";
 
@@ -29,6 +31,8 @@ class GraphManager implements GraphManagerInterface {
   private _interaction: Interaction;      // Manages interaction with browser (mostly mouse)
   private _label_manager: LabelManager;   // Manages interaction with DOM
   private _axis_manager: AxisManager;     // Manages axis and scales
+
+  private _ui_manager: UIManager;
 
   // Internal state of the renderer
   private _state: {
@@ -68,6 +72,8 @@ class GraphManager implements GraphManagerInterface {
     this._interaction = new Interaction(this);
     this._label_manager = new LabelManager(this, labels);
     this._axis_manager = new AxisManager(container, this._renderer);
+
+    this._ui_manager = new UIManager(this);
   }
 
   private SetupState() {
@@ -87,8 +93,6 @@ class GraphManager implements GraphManagerInterface {
       bounds: Bounds.FromPoints(-1, 1, -1, 1),
       graphs: new Array<GraphInfo>(),
     };
-
-
   }
 
   /*******************************************************
@@ -105,6 +109,10 @@ class GraphManager implements GraphManagerInterface {
 
   get LabelManager() : LabelManagerInterface {
     return this._label_manager;
+  }
+
+  get UIManager() : UIManagerInterface {
+    return this._ui_manager;
   }
 
   get AxisManager() : AxisManagerInterface {
@@ -248,9 +256,13 @@ class GraphManager implements GraphManagerInterface {
     // Resize
     this.Renderer.ResizeCanvas();
     this.LabelManager.Update();
-    if (this.Valid) {
-      this.AxisManager.Update();
+
+    if (!this.Valid) {
+      return;
     }
+
+    this.AxisManager.Update();
+    this.UIManager.Update();
   }
 
   private Draw() : void {
@@ -263,7 +275,7 @@ class GraphManager implements GraphManagerInterface {
     this.LabelManager.Draw();
 
     if (this.Interaction.ZoomDragging) {
-      let zoom = this._label_manager.Zoom;
+      let zoom = this._ui_manager.Zoom;
       if (zoom == ZoomType.VERTICAL) {
         let start = this.Interaction.DownMousePos.canvas.x;
         let end = this.Interaction.CurrentMousePos.canvas.x;
