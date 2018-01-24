@@ -1,13 +1,12 @@
 
 import {Color, AllColors} from "./colors"
-import Interaction from "./interaction";
+import {Interaction, InteractionInterface} from "./interaction";
 import LabelManager from "./label_manager";
 import Renderer from "./renderer";
 import {Bounds, Vec2} from "./vectors";
 import AxisManager from "./axis_manager";
 
 import {DrawSpace, RendererInterface} from "./renderer_interface";
-import InteractionInterface from "./interaction_interface";
 import LabelManagerInterface from "./label_manager_interface";
 import {GraphInfo, GraphManagerInterface} from "./graph_manager_interface";
 import AxisManagerInterface from "./axis_manager_interface";

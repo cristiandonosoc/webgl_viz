@@ -1,3 +1,12 @@
+/**
+ * Interaction
+ * -----------
+ *
+ * Wraps the interaction with the browser for a particular canvas.
+ * Basically maintains the tracking of how the mouse has changed on top of the
+ * canvas.
+ **/
+
 import GraphManagerInterface from "./graph_manager";
 import RendererInterface from "./renderer_interface";
 
@@ -7,56 +16,36 @@ import {Bounds, Vec2} from "./vectors";
 
 import {MouseButtons, MousePosition} from "./mouse";
 
-import InteractionInterface from "./interaction_interface";
 import {ZoomType} from "./ui_manager_interface";
 
 import KeyboardSingleton from "./keyboard";
 
-/**
- * Interaction
- * -----------
- *
- * Wraps the interaction with the browser
- * Basically maintains the tracking of how the mouse has changed on top of the
- * canvas.
- **/
+/**************************************************************************
+ * INTERFACE
+ **************************************************************************/
+
+interface InteractionInterface {
+
+  ZoomDragging: boolean;
+
+  /* MOUSE */
+  CurrentMousePos: MousePosition;
+  CurrentMouseButton: MouseButtons;
+
+  // Last Position mouse was pressed
+  DownMousePos: MousePosition;
+  // Last Position the mouse was released
+  UpMousePos: MousePosition;
+}
+
+/**************************************************************************
+ * IMPLEMENTATION
+ **************************************************************************/
+
 class Interaction implements InteractionInterface {
-  private _manager: GraphManagerInterface;
-  private _state: {
-    config: {
-      wheel_factor: Vec2,
-    },
-    mouse: {
-      button: MouseButtons,
-      current_pos: MousePosition,
-      down_pos: MousePosition,
-      dragging: boolean,
-      last_pos: MousePosition,
-      up_pos: MousePosition,
-    },
-  };
-
-  constructor(manager: GraphManagerInterface) {
-    this._manager = manager;
-
-    this._state = {
-      config: {
-        wheel_factor: new Vec2(0.001, 0.001),
-      },
-      mouse: {
-        button: MouseButtons.NONE,
-        current_pos: MousePosition.Zero,
-        down_pos: MousePosition.Zero,
-        dragging: false,
-        last_pos: MousePosition.Zero,
-        up_pos: MousePosition.Zero,
-      },
-    }
-    this.SetupInteraction();
-  }
 
   /*****************************************************************
-   * GETTERS / SETTERS
+   * PUBLIC INTERFACE IMPL
    *****************************************************************/
 
   get ZoomDragging() : boolean {
@@ -79,6 +68,31 @@ class Interaction implements InteractionInterface {
   get CurrentMouseButton() : MouseButtons {
     return this._state.mouse.button;
   }
+
+  /*****************************************************************
+   * PUBLIC INTERFACE IMPL
+   *****************************************************************/
+
+  constructor(manager: GraphManagerInterface) {
+    this._manager = manager;
+
+    this._state = {
+      config: {
+        wheel_factor: new Vec2(0.001, 0.001),
+      },
+      mouse: {
+        button: MouseButtons.NONE,
+        current_pos: MousePosition.Zero,
+        down_pos: MousePosition.Zero,
+        dragging: false,
+        last_pos: MousePosition.Zero,
+        up_pos: MousePosition.Zero,
+      },
+    }
+    this.SetupInteraction();
+  }
+
+
 
   /*****************************************************************
    * HANDLERS
@@ -121,16 +135,16 @@ class Interaction implements InteractionInterface {
     this._state.mouse.up_pos = mouse_pos;
 
     if (old_button == MouseButtons.RIGHT) {
-      this.ProcessZoomDrag(event);
+      this._ProcessZoomDrag(event);
     }
 
     this.PostChange();
   }
 
   private MouseMove = (event: any) => {
-    this.ProcessMove(event);
+    this._ProcessMove(event);
     if (this._state.mouse.dragging) {
-      this.ProcessDrag(event);
+      this._ProcessDrag(event);
     }
     this.PostChange();
   }
@@ -181,12 +195,11 @@ class Interaction implements InteractionInterface {
     // TODO(donosoc): Mark the view as dirty when that is implemented
   }
 
-
   /**************************************************************
-   * PRIVATE UTILITY METHODS
+   * PRIVATE METHODS
    **************************************************************/
 
-  private ProcessMove(event: any) {
+  private _ProcessMove(event: any) {
     if (!this._manager.Valid) {
       return;
     }
@@ -197,13 +210,13 @@ class Interaction implements InteractionInterface {
     this._manager.SetClosestPoint(this.CurrentMousePos.local);
   }
 
-  private ProcessDrag(event: any) {
+  private _ProcessDrag(event: any) {
     if (!this._manager.Valid) {
       return;
     }
 
     if (this._state.mouse.button == MouseButtons.LEFT) {
-      this.ProcessMoveDrag(event);
+      this._ProcessMoveDrag(event);
     } else if (this._state.mouse.button == MouseButtons.RIGHT) {
       // Drag is handled at mouse up
     } else {
@@ -211,7 +224,7 @@ class Interaction implements InteractionInterface {
     }
   }
 
-  private ProcessMoveDrag(event: any) {
+  private _ProcessMoveDrag(event: any) {
     let prev_pos = this._state.mouse.last_pos;
     let current_pos = this._state.mouse.current_pos;
     let diff = new Vec2(current_pos.screen.x - prev_pos.screen.x,
@@ -224,7 +237,7 @@ class Interaction implements InteractionInterface {
     this._manager.Renderer.Offset = Vec2.Sum(this._manager.Renderer.Offset, offset);
   }
 
-  private ProcessZoomDrag(event: any) {
+  private _ProcessZoomDrag(event: any) {
     // Get the old bounds
     let start = this.DownMousePos.local;
     let end = this.UpMousePos.local;
@@ -249,6 +262,31 @@ class Interaction implements InteractionInterface {
 
     this._manager.Renderer.Bounds = bounds;
   }
+
+
+  /**************************************************************************
+   * PRIVATE DATA
+   **************************************************************************/
+
+  private _manager: GraphManagerInterface;
+  private _state: {
+    config: {
+      wheel_factor: Vec2,
+    },
+    mouse: {
+      button: MouseButtons,
+      current_pos: MousePosition,
+      down_pos: MousePosition,
+      dragging: boolean,
+      last_pos: MousePosition,
+      up_pos: MousePosition,
+    },
+  };
 }
 
-export default Interaction;
+/**************************************************************************
+ * EXPORTS
+ **************************************************************************/
+
+export {Interaction, InteractionInterface}
+export default InteractionInterface;

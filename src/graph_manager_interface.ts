@@ -1,4 +1,4 @@
-import InteractionInterface from "./interaction_interface";
+import InteractionInterface from "./interaction";
 import {RendererElemId, RendererInterface} from "./renderer_interface";
 import LabelManagerInterface from "./label_manager_interface";
 import UIManagerInterface from "./ui_manager_interface";
