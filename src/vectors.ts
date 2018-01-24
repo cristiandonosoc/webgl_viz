@@ -30,6 +30,16 @@ class Vec2 {
     return new Vec2(this.x, this.y);
   }
 
+  Mul(a: number) {
+    this.x *= a;
+    this.y *= a;
+  }
+
+  Div(a: number) {
+    this.x /= a;
+    this.y /= a;
+  }
+
   /*****************************************************
    * STATIC HELPERS
    *****************************************************/

@@ -158,19 +158,16 @@ class Interaction implements InteractionInterface {
 
   private MouseWheel = (event: any) => {
     event.preventDefault();
-    let pin_point = RendererCanvasToLocal(this._manager.Renderer,
-                                          this._state.mouse.current_pos.canvas);
-
-    // let delta = -event.deltaY;
-    // let scale_change = new Vec2(delta * this._state.config.wheel_factor.x,
-    //                             delta * this._state.config.wheel_factor.y);
+    let mouse_pos = this._state.mouse.current_pos.canvas;
+    let pin_point = RendererCanvasToLocal(this._manager.Renderer, mouse_pos);
 
     // We change the scale
+    let yZoom = this.CtrlPressed;
     let delta = Vec2.Zero;
-    if (!this.CtrlPressed) {
+    if (!yZoom) {
       delta.x = -event.deltaY;
     } else {
-      delta.x = -event.deltaY;
+      // delta.x = -event.deltaY;
       delta.y = -event.deltaY;
     }
 
@@ -186,10 +183,13 @@ class Interaction implements InteractionInterface {
     let old_offset = new Vec2(this._manager.Renderer.Offset.x,
                               -this._manager.Renderer.Offset.y);
     // new_offset = old_offset + pin_point * (old_scale - new_scale)
+    // The Y-axis is inverted
+    let scale_diff = Vec2.Sub(old_scale, new_scale);
+    if (yZoom) {
+      scale_diff.Mul(-1);
+    }
     let new_offset = Vec2.Sum(old_offset,
-                              Vec2.Mul(pin_point,
-                                       Vec2.Sub(old_scale,
-                                                new_scale)));
+                              Vec2.Mul(pin_point, scale_diff));
     this._manager.Renderer.Offset = new Vec2(new_offset.x, -new_offset.y);
 
     this.PostChange();
