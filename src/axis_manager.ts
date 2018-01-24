@@ -3,14 +3,27 @@
 import {AllColors} from "./colors";
 import {Vec2} from "./vectors";
 
-import AxisManagerInterface from "./axis_manager_interface";
-
-
 import {GetCanvasChildByClass} from "./helpers"
 
 import {RendererLocalToCanvas} from "./transforms";
 
 import {DrawSpace, RendererInterface} from "./renderer";
+
+/**************************************************************************
+ * INTERFACE
+ **************************************************************************/
+
+interface AxisManagerInterface {
+
+  /* ACTIONS */
+  Update() : void;
+  Draw() : void;
+}
+
+
+/**************************************************************************
+ * IMPLEMENTATION
+ **************************************************************************/
 
 // Fix because Math won't have this function
 declare interface Math {
@@ -54,20 +67,9 @@ let powers_names = [
 let empty_scale = ScaleEntry.Empty;
 
 class AxisManager implements AxisManagerInterface {
-  private _renderer: RendererInterface;
-
-  private _state: {
-    axes: {
-      contexts: {
-        x: CanvasRenderingContext2D,
-        y: CanvasRenderingContext2D,
-      },
-      scales: Vec2,
-      steps: Vec2,
-      step_dividers: Vec2,
-      step_breaks: Vec2,
-    },
-  };
+  /*****************************************************************
+   * PUBLIC INTERFACE IMPL
+   *****************************************************************/
 
   get Scales() : Vec2 {
     return this._state.axes.scales;
@@ -136,7 +138,7 @@ class AxisManager implements AxisManagerInterface {
     // We obtain the closest power of 10 for this step size
     let ctx = this;
     let scales = Vec2.Map(step_sizes, function(i) {
-      return ctx.ClosestPowerOfTen(i);
+      return ctx._ClosestPowerOfTen(i);
     });
 
     // We set the scale
@@ -149,18 +151,18 @@ class AxisManager implements AxisManagerInterface {
   Draw() : void {
     // We Draw The Axes
     let scales = this.Scales;
-    let centers = this.CalculateAxisCenters(scales);
-    let points = this.CalculateAxisPoints(centers, scales, this.Steps, this.StepBreaks);
+    let centers = this._CalculateAxisCenters(scales);
+    let points = this._CalculateAxisPoints(centers, scales, this.Steps, this.StepBreaks);
 
-    this.DrawAxisX(points.x, scales.x);
-    this.DrawAxisY(points.y, scales.y);
+    this._DrawAxisX(points.x, scales.x);
+    this._DrawAxisY(points.y, scales.y);
   }
 
   /****************************************************
    * PRIVATE DRAW METHODS
    ****************************************************/
 
-  private DrawAxisX(points: Array<number>, scale: number) : void {
+  private _DrawAxisX(points: Array<number>, scale: number) : void {
     // We clear the axis canvas
     let ctx = this.CanvasX;
     twgl.resizeCanvasToDisplaySize(ctx.canvas);
@@ -168,7 +170,7 @@ class AxisManager implements AxisManagerInterface {
     ctx.fillStyle = "black";
 
     // We draw the units
-    let entry = this.ScaleToScaleEntry(scale);
+    let entry = this._ScaleToScaleEntry(scale);
     ctx.fillText(entry.CalculatedString, ctx.canvas.width / 2 - 30, 30);
 
     // for (var i = 0; i < points.length; i += 1) {
@@ -181,7 +183,7 @@ class AxisManager implements AxisManagerInterface {
 
       // We get the "scaled" number
       let scaled = x / entry.scale;
-      let text = this.DecimalTextFormatting(scaled.toFixed(3));
+      let text = this._DecimalTextFormatting(scaled.toFixed(3));
 
       // We draw the axis label
       ctx.fillText(text, canvas_x - 10, 10);
@@ -189,7 +191,7 @@ class AxisManager implements AxisManagerInterface {
 
   }
 
-  private DrawAxisY(points: Array<number>, scale: number) : void {
+  private _DrawAxisY(points: Array<number>, scale: number) : void {
     // We clear the axis canvas
     let ctx = this.CanvasY;
     twgl.resizeCanvasToDisplaySize(ctx.canvas);
@@ -197,7 +199,7 @@ class AxisManager implements AxisManagerInterface {
     ctx.fillStyle = "black";
 
     // We get the units
-    let entry = this.ScaleToScaleEntry(scale);
+    let entry = this._ScaleToScaleEntry(scale);
     let point = new Vec2(20, ctx.canvas.height / 2 + 30);
 
     // The drawing changes some settings
@@ -211,7 +213,7 @@ class AxisManager implements AxisManagerInterface {
 
       // We get the "scaled" number
       let scaled = y / entry.scale;
-      let text = this.DecimalTextFormatting(scaled.toFixed(3));
+      let text = this._DecimalTextFormatting(scaled.toFixed(3));
 
       // We draw the axis label
       ctx.textAlign = "right";
@@ -228,10 +230,10 @@ class AxisManager implements AxisManagerInterface {
   }
 
   /****************************************************
-   * HELPERS METHODS
+   * PRIVATE METHODS
    ****************************************************/
 
-  private CalculateAxisCenters(scales: Vec2) : Vec2 {
+  private _CalculateAxisCenters(scales: Vec2) : Vec2 {
     let final_offset = Vec2.Div(this._renderer.Offset, this._renderer.Scale);
 
     // We create a mapping function
@@ -249,7 +251,7 @@ class AxisManager implements AxisManagerInterface {
     return centers;
   }
 
-  private CalculateAxisPoints(centers: Vec2, scales: Vec2, steps: Vec2, step_breaks: Vec2) :
+  private _CalculateAxisPoints(centers: Vec2, scales: Vec2, steps: Vec2, step_breaks: Vec2) :
     { x: Array<number>, y: Array<number> } {
 
     // Create a function that generates the numbers
@@ -280,11 +282,11 @@ class AxisManager implements AxisManagerInterface {
     };
   }
 
-  private ClosestPowerOfTen(x: number) : number {
+  private _ClosestPowerOfTen(x: number) : number {
     return 10 ** Math.floor(Math.log10(2 * x));
   }
 
-  private ScaleToScaleEntry(scale: number) : ScaleEntry {
+  private _ScaleToScaleEntry(scale: number) : ScaleEntry {
 
     for (let entry of powers_names) {
       if (scale >= entry.scale) {
@@ -294,7 +296,7 @@ class AxisManager implements AxisManagerInterface {
     return empty_scale;
   }
 
-  private DecimalTextFormatting(text: string) : string {
+  private _DecimalTextFormatting(text: string) : string {
     let index = text.indexOf(".000");
     if (index >= 0) {
       return text.substr(0, index);
@@ -302,6 +304,29 @@ class AxisManager implements AxisManagerInterface {
     return text;
   }
 
+  /**************************************************************************
+   * PRIVATE DATA
+   **************************************************************************/
+
+  private _renderer: RendererInterface;
+
+  private _state: {
+    axes: {
+      contexts: {
+        x: CanvasRenderingContext2D,
+        y: CanvasRenderingContext2D,
+      },
+      scales: Vec2,
+      steps: Vec2,
+      step_dividers: Vec2,
+      step_breaks: Vec2,
+    },
+  };
+
+
+
 }
 
-export default AxisManager;
+export {AxisManager};
+export {AxisManagerInterface};
+export default AxisManagerInterface;

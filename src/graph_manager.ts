@@ -3,12 +3,11 @@ import {Color, AllColors} from "./colors"
 import {Interaction, InteractionInterface} from "./interaction";
 import LabelManager from "./label_manager";
 import {Bounds, Vec2} from "./vectors";
-import AxisManager from "./axis_manager";
 
 import {DrawSpace, Renderer, RendererInterface} from "./renderer";
 import LabelManagerInterface from "./label_manager_interface";
 import {GraphInfo, GraphManagerInterface} from "./graph_manager_interface";
-import AxisManagerInterface from "./axis_manager_interface";
+import {AxisManager, AxisManagerInterface} from "./axis_manager";
 
 import {ZoomType, UIManager, UIManagerInterface} from "./ui_manager";
 
