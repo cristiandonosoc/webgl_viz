@@ -7,7 +7,8 @@ import {DrawSpace, RendererElemId, Renderer, RendererInterface} from "./renderer
 import {LabelManager, LabelManagerInterface} from "./label_manager";
 import {AxisManager, AxisManagerInterface} from "./axis_manager";
 
-import {ZoomType, UIManager, UIManagerInterface} from "./ui_manager";
+// import {ZoomType, UIManager, UIManagerInterface} from "./ui_manager";
+import {ZoomType, UIManagerSingleton} from "./ui_manager";
 
 import {GetCanvasChildByClass} from "./helpers";
 
@@ -31,10 +32,10 @@ class GraphInfo {
 
 interface GraphManagerInterface {
   /* COMPONENTS */
-  Interaction: InteractionInterface;
-  Renderer: RendererInterface;
-  LabelManager: LabelManagerInterface;
-  UIManager: UIManagerInterface;
+  // Interaction: InteractionInterface;
+  // Renderer: RendererInterface;
+  // LabelManager: LabelManagerInterface;
+  // UIManager: UIManagerInterface;
 
   /* STATE */
   Valid: boolean;
@@ -72,25 +73,33 @@ class GraphManager implements GraphManagerInterface {
 
   constructor(graph_canvas_container: HTMLElement,
               timing_canvas_container: HTMLElement) {
-    this.SetupElements(graph_canvas_container);
     this.SetupState();
+
+    let ctx = this;
+    function graphCallback(i: InteractionInterface) {
+      ctx._GraphCallback(i);
+    }
+
+    this._canvases = new Array<CanvasHolder>();
+    this._canvases.push(this._CreateCanvasHolder(graph_canvas_container, graphCallback));
   }
 
-  private SetupElements(container: HTMLElement) {
-    let canvas = GetCanvasChildByClass(container, "central-canvas");
-    let labels = GetCanvasChildByClass(container, "canvas-labels");
-    let x_axis = GetCanvasChildByClass(container, "x-axis");
-    let y_axis = GetCanvasChildByClass(container, "y-axis");
+  private _CreateCanvasHolder(container: HTMLElement, callback: (i: InteractionInterface) => void) : CanvasHolder {
+    let holder = new CanvasHolder();
+    holder.renderer = new Renderer(container);
+    holder.interaction = new Interaction(holder.renderer, callback);
+    holder.label_manager = new LabelManager(this, holder.renderer, container);
+    holder.axis_manager = new AxisManager(container, holder.renderer);
 
-    this._renderer = new Renderer(canvas);
-    this._interaction = new Interaction(this);
-    this._label_manager = new LabelManager(this, this._renderer, labels);
-    this._axis_manager = new AxisManager(container, this._renderer);
+    return holder;
+  }
 
-    this._ui_manager = new UIManager(this._renderer, this._interaction);
+  private _GraphCallback(i: InteractionInterface) {
+    this.SetClosestPoint(i.CurrentMousePos.local);
   }
 
   private SetupState() {
+
     let graph_colors = new Array<Color>();
     graph_colors.push(AllColors.Get("deeppink"));
     graph_colors.push(AllColors.Get("cyan"));
@@ -113,25 +122,21 @@ class GraphManager implements GraphManagerInterface {
    * GETTERS / SETTERS
    *******************************************************/
 
-  get Renderer() : RendererInterface {
-    return this._renderer;
-  }
+  // get Renderer() : RendererInterface {
+  //   return this._renderer;
+  // }
 
-  get Interaction() : InteractionInterface {
-    return this._interaction;
-  }
+  // get Interaction() : InteractionInterface {
+  //   return this._interaction;
+  // }
 
-  get LabelManager() : LabelManagerInterface {
-    return this._label_manager;
-  }
+  // get LabelManager() : LabelManagerInterface {
+  //   return this._label_manager;
+  // }
 
-  get UIManager() : UIManagerInterface {
-    return this._ui_manager;
-  }
-
-  get AxisManager() : AxisManagerInterface {
-    return this._axis_manager;
-  }
+  // get AxisManager() : AxisManagerInterface {
+  //   return this._axis_manager;
+  // }
 
   get Graphs() : Array<GraphInfo> {
     return this._state.graphs;
@@ -214,7 +219,12 @@ class GraphManager implements GraphManagerInterface {
 
   AddGraph(name: string, points: number[]) : void {
     // We pass the points straight down
-    let graph_id = this._renderer.AddGraph(points);
+    let graph_id: RendererElemId;
+    for (let canvas_holder of this._canvases) {
+      // TODO(donosoc): This is a bug waiting to happen
+      let graph_id = canvas_holder.renderer.AddGraph(points);
+      canvas_holder.interaction.Start();
+    }
 
     // We post-process the points
     let min = new Vec2(+g_inf, +g_inf);
@@ -253,8 +263,10 @@ class GraphManager implements GraphManagerInterface {
 
   // Applies the graph max bounds
   ApplyMaxBounds() : void {
-    // We don't want a reference here
-    this.Renderer.Bounds = this.Bounds.Copy();
+    for (let canvas_holder of this._canvases) {
+      // We want a copy, not a reference
+      canvas_holder.renderer.Bounds = this.Bounds.Copy();
+    }
   }
 
   FrameLoop() : void {
@@ -270,16 +282,18 @@ class GraphManager implements GraphManagerInterface {
    *******************************************/
 
   private Update() : void {
-    // Resize
-    this.Renderer.ResizeCanvas();
-    this.LabelManager.Update();
-    this.UIManager.Update();
+    UIManagerSingleton.Update();
 
-    if (!this.Valid) {
-      return;
+    for (let canvas_holder of this._canvases) {
+      canvas_holder.renderer.ResizeCanvas();
+      canvas_holder.label_manager.Update();
+
+      if (!this.Valid) {
+        continue;
+      }
+
+      canvas_holder.axis_manager.Update();
     }
-
-    this.AxisManager.Update();
   }
 
   private Draw() : void {
@@ -287,47 +301,59 @@ class GraphManager implements GraphManagerInterface {
       return;
     }
 
-    // Clear Canvas
-    this.Renderer.Clear(this.Colors.background_color);
-    this.LabelManager.Draw();
+    for (let canvas_holder of this._canvases) {
+      this.DrawCanvas(canvas_holder);
+    }
+  }
 
-    if (this.Interaction.ZoomDragging) {
-      let zoom = this._ui_manager.Zoom;
+
+  private DrawCanvas(canvas_holder: CanvasHolder) {
+
+    let renderer = canvas_holder.renderer;
+    let interaction = canvas_holder.interaction;
+    let label_manager = canvas_holder.label_manager;
+    let axis_manager = canvas_holder.axis_manager;
+
+    // Clear Canvas
+    renderer.Clear(this.Colors.background_color);
+    label_manager.Draw();
+
+    if (interaction.ZoomDragging) {
+      let zoom = UIManagerSingleton.Zoom;
       if (zoom == ZoomType.VERTICAL) {
-        let start = this.Interaction.DownMousePos.canvas.x;
-        let end = this.Interaction.CurrentMousePos.canvas.x;
-        this.Renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, this.Colors.drag_color);
+        let start = interaction.DownMousePos.canvas.x;
+        let end = interaction.CurrentMousePos.canvas.x;
+        renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, this.Colors.drag_color);
       } else if (zoom == ZoomType.HORIZONTAL) {
-        let start = this.Interaction.DownMousePos.canvas.y;
-        let end = this.Interaction.CurrentMousePos.canvas.y;
-        this.Renderer.DrawHorizontalRange(start, end, DrawSpace.PIXEL, this.Colors.drag_color);
+        let start = interaction.DownMousePos.canvas.y;
+        let end = interaction.CurrentMousePos.canvas.y;
+        renderer.DrawHorizontalRange(start, end, DrawSpace.PIXEL, this.Colors.drag_color);
       } else if (zoom == ZoomType.BOX) {
-        let p1 = this.Interaction.DownMousePos.canvas;
-        let p2 = this.Interaction.CurrentMousePos.canvas;
-        this.Renderer.DrawBox(p1, p2, DrawSpace.PIXEL, this.Colors.drag_color);
+        let p1 = interaction.DownMousePos.canvas;
+        let p2 = interaction.CurrentMousePos.canvas;
+        renderer.DrawBox(p1, p2, DrawSpace.PIXEL, this.Colors.drag_color);
       }
     }
 
     // Draw x/y Axis
-    this._axis_manager.Draw();
+    axis_manager.Draw();
 
-    this.Renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
-    this.Renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
+    renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
+    renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
 
     for (let graph_info of this.Graphs) {
-      this.Renderer.DrawElement(graph_info.elem_id, DrawSpace.LOCAL, graph_info.color);
+      renderer.DrawElement(graph_info.elem_id, DrawSpace.LOCAL, graph_info.color);
     }
 
     // Draw mouse vertical line
     // this.DrawLinePixelSpace([10, 10], [200, 200]);
-    let canvas_pos = this.Interaction.CurrentMousePos.canvas;
-    this.Renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
+    let canvas_pos = interaction.CurrentMousePos.canvas;
+    renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
                                    AllColors.Get("orange"));
 
     if (this._state.closest_point) {
-      this.Renderer.DrawIcon(this._state.closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));
+      renderer.DrawIcon(this._state.closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));
     }
-
   }
 
   SetClosestPoint(pos: Vec2) : void {
@@ -413,12 +439,12 @@ class GraphManager implements GraphManagerInterface {
    * PRIVATE DATA
    *******************************************************/
 
-  private _renderer: Renderer;            // Manages WebGL rendering
-  private _interaction: Interaction;      // Manages interaction with browser (mostly mouse)
-  private _label_manager: LabelManager;   // Manages interaction with DOM
-  private _axis_manager: AxisManager;     // Manages axis and scales
+  private _canvases: Array<CanvasHolder>;
 
-  private _ui_manager: UIManager;
+  // private _renderer: Renderer;            // Manages WebGL rendering
+  // private _interaction: Interaction;      // Manages interaction with browser (mostly mouse)
+  // private _label_manager: LabelManager;   // Manages interaction with DOM
+  // private _axis_manager: AxisManager;     // Manages axis and scales
 
   // Internal state of the renderer
   private _state: {

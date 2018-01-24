@@ -10,6 +10,7 @@ import AllShaders from "./shaders";
 import {Bounds, Vec2} from "./vectors";
 import {Color} from "./colors";
 import {RendererCalculateBounds} from "./transforms";
+import {GetCanvasChildByClass} from "./helpers";
 
 /**************************************************************************
  * INTERFACES
@@ -118,6 +119,24 @@ class RendererElemRegistry {
 }
 
 class Renderer implements RendererInterface {
+  /**************************************************************************
+   * CONSTRUCTOR
+   **************************************************************************/
+
+  constructor(container: HTMLElement) {
+    let canvas = GetCanvasChildByClass(container, "central-canvas");
+    this._gl = canvas.getContext("webgl2");
+    this._state = {
+      bounds: Bounds.FromPoints(/* x */ -1, 1, /* y */ -1, 1),
+      offset: new Vec2(0, 0),
+      scale: new Vec2(1, 1),
+    };
+    this._elems = new RendererElemRegistry();
+    this._SetupWebGL();
+    this._SetupTextures();
+  }
+
+
 
   /*************************************************
    * PUBLIC INTERFACE IMPL
@@ -301,22 +320,6 @@ class Renderer implements RendererInterface {
     } else {
       throw "Unsupported DrawSpace";
     }
-  }
-
-  /**************************************************************************
-   * CONSTRUCTOR
-   **************************************************************************/
-
-  constructor(canvas: HTMLCanvasElement) {
-    this._gl = canvas.getContext("webgl2");
-    this._state = {
-      bounds: Bounds.FromPoints(/* x */ -1, 1, /* y */ -1, 1),
-      offset: new Vec2(0, 0),
-      scale: new Vec2(1, 1),
-    };
-    this._elems = new RendererElemRegistry();
-    this._SetupWebGL();
-    this._SetupTextures();
   }
 
   /**************************************************************************

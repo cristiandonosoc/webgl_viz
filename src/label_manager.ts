@@ -4,6 +4,8 @@ import RendererInterface from "./renderer";
 import {RendererCanvasToLocal} from "./transforms";
 import {Bounds, Vec2} from "./vectors";
 
+import {GetCanvasChildByClass} from "./helpers";
+
 /**************************************************************************
  * INTERFACE
  **************************************************************************/
@@ -42,9 +44,12 @@ class LabelManager implements LabelManagerInterface {
 
   constructor(graph_manager: GraphManagerInterface,
               renderer: RendererInterface,
-              label_canvas: HTMLCanvasElement) {
+              container: HTMLElement) {
+
     this._graph_manager = graph_manager;
     this._renderer = renderer;
+    let label_canvas = GetCanvasChildByClass(container, "canvas-labels");
+
     this._label_canvas = label_canvas.getContext("2d");
 
     this._labels = {

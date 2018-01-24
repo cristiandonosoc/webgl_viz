@@ -61,9 +61,9 @@ class UIManager implements UIManagerInterface {
    * CONSTRUCTOR
    *******************************************************/
 
-  constructor(renderer: RendererInterface, interaction: InteractionInterface) {
-    this._renderer = renderer;
-    this._interaction = interaction;
+  constructor() {
+    // this._renderer = renderer;
+    // this._interaction = interaction;
 
     this._offset_x_box = <HTMLInputElement> document.getElementById("offset-x");
     this._offset_y_box = <HTMLInputElement> document.getElementById("offset-y");
@@ -130,29 +130,29 @@ class UIManager implements UIManagerInterface {
                          Number(this._bounds_x.max.value));
     let dim_y = new Vec2(Number(this._bounds_y.min.value),
                          Number(this._bounds_y.max.value));
-    this._renderer.Bounds = Bounds.FromVecs(dim_x, dim_y);
+    // this._renderer.Bounds = Bounds.FromVecs(dim_x, dim_y);
     // TODO(donosoc): Mark the view as dirty when that is implemented
   };
 
   private DrawStats() {
-    let mouse_pos = this._interaction.CurrentMousePos;
-    this._screen_x_box.value = String(mouse_pos.screen.x);
-    this._screen_y_box.value = String(mouse_pos.screen.y);
-    this._canvas_x_box.value = String(mouse_pos.canvas.x);
-    this._canvas_y_box.value = String(mouse_pos.canvas.y);
-    this._local_x_box.value = String(mouse_pos.local.x);
-    this._local_y_box.value = String(mouse_pos.local.y);
+    // let mouse_pos = this._interaction.CurrentMousePos;
+    // this._screen_x_box.value = String(mouse_pos.screen.x);
+    // this._screen_y_box.value = String(mouse_pos.screen.y);
+    // this._canvas_x_box.value = String(mouse_pos.canvas.x);
+    // this._canvas_y_box.value = String(mouse_pos.canvas.y);
+    // this._local_x_box.value = String(mouse_pos.local.x);
+    // this._local_y_box.value = String(mouse_pos.local.y);
 
-    this._offset_x_box.value = String(this._renderer.Offset.x);
-    this._offset_y_box.value = String(this._renderer.Offset.y);
-    this._scale_x_box.value =  String(this._renderer.Scale.x);
-    this._scale_y_box.value =  String(this._renderer.Scale.y);
+    // this._offset_x_box.value = String(this._renderer.Offset.x);
+    // this._offset_y_box.value = String(this._renderer.Offset.y);
+    // this._scale_x_box.value =  String(this._renderer.Scale.x);
+    // this._scale_y_box.value =  String(this._renderer.Scale.y);
 
-    // Bounds
-    this._bounds_x.min.value = String(this._renderer.Bounds.x.x);
-    this._bounds_x.max.value = String(this._renderer.Bounds.x.y);
-    this._bounds_y.min.value = String(this._renderer.Bounds.y.x);
-    this._bounds_y.max.value = String(this._renderer.Bounds.y.y);
+    // // Bounds
+    // this._bounds_x.min.value = String(this._renderer.Bounds.x.x);
+    // this._bounds_x.max.value = String(this._renderer.Bounds.x.y);
+    // this._bounds_y.min.value = String(this._renderer.Bounds.y.x);
+    // this._bounds_y.max.value = String(this._renderer.Bounds.y.y);
 
     // Labels
     // this.labels.x.bottom.value = String(manager.Renderer.Bounds.x.first);
@@ -165,8 +165,8 @@ class UIManager implements UIManagerInterface {
    * PRIVATE DATA
    *******************************************************/
 
-  private _interaction: InteractionInterface;
-  private _renderer: RendererInterface;
+  // private _interaction: InteractionInterface;
+  // private _renderer: RendererInterface;
 
   private _offset_x_box: HTMLInputElement;
   private _offset_y_box: HTMLInputElement;
@@ -196,7 +196,18 @@ class UIManager implements UIManagerInterface {
   private _shift_label: HTMLElement;
 }
 
+/*************************************************
+ * SINGLETON
+ *************************************************/
+
+let UIManagerSingleton = new UIManager();
+
+/*************************************************
+ * EXPORTS
+ *************************************************/
+
 export {ZoomType}
 export {UIManager}
 export {UIManagerInterface}
-export default UIManagerInterface;
+export {UIManagerSingleton}
+export default UIManagerSingleton;

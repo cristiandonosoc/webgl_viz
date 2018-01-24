@@ -7,7 +7,6 @@
  * canvas.
  **/
 
-import GraphManagerInterface from "./graph_manager";
 import RendererInterface from "./renderer";
 
 import {RendererCanvasToLocal} from "./transforms";
@@ -16,7 +15,7 @@ import {Bounds, Vec2} from "./vectors";
 
 import {MouseButtons, MousePosition} from "./mouse";
 
-import {ZoomType} from "./ui_manager";
+import {ZoomType, UIManagerSingleton} from "./ui_manager";
 
 import KeyboardSingleton from "./keyboard";
 
@@ -25,6 +24,7 @@ import KeyboardSingleton from "./keyboard";
  **************************************************************************/
 
 interface InteractionInterface {
+  Start() : void;
 
   ZoomDragging: boolean;
 
@@ -45,8 +45,39 @@ interface InteractionInterface {
 class Interaction implements InteractionInterface {
 
   /*****************************************************************
+   * CONSTRUCTOR
+   *****************************************************************/
+
+  // TODO(donosoc): Decouple zoom from UIManager (now has local data)
+  constructor(renderer: RendererInterface,
+              callback: (i: InteractionInterface) => void) {
+    this._renderer = renderer;
+    this._callback = callback;
+    this._started = false;
+
+    this._state = {
+      config: {
+        wheel_factor: new Vec2(0.001, 0.001),
+      },
+      mouse: {
+        button: MouseButtons.NONE,
+        current_pos: MousePosition.Zero,
+        down_pos: MousePosition.Zero,
+        dragging: false,
+        last_pos: MousePosition.Zero,
+        up_pos: MousePosition.Zero,
+      },
+    }
+    this._SetupInteraction();
+  }
+
+  /*****************************************************************
    * PUBLIC INTERFACE IMPL
    *****************************************************************/
+
+  Start() : void {
+    this._started = true;
+  }
 
   get ZoomDragging() : boolean {
     return this._state.mouse.dragging &&
@@ -70,44 +101,19 @@ class Interaction implements InteractionInterface {
   }
 
   /*****************************************************************
-   * PUBLIC INTERFACE IMPL
-   *****************************************************************/
-
-  constructor(manager: GraphManagerInterface) {
-    this._manager = manager;
-
-    this._state = {
-      config: {
-        wheel_factor: new Vec2(0.001, 0.001),
-      },
-      mouse: {
-        button: MouseButtons.NONE,
-        current_pos: MousePosition.Zero,
-        down_pos: MousePosition.Zero,
-        dragging: false,
-        last_pos: MousePosition.Zero,
-        up_pos: MousePosition.Zero,
-      },
-    }
-    this.SetupInteraction();
-  }
-
-
-
-  /*****************************************************************
    * HANDLERS
    *****************************************************************/
 
-  private SetupInteraction() {
-    this._manager.Renderer.Canvas.addEventListener("mousedown", this.MouseDown);
+  private _SetupInteraction() {
+    this._renderer.Canvas.addEventListener("mousedown", this.MouseDown);
     document.addEventListener("mouseup", this.MouseUp);
-    this._manager.Renderer.Canvas.addEventListener("mousemove", this.MouseMove);
+    this._renderer.Canvas.addEventListener("mousemove", this.MouseMove);
 
     // Mouse wheel
     console.info("This app wants to preventDefault scroll Behavior on Canvas.\n" +
                  "This is intended behaviour, but I don't know how to " +
                  "remove the Warning");
-    (this._manager.Renderer.Canvas.addEventListener as TempAddEventListener)(
+    (this._renderer.Canvas.addEventListener as TempAddEventListener)(
       "mousewheel",
       this.MouseWheel, {
       passive: false /* chrome warns that this helps with latency */
@@ -116,7 +122,7 @@ class Interaction implements InteractionInterface {
 
   private MouseDown = (event: any) => {
     // Mouse Down Specific
-    let mouse_pos = MousePosition.FromRendererEvent(this._manager.Renderer, event);
+    let mouse_pos = MousePosition.FromRendererEvent(this._renderer, event);
     this._state.mouse.down_pos = mouse_pos;
     this._state.mouse.dragging = true;
     this._state.mouse.button = event.button;
@@ -129,7 +135,7 @@ class Interaction implements InteractionInterface {
       return;
     }
     let old_button = this._state.mouse.button;
-    let mouse_pos = MousePosition.FromRendererEvent(this._manager.Renderer, event);
+    let mouse_pos = MousePosition.FromRendererEvent(this._renderer, event);
     this._state.mouse.dragging = false;
     this._state.mouse.button = MouseButtons.NONE;
     this._state.mouse.up_pos = mouse_pos;
@@ -152,7 +158,7 @@ class Interaction implements InteractionInterface {
   private MouseWheel = (event: any) => {
     event.preventDefault();
     let mouse_pos = this._state.mouse.current_pos.canvas;
-    let pin_point = RendererCanvasToLocal(this._manager.Renderer, mouse_pos);
+    let pin_point = RendererCanvasToLocal(this._renderer, mouse_pos);
 
     // We change the scale
     let yZoom = KeyboardSingleton.CtrlPressed;
@@ -165,16 +171,16 @@ class Interaction implements InteractionInterface {
     }
 
     let scale_change = Vec2.Mul(this._state.config.wheel_factor, delta);
-    let old_scale = this._manager.Renderer.Scale;
+    let old_scale = this._renderer.Scale;
     let new_scale = Vec2.Sum(old_scale,
                              Vec2.Mul(old_scale, scale_change));
     if (new_scale.x < 0) { new_scale.x = 0; }
     if (new_scale.y < 0) { new_scale.y = 0; }
-    this._manager.Renderer.Scale = new_scale;
+    this._renderer.Scale = new_scale;
 
     // We change the offset
-    let old_offset = new Vec2(this._manager.Renderer.Offset.x,
-                              -this._manager.Renderer.Offset.y);
+    let old_offset = new Vec2(this._renderer.Offset.x,
+                              -this._renderer.Offset.y);
     // new_offset = old_offset + pin_point * (old_scale - new_scale)
     // The Y-axis is inverted
     let scale_diff = Vec2.Sub(old_scale, new_scale);
@@ -183,7 +189,7 @@ class Interaction implements InteractionInterface {
     }
     let new_offset = Vec2.Sum(old_offset,
                               Vec2.Mul(pin_point, scale_diff));
-    this._manager.Renderer.Offset = new Vec2(new_offset.x, -new_offset.y);
+    this._renderer.Offset = new Vec2(new_offset.x, -new_offset.y);
 
     this.PostChange();
     // Prevent default browser behaviour
@@ -200,18 +206,19 @@ class Interaction implements InteractionInterface {
    **************************************************************/
 
   private _ProcessMove(event: any) {
-    if (!this._manager.Valid) {
+    if (!this._started) {
       return;
     }
 
     this._state.mouse.last_pos = this._state.mouse.current_pos;
-    this._state.mouse.current_pos = MousePosition.FromRendererEvent(this._manager.Renderer, event);
+    this._state.mouse.current_pos = MousePosition.FromRendererEvent(this._renderer, event);
 
-    this._manager.SetClosestPoint(this.CurrentMousePos.local);
+    // Call the given callback
+    this._callback(this);
   }
 
   private _ProcessDrag(event: any) {
-    if (!this._manager.Valid) {
+    if (!this._started) {
       return;
     }
 
@@ -229,12 +236,12 @@ class Interaction implements InteractionInterface {
     let current_pos = this._state.mouse.current_pos;
     let diff = new Vec2(current_pos.screen.x - prev_pos.screen.x,
                         current_pos.screen.y - prev_pos.screen.y);
-    let offset = new Vec2(diff.x / this._manager.Renderer.Width,
-                          diff.y / this._manager.Renderer.Height);
+    let offset = new Vec2(diff.x / this._renderer.Width,
+                          diff.y / this._renderer.Height);
     // We invert the y-axis
     // offset.y *= -1;
 
-    this._manager.Renderer.Offset = Vec2.Sum(this._manager.Renderer.Offset, offset);
+    this._renderer.Offset = Vec2.Sum(this._renderer.Offset, offset);
   }
 
   private _ProcessZoomDrag(event: any) {
@@ -242,8 +249,8 @@ class Interaction implements InteractionInterface {
     let start = this.DownMousePos.local;
     let end = this.UpMousePos.local;
 
-    let bounds = this._manager.Renderer.Bounds;
-    let zoom_type = this._manager.UIManager.Zoom;
+    let bounds = this._renderer.Bounds;
+    let zoom_type = UIManagerSingleton.Zoom;
     if (zoom_type == ZoomType.VERTICAL) {
       let min = Math.min(start.x, end.x);
       let max = Math.max(start.x, end.x);
@@ -260,7 +267,7 @@ class Interaction implements InteractionInterface {
       throw "Unsupported Zoom";
     }
 
-    this._manager.Renderer.Bounds = bounds;
+    this._renderer.Bounds = bounds;
   }
 
 
@@ -268,7 +275,9 @@ class Interaction implements InteractionInterface {
    * PRIVATE DATA
    **************************************************************************/
 
-  private _manager: GraphManagerInterface;
+  private _renderer: RendererInterface;
+  private _callback: (i: InteractionInterface) => void;
+  private _started: boolean;
   private _state: {
     config: {
       wheel_factor: Vec2,
