@@ -16,7 +16,7 @@ import {Bounds, Vec2} from "./vectors";
 
 import {MouseButtons, MousePosition} from "./mouse";
 
-import {ZoomType} from "./ui_manager_interface";
+import {ZoomType} from "./ui_manager";
 
 import KeyboardSingleton from "./keyboard";
 

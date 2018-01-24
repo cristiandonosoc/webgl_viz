@@ -1,7 +1,7 @@
 import InteractionInterface from "./interaction";
 import {RendererElemId, RendererInterface} from "./renderer";
 import LabelManagerInterface from "./label_manager";
-import UIManagerInterface from "./ui_manager_interface";
+import UIManagerInterface from "./ui_manager";
 
 import {Color} from "./colors";
 import {Bounds} from "./vectors";
