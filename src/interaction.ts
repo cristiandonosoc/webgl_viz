@@ -10,6 +10,8 @@ import {MouseButtons, MousePosition} from "./mouse";
 import InteractionInterface from "./interaction_interface";
 import {ZoomType} from "./ui_manager_interface";
 
+import KeyboardSingleton from "./keyboard";
+
 /**
  * Interaction
  * -----------
@@ -32,9 +34,6 @@ class Interaction implements InteractionInterface {
       last_pos: MousePosition,
       up_pos: MousePosition,
     },
-    keys: {
-      ctrl: boolean,
-    }
   };
 
   constructor(manager: GraphManagerInterface) {
@@ -52,9 +51,6 @@ class Interaction implements InteractionInterface {
         last_pos: MousePosition.Zero,
         up_pos: MousePosition.Zero,
       },
-      keys: {
-        ctrl: false,
-      }
     }
     this.SetupInteraction();
   }
@@ -80,10 +76,6 @@ class Interaction implements InteractionInterface {
     return this._state.mouse.up_pos;
   }
 
-  get CtrlPressed() : boolean {
-    return this._state.keys.ctrl;
-  }
-
   get CurrentMouseButton() : MouseButtons {
     return this._state.mouse.button;
   }
@@ -96,19 +88,6 @@ class Interaction implements InteractionInterface {
     this._manager.Renderer.Canvas.addEventListener("mousedown", this.MouseDown);
     document.addEventListener("mouseup", this.MouseUp);
     this._manager.Renderer.Canvas.addEventListener("mousemove", this.MouseMove);
-    document.addEventListener("keydown", (event) => {
-      this._state.keys.ctrl = event.ctrlKey;
-      // We only change on control for now
-      if (event.key == "Control") {
-        this.PostChange();
-      }
-    });
-    document.addEventListener("keyup", (event) => {
-      this._state.keys.ctrl = event.ctrlKey;
-      if (event.key == "Control") {
-        this.PostChange();
-      }
-    });
 
     // Mouse wheel
     console.info("This app wants to preventDefault scroll Behavior on Canvas.\n" +
@@ -162,7 +141,7 @@ class Interaction implements InteractionInterface {
     let pin_point = RendererCanvasToLocal(this._manager.Renderer, mouse_pos);
 
     // We change the scale
-    let yZoom = this.CtrlPressed;
+    let yZoom = KeyboardSingleton.CtrlPressed;
     let delta = Vec2.Zero;
     if (!yZoom) {
       delta.x = -event.deltaY;
@@ -199,7 +178,7 @@ class Interaction implements InteractionInterface {
 
   // Method to call after a change has happened
   private PostChange() {
-    this._manager.FrameLoop();
+    // TODO(donosoc): Mark the view as dirty when that is implemented
   }
 
 

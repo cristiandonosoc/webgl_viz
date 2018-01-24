@@ -14,9 +14,6 @@ interface InteractionInterface {
   DownMousePos: MousePosition;
   // Last Position the mouse was released
   UpMousePos: MousePosition;
-
-  /* KEYS */
-  CtrlPressed: boolean;
 }
 
 export default InteractionInterface;

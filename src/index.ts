@@ -44,6 +44,7 @@ document.getElementById("control-file").addEventListener("change", (event: any) 
 
 function ProcessFrame(time: number) {
   manager.FrameLoop();
+  requestAnimationFrame(ProcessFrame);
 }
 
 requestAnimationFrame(ProcessFrame);

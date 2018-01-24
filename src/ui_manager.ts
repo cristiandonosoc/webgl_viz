@@ -9,6 +9,8 @@ import {ZoomType, UIManagerInterface} from "./ui_manager_interface";
 
 import GraphManagerInterface from "./graph_manager_interface";
 
+import KeyboardSingleton from "./keyboard";
+
 class UIManager implements UIManagerInterface {
   private _manager: GraphManagerInterface;
 
@@ -37,6 +39,8 @@ class UIManager implements UIManagerInterface {
   box_zoom_radio: HTMLInputElement;
 
   ctrl_label: HTMLElement;
+  alt_label: HTMLElement;
+  shift_label: HTMLElement;
 
   constructor(manager: GraphManagerInterface) {
     this._manager = manager;
@@ -70,6 +74,8 @@ class UIManager implements UIManagerInterface {
     this.bounds_y.max.addEventListener("change", this.DimensionChange);
 
     this.ctrl_label = document.getElementById("ctrl-key");
+    this.alt_label = document.getElementById("alt-key");
+    this.shift_label = document.getElementById("shift-key");
   }
 
   /*******************************************************
@@ -84,11 +90,9 @@ class UIManager implements UIManagerInterface {
   }
 
   Update() : void {
-    if (this._manager.Interaction.CtrlPressed) {
-      this.ctrl_label.classList.remove("hidden");
-    } else {
-      this.ctrl_label.classList.add("hidden");
-    }
+    this._UpdateLabel(this.ctrl_label, KeyboardSingleton.CtrlPressed);
+    this._UpdateLabel(this.alt_label, KeyboardSingleton.AltPressed);
+    this._UpdateLabel(this.shift_label, KeyboardSingleton.ShiftPressed);
   }
 
 
@@ -100,6 +104,14 @@ class UIManager implements UIManagerInterface {
   /*******************************************************
    * PRIVATE FUNCTIONS
    *******************************************************/
+
+  private _UpdateLabel(label: HTMLElement, flag: boolean) : void {
+    if (flag) {
+      label.classList.remove("hidden");
+    } else {
+      label.classList.add("hidden");
+    }
+  }
 
   private get VerticalZoom() : boolean {
     return this.vertical_zoom_radio.checked;
@@ -120,7 +132,7 @@ class UIManager implements UIManagerInterface {
     let dim_y = new Vec2(Number(this.bounds_y.min.value),
                          Number(this.bounds_y.max.value));
     this._manager.Renderer.Bounds = Bounds.FromVecs(dim_x, dim_y);
-    this._manager.FrameLoop();
+    // TODO(donosoc): Mark the view as dirty when that is implemented
   };
 
   private DrawStats() {

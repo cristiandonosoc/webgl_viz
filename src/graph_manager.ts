@@ -245,6 +245,9 @@ class GraphManager implements GraphManagerInterface {
 
   FrameLoop() : void {
     this.Update();
+    // TODO(donosoc): Do it so that we only draw when needed, making components
+    //                "dirty" the view.
+    //                Right now we are always re-rendering (~60 FPS)
     this.Draw();
   }
 
@@ -256,13 +259,13 @@ class GraphManager implements GraphManagerInterface {
     // Resize
     this.Renderer.ResizeCanvas();
     this.LabelManager.Update();
+    this.UIManager.Update();
 
     if (!this.Valid) {
       return;
     }
 
     this.AxisManager.Update();
-    this.UIManager.Update();
   }
 
   private Draw() : void {
