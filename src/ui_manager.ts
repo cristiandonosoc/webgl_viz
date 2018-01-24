@@ -6,10 +6,9 @@
 
 import {Bounds, Vec2} from "./vectors";
 
-import GraphManagerInterface from "./graph_manager_interface";
-
 import KeyboardSingleton from "./keyboard";
-
+import RendererInterface from "./renderer";
+import InteractionInterface from "./interaction";
 
 /*******************************************************
  * INTERFACE
@@ -62,8 +61,10 @@ class UIManager implements UIManagerInterface {
    * CONSTRUCTOR
    *******************************************************/
 
-  constructor(manager: GraphManagerInterface) {
-    this._manager = manager;
+  constructor(renderer: RendererInterface, interaction: InteractionInterface) {
+    this._renderer = renderer;
+    this._interaction = interaction;
+
     this._offset_x_box = <HTMLInputElement> document.getElementById("offset-x");
     this._offset_y_box = <HTMLInputElement> document.getElementById("offset-y");
     this._screen_x_box = <HTMLInputElement> document.getElementById("screen-x");
@@ -129,13 +130,12 @@ class UIManager implements UIManagerInterface {
                          Number(this._bounds_x.max.value));
     let dim_y = new Vec2(Number(this._bounds_y.min.value),
                          Number(this._bounds_y.max.value));
-    this._manager.Renderer.Bounds = Bounds.FromVecs(dim_x, dim_y);
+    this._renderer.Bounds = Bounds.FromVecs(dim_x, dim_y);
     // TODO(donosoc): Mark the view as dirty when that is implemented
   };
 
   private DrawStats() {
-    let mouse_pos = this._manager.Interaction.CurrentMousePos;
-    var manager = this._manager;
+    let mouse_pos = this._interaction.CurrentMousePos;
     this._screen_x_box.value = String(mouse_pos.screen.x);
     this._screen_y_box.value = String(mouse_pos.screen.y);
     this._canvas_x_box.value = String(mouse_pos.canvas.x);
@@ -143,16 +143,16 @@ class UIManager implements UIManagerInterface {
     this._local_x_box.value = String(mouse_pos.local.x);
     this._local_y_box.value = String(mouse_pos.local.y);
 
-    this._offset_x_box.value = String(manager.Renderer.Offset.x);
-    this._offset_y_box.value = String(manager.Renderer.Offset.y);
-    this._scale_x_box.value =  String(manager.Renderer.Scale.x);
-    this._scale_y_box.value =  String(manager.Renderer.Scale.y);
+    this._offset_x_box.value = String(this._renderer.Offset.x);
+    this._offset_y_box.value = String(this._renderer.Offset.y);
+    this._scale_x_box.value =  String(this._renderer.Scale.x);
+    this._scale_y_box.value =  String(this._renderer.Scale.y);
 
     // Bounds
-    this._bounds_x.min.value = String(manager.Renderer.Bounds.x.x);
-    this._bounds_x.max.value = String(manager.Renderer.Bounds.x.y);
-    this._bounds_y.min.value = String(manager.Renderer.Bounds.y.x);
-    this._bounds_y.max.value = String(manager.Renderer.Bounds.y.y);
+    this._bounds_x.min.value = String(this._renderer.Bounds.x.x);
+    this._bounds_x.max.value = String(this._renderer.Bounds.x.y);
+    this._bounds_y.min.value = String(this._renderer.Bounds.y.x);
+    this._bounds_y.max.value = String(this._renderer.Bounds.y.y);
 
     // Labels
     // this.labels.x.bottom.value = String(manager.Renderer.Bounds.x.first);
@@ -165,7 +165,8 @@ class UIManager implements UIManagerInterface {
    * PRIVATE DATA
    *******************************************************/
 
-  private _manager: GraphManagerInterface;
+  private _interaction: InteractionInterface;
+  private _renderer: RendererInterface;
 
   private _offset_x_box: HTMLInputElement;
   private _offset_y_box: HTMLInputElement;

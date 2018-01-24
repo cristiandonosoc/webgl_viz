@@ -1,4 +1,4 @@
-import GraphManager from "./graph_manager"
+import {GraphManager} from "./graph_manager"
 
 // We "cast" the instance"
 

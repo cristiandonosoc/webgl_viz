@@ -3,14 +3,57 @@ import {Color, AllColors} from "./colors"
 import {Interaction, InteractionInterface} from "./interaction";
 import {Bounds, Vec2} from "./vectors";
 
-import {DrawSpace, Renderer, RendererInterface} from "./renderer";
+import {DrawSpace, RendererElemId, Renderer, RendererInterface} from "./renderer";
 import {LabelManager, LabelManagerInterface} from "./label_manager";
-import {GraphInfo, GraphManagerInterface} from "./graph_manager_interface";
 import {AxisManager, AxisManagerInterface} from "./axis_manager";
 
 import {ZoomType, UIManager, UIManagerInterface} from "./ui_manager";
 
 import {GetCanvasChildByClass} from "./helpers";
+
+/**************************************************************************
+ * INTERFACE
+ **************************************************************************/
+
+/**
+ * GraphInfo
+ * ---------
+ *
+ * Represents the info of a graph
+ **/
+class GraphInfo {
+  name = "";
+  elem_id: RendererElemId;      // The points registered with the renderer
+  points: Array<Vec2>;          // The points loaded and sorted (by X-axis)
+  color: Color;                 // The color on which to render the graph
+  bounds: Bounds;               // The max X and Y bounds of this graph
+}
+
+interface GraphManagerInterface {
+  /* COMPONENTS */
+  Interaction: InteractionInterface;
+  Renderer: RendererInterface;
+  LabelManager: LabelManagerInterface;
+  UIManager: UIManagerInterface;
+
+  /* STATE */
+  Valid: boolean;
+  readonly Graphs: Array<GraphInfo>;
+
+  /* ACTIONS */
+  FrameLoop() : void;   /* Update + Draw */
+  // Update() : void;
+  // Draw() : void;
+
+  SetClosestPoint(point: Vec2) : void;
+  // Resets the zoom to the containing bounds
+  ApplyMaxBounds() : void;
+}
+
+
+/**************************************************************************
+ * IMPLEMENTATION
+ **************************************************************************/
 
 let g_inf = 9007199254740991;
 
@@ -23,31 +66,6 @@ class CanvasHolder {
 }
 
 class GraphManager implements GraphManagerInterface {
-  private _renderer: Renderer;            // Manages WebGL rendering
-  private _interaction: Interaction;      // Manages interaction with browser (mostly mouse)
-  private _label_manager: LabelManager;   // Manages interaction with DOM
-  private _axis_manager: AxisManager;     // Manages axis and scales
-
-  private _ui_manager: UIManager;
-
-  // Internal state of the renderer
-  private _state: {
-    colors: {
-      background_color: Color,
-      drag_color: Color,
-      graph_colors: Array<Color>,
-    },
-    bounds: Bounds,                       // The containing bounds of all the graphs
-    graphs: Array<GraphInfo>,             // The graph elements added
-    closest_point?: Vec2,                 // The closest point to the mouse (x-wise)
-  };
-
-
-  private _timing_renderer: Renderer;
-
-  private _canvas_holders: Array<CanvasHolder>;
-
-
   /*******************************************************
    * CONSTRUCTOR
    *******************************************************/
@@ -66,10 +84,10 @@ class GraphManager implements GraphManagerInterface {
 
     this._renderer = new Renderer(canvas);
     this._interaction = new Interaction(this);
-    this._label_manager = new LabelManager(this, labels);
+    this._label_manager = new LabelManager(this, this._renderer, labels);
     this._axis_manager = new AxisManager(container, this._renderer);
 
-    this._ui_manager = new UIManager(this);
+    this._ui_manager = new UIManager(this._renderer, this._interaction);
   }
 
   private SetupState() {
@@ -229,7 +247,7 @@ class GraphManager implements GraphManagerInterface {
     this.Graphs.push(graph_info);
 
     // We recalculate the graph bounds
-    this.RecalculateBounds();
+    this._RecalculateBounds();
     this.ApplyMaxBounds();
   }
 
@@ -316,14 +334,14 @@ class GraphManager implements GraphManagerInterface {
     if (!this.Valid) {
       return;
     }
-    this._state.closest_point = this.SearchForClosestPoint(pos);
+    this._state.closest_point = this._SearchForClosestPoint(pos);
   }
 
   /********************************************************************
-   * PRIVATE IMPLEMENTATION
+   * PRIVATE METHODS
    ********************************************************************/
 
-  private SearchForClosestPoint(pos: Vec2) : Vec2 {
+  private _SearchForClosestPoint(pos: Vec2) : Vec2 {
     // No points to search
     if (this.Graphs.length < 1) {
       return;
@@ -373,8 +391,8 @@ class GraphManager implements GraphManagerInterface {
     }
   }
 
-  private RecalculateBounds() : void {
-    let bounds = this.GetMinBounds();
+  private _RecalculateBounds() : void {
+    let bounds = this._GetMinBounds();
     for (let graph of this.Graphs) {
       // We compare the bounds
       if (graph.bounds.x.x < bounds.x.x) { bounds.x.x = graph.bounds.x.x; }
@@ -386,9 +404,41 @@ class GraphManager implements GraphManagerInterface {
   }
 
   // Get a bounds that will be trivially changed in max comparisons
-  private GetMinBounds() : Bounds {
+  private _GetMinBounds() : Bounds {
     return Bounds.FromPoints(+g_inf, -g_inf, +g_inf, -g_inf);
   }
+
+
+  /*******************************************************
+   * PRIVATE DATA
+   *******************************************************/
+
+  private _renderer: Renderer;            // Manages WebGL rendering
+  private _interaction: Interaction;      // Manages interaction with browser (mostly mouse)
+  private _label_manager: LabelManager;   // Manages interaction with DOM
+  private _axis_manager: AxisManager;     // Manages axis and scales
+
+  private _ui_manager: UIManager;
+
+  // Internal state of the renderer
+  private _state: {
+    colors: {
+      background_color: Color,
+      drag_color: Color,
+      graph_colors: Array<Color>,
+    },
+    bounds: Bounds,                       // The containing bounds of all the graphs
+    graphs: Array<GraphInfo>,             // The graph elements added
+    closest_point?: Vec2,                 // The closest point to the mouse (x-wise)
+  };
+
+
+  private _timing_renderer: Renderer;
+
+  private _canvas_holders: Array<CanvasHolder>;
 }
 
-export default GraphManager;
+export {GraphInfo};
+export {GraphManager}
+export {GraphManagerInterface};
+export default GraphManagerInterface;

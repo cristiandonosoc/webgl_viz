@@ -1,6 +1,6 @@
-// import GraphManager from "./graph_manager";
-import GraphManagerInterface from "./graph_manager_interface";
+import GraphManagerInterface from "./graph_manager";
 
+import RendererInterface from "./renderer";
 import {RendererCanvasToLocal} from "./transforms";
 import {Bounds, Vec2} from "./vectors";
 
@@ -40,11 +40,12 @@ class LabelManager implements LabelManagerInterface {
    * CONSTRUCTOR
    *******************************************************/
 
-  constructor(manager: GraphManagerInterface,
+  constructor(graph_manager: GraphManagerInterface,
+              renderer: RendererInterface,
               label_canvas: HTMLCanvasElement) {
-    this._manager = manager;
+    this._graph_manager = graph_manager;
+    this._renderer = renderer;
     this._label_canvas = label_canvas.getContext("2d");
-    var graph_container = this._manager.Renderer.Canvas.parentNode.parentNode;
 
     this._labels = {
       x: {
@@ -56,8 +57,6 @@ class LabelManager implements LabelManagerInterface {
         top: <HTMLInputElement> document.querySelector(".y-labels .top")
       }
     };
-
-
   }
 
   /*******************************************************
@@ -75,8 +74,8 @@ class LabelManager implements LabelManagerInterface {
     twgl.resizeCanvasToDisplaySize(ctx.canvas);
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    for (var i = 0; i < this._manager.Graphs.length; i += 1) {
-      let graph_info = this._manager.Graphs[i];
+    for (var i = 0; i < this._graph_manager.Graphs.length; i += 1) {
+      let graph_info = this._graph_manager.Graphs[i];
 
       let sqr_x = label_width * i + 10;
       let sqr_y = height - sqr_size / 2;
@@ -95,7 +94,8 @@ class LabelManager implements LabelManagerInterface {
    * PRIVATE DATA
    *******************************************************/
 
-  private _manager: GraphManagerInterface;
+  private _graph_manager: GraphManagerInterface;
+  private _renderer: RendererInterface;
   private _label_canvas: CanvasRenderingContext2D;
   private _labels: {
     x: {
