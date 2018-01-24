@@ -4,34 +4,49 @@ import GraphManagerInterface from "./graph_manager_interface";
 import {RendererCanvasToLocal} from "./transforms";
 import {Bounds, Vec2} from "./vectors";
 
-import LabelManagerInterface from "./label_manager_interface";
+/**************************************************************************
+ * INTERFACE
+ **************************************************************************/
+
+interface LabelManagerInterface {
+  /* ACTIONS */
+  Update() : void;
+  Draw() : void;
+}
+
+
+/**************************************************************************
+ * IMPLEMENTATION
+ **************************************************************************/
 
 // Globally loaded script
 declare let twgl: any;
 
+
 class LabelManager implements LabelManagerInterface {
-  private _manager: GraphManagerInterface;
 
-  label_canvas: CanvasRenderingContext2D;
+  /*******************************************************
+   * PUBLIC INTERFACE IMPL
+   *******************************************************/
 
-  labels: {
-    x: {
-      bottom: HTMLInputElement,
-      top: HTMLInputElement
-    },
-    y: {
-      bottom: HTMLInputElement,
-      top: HTMLInputElement
-    },
-  };
+  Update() : void {}
+
+  Draw() : void {
+    this._DrawGraphLabels();
+  }
+
+
+  /*******************************************************
+   * CONSTRUCTOR
+   *******************************************************/
 
   constructor(manager: GraphManagerInterface,
               label_canvas: HTMLCanvasElement) {
     this._manager = manager;
-    this.label_canvas = label_canvas.getContext("2d");
+    this._label_canvas = label_canvas.getContext("2d");
     var graph_container = this._manager.Renderer.Canvas.parentNode.parentNode;
 
-    this.labels = {
+    this._labels = {
       x: {
         bottom: <HTMLInputElement> document.querySelector(".x-labels .bottom"),
         top: <HTMLInputElement> document.querySelector(".x-labels .top")
@@ -45,18 +60,12 @@ class LabelManager implements LabelManagerInterface {
 
   }
 
-  Update() : void {}
-
-  Draw() : void {
-    this.DrawGraphLabels();
-  }
-
   /*******************************************************
    * PRIVATE FUNCTIONS
    *******************************************************/
 
-  private DrawGraphLabels() : void {
-    let ctx = this.label_canvas;
+  private _DrawGraphLabels() : void {
+    let ctx = this._label_canvas;
 
     let sqr_size = 10;
     let height = (ctx.canvas.height) / 2;
@@ -81,6 +90,25 @@ class LabelManager implements LabelManagerInterface {
       ctx.fillText(graph_info.name, label_width * i + 12 + sqr_size, height + sqr_size / 3, label_width);
     }
   }
+
+  /*******************************************************
+   * PRIVATE DATA
+   *******************************************************/
+
+  private _manager: GraphManagerInterface;
+  private _label_canvas: CanvasRenderingContext2D;
+  private _labels: {
+    x: {
+      bottom: HTMLInputElement,
+      top: HTMLInputElement
+    },
+    y: {
+      bottom: HTMLInputElement,
+      top: HTMLInputElement
+    },
+  };
 }
 
-export default LabelManager;
+export {LabelManager};
+export {LabelManagerInterface}
+export default LabelManagerInterface

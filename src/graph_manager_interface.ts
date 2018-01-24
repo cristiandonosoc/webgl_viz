@@ -1,6 +1,6 @@
 import InteractionInterface from "./interaction";
 import {RendererElemId, RendererInterface} from "./renderer";
-import LabelManagerInterface from "./label_manager_interface";
+import LabelManagerInterface from "./label_manager";
 import UIManagerInterface from "./ui_manager_interface";
 
 import {Color} from "./colors";
