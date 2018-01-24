@@ -47,11 +47,11 @@
   </div>
   <div id="main-container">
     <div class="graph-container">
-      <div class="canvas-container">
-        <canvas id="main-canvas-labels"></canvas>
-        <canvas id="main-canvas" oncontextmenu="return false"></canvas>
-        <canvas id="main-canvas-x-axis"></canvas>
-        <canvas id="main-canvas-y-axis"></canvas>
+      <div class="canvas-container" id="graph-canvas-container">
+        <canvas class="canvas-labels" id="graph-canvas-labels"></canvas>
+        <canvas class="central-canvas" id="graph-canvas" oncontextmenu="return false"></canvas>
+        <canvas class="x-axis" id="graph-canvas-x-axis"></canvas>
+        <canvas class="y-axis" id="graph-canvas-y-axis"></canvas>
       </div>
       <!-- <div class="x-labels"> -->
       <!--   <input type="number" step="any" class="top" /> -->
@@ -61,6 +61,14 @@
       <!--   <input type="number" step="any" class="top" /> -->
       <!--   <input type="number" step="any" class="bottom" /> -->
       <!-- </div> -->
+    </div>
+    <div class="graph-container">
+      <div class="canvas-container" id="timing-canvas-container">
+        <canvas class="canvas-labels" id="timing-canvas-labels"></canvas>
+        <canvas class="central-canvas" id="timing-canvas" oncontextmenu="return false"></canvas>
+        <canvas class="x-axis" id="timing-canvas-x-axis"></canvas>
+        <canvas class="y-axis" id="timing-canvas-y-axis"></canvas>
+      </div>
     </div>
   </div>
   <!-- SCRIPTS -->

@@ -4,7 +4,10 @@ import {AllColors} from "./colors";
 import {Vec2} from "./vectors";
 
 import AxisManagerInterface from "./axis_manager_interface";
-import GraphManagerInterface from "./graph_manager_interface";
+
+import RendererInterface from "./renderer";
+
+import {GetCanvasChildByClass} from "./helpers"
 
 import {RendererLocalToCanvas} from "./transforms";
 
@@ -52,7 +55,7 @@ let powers_names = [
 let empty_scale = ScaleEntry.Empty;
 
 class AxisManager implements AxisManagerInterface {
-  private _manager: GraphManagerInterface;
+  private _renderer: RendererInterface;
 
   private _state: {
     axes: {
@@ -103,10 +106,13 @@ class AxisManager implements AxisManagerInterface {
    * CONSTRUCTOR
    ****************************************************/
 
-  constructor(manager: GraphManagerInterface,
-              x_axis: HTMLCanvasElement,
-              y_axis: HTMLCanvasElement) {
-    this._manager = manager;
+  constructor(container: HTMLElement,
+              renderer: RendererInterface) {
+    this._renderer = renderer;
+
+    let x_axis = GetCanvasChildByClass(container, "x-axis");
+    let y_axis = GetCanvasChildByClass(container, "y-axis");
+
     this._state = {
       axes: {
         contexts: {
@@ -123,7 +129,7 @@ class AxisManager implements AxisManagerInterface {
 
   Update() : void {
     // We calculate the unit the zoom should be at
-    let bounds = this._manager.Renderer.Bounds;
+    let bounds = this._renderer.Bounds;
     let diffs = new Vec2(Math.abs(bounds.x.x - bounds.x.y),
                          Math.abs(bounds.y.x - bounds.y.y));
     let step_sizes = Vec2.Div(diffs, this.StepDividers);
@@ -142,9 +148,6 @@ class AxisManager implements AxisManagerInterface {
   }
 
   Draw() : void {
-    if (!this._manager.Valid) {
-      return;
-    }
     // We Draw The Axes
     let scales = this.Scales;
     let centers = this.CalculateAxisCenters(scales);
@@ -159,8 +162,6 @@ class AxisManager implements AxisManagerInterface {
    ****************************************************/
 
   private DrawAxisX(points: Array<number>, scale: number) : void {
-    let renderer = this._manager.Renderer;
-
     // We clear the axis canvas
     let ctx = this.CanvasX;
     twgl.resizeCanvasToDisplaySize(ctx.canvas);
@@ -174,10 +175,10 @@ class AxisManager implements AxisManagerInterface {
     // for (var i = 0; i < points.length; i += 1) {
     for (let x of points) {
       // We draw the vertical line
-      renderer.DrawVerticalLine(x, DrawSpace.LOCAL, AllColors.Get("darkgreen"));
+      this._renderer.DrawVerticalLine(x, DrawSpace.LOCAL, AllColors.Get("darkgreen"));
 
       // We transform the point to Canvas space
-      let canvas_x = RendererLocalToCanvas(renderer, new Vec2(x, 0)).x;
+      let canvas_x = RendererLocalToCanvas(this._renderer, new Vec2(x, 0)).x;
 
       // We get the "scaled" number
       let scaled = x / entry.scale;
@@ -190,8 +191,6 @@ class AxisManager implements AxisManagerInterface {
   }
 
   private DrawAxisY(points: Array<number>, scale: number) : void {
-    let renderer = this._manager.Renderer;
-
     // We clear the axis canvas
     let ctx = this.CanvasY;
     twgl.resizeCanvasToDisplaySize(ctx.canvas);
@@ -206,10 +205,10 @@ class AxisManager implements AxisManagerInterface {
     ctx.save();
     for (let y of points) {
       // We draw the horizontal lines
-      renderer.DrawHorizontalLine(y, DrawSpace.LOCAL, AllColors.Get("darkgreen"));
+      this._renderer.DrawHorizontalLine(y, DrawSpace.LOCAL, AllColors.Get("darkgreen"));
 
       // We transform the point to Canvas Space
-      let canvas_y = RendererLocalToCanvas(renderer, new Vec2(0, y)).y;
+      let canvas_y = RendererLocalToCanvas(this._renderer, new Vec2(0, y)).y;
 
       // We get the "scaled" number
       let scaled = y / entry.scale;
@@ -234,8 +233,7 @@ class AxisManager implements AxisManagerInterface {
    ****************************************************/
 
   private CalculateAxisCenters(scales: Vec2) : Vec2 {
-    let renderer = this._manager.Renderer;
-    let final_offset = Vec2.Div(renderer.Offset, renderer.Scale);
+    let final_offset = Vec2.Div(this._renderer.Offset, this._renderer.Scale);
 
     // We create a mapping function
     let center_func = function(i: number, scale: number) : number {

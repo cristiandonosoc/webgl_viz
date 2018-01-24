@@ -1,25 +1,18 @@
 import GraphManager from "./graph_manager"
 
 // We "cast" the instance"
-var canvas = <HTMLCanvasElement> document.getElementById("main-canvas");
-var x_axis = <HTMLCanvasElement> document.getElementById("main-canvas-x-axis");
-var y_axis = <HTMLCanvasElement> document.getElementById("main-canvas-y-axis");
-var labels = <HTMLCanvasElement> document.getElementById("main-canvas-labels");
-var manager = new GraphManager(canvas, x_axis, y_axis, labels);
 
-// We add some points
-// var size = 500;
-// var positions = new Array(size);
-// for (var i = 0; i < size; i += 2) {
-//   // positions[i] = -1 + 2* (i/(size - 2));
-//   // positions[i + 1] = 2 * Math.random() - 1;
-//   var offset = -2 + 4 * (i / (size - 2));
-//   positions[i] = offset;
-//   positions[i + 1] = offset + 0.3 * Math.random(); - 0.15;
-// }
+var canvas = <HTMLCanvasElement> document.getElementById("graph-canvas");
+var x_axis = <HTMLCanvasElement> document.getElementById("graph-canvas-x-axis");
+var y_axis = <HTMLCanvasElement> document.getElementById("graph-canvas-y-axis");
+var labels = <HTMLCanvasElement> document.getElementById("graph-canvas-labels");
+
+let graph_canvas_container = <HTMLElement> document.getElementById("graph-canvas-container");
+let timing_canvas_container = <HTMLElement> document.getElementById("timing-canvas-container");
+
+var manager = new GraphManager(graph_canvas_container, timing_canvas_container);
 
 import {GetPositions} from "./test_points";
-
 
 // We set the controllers
 document.getElementById("control-expand").addEventListener("click", (event) => {

@@ -12,13 +12,22 @@ import {ZoomType, LabelManagerInterface} from "./label_manager_interface";
 import {GraphInfo, GraphManagerInterface} from "./graph_manager_interface";
 import AxisManagerInterface from "./axis_manager_interface";
 
+import {GetCanvasChildByClass} from "./helpers";
+
 let g_inf = 9007199254740991;
 
 
+class CanvasHolder {
+  renderer: Renderer;
+  interaction: Interaction;
+  label_manager: LabelManager;
+  axis_manager: AxisManager;
+}
+
 class GraphManager implements GraphManagerInterface {
+  private _renderer: Renderer;            // Manages WebGL rendering
   private _interaction: Interaction;      // Manages interaction with browser (mostly mouse)
   private _label_manager: LabelManager;   // Manages interaction with DOM
-  private _renderer: Renderer;            // Manages WebGL rendering
   private _axis_manager: AxisManager;     // Manages axis and scales
 
   // Internal state of the renderer
@@ -34,21 +43,34 @@ class GraphManager implements GraphManagerInterface {
   };
 
 
+  private _timing_renderer: Renderer;
+
+  private _canvas_holders: Array<CanvasHolder>;
+
+
   /*******************************************************
    * CONSTRUCTOR
    *******************************************************/
 
-  constructor(canvas: HTMLCanvasElement,
-              x_axis: HTMLCanvasElement,
-              y_axis: HTMLCanvasElement,
-              label_canvas: HTMLCanvasElement) {
+  constructor(graph_canvas_container: HTMLElement,
+              timing_canvas_container: HTMLElement) {
+    this.SetupElements(graph_canvas_container);
+    this.SetupState();
+  }
+
+  private SetupElements(container: HTMLElement) {
+    let canvas = GetCanvasChildByClass(container, "central-canvas");
+    let labels = GetCanvasChildByClass(container, "canvas-labels");
+    let x_axis = GetCanvasChildByClass(container, "x-axis");
+    let y_axis = GetCanvasChildByClass(container, "y-axis");
+
     this._renderer = new Renderer(canvas);
     this._interaction = new Interaction(this);
-    this._label_manager = new LabelManager(this, label_canvas);
-    this._axis_manager = new AxisManager(this, x_axis, y_axis);
+    this._label_manager = new LabelManager(this, labels);
+    this._axis_manager = new AxisManager(container, this._renderer);
+  }
 
-    let bounds = Bounds.FromPoints(-1, 1, -1, 1);
-
+  private SetupState() {
     let graph_colors = new Array<Color>();
     graph_colors.push(AllColors.Get("deeppink"));
     graph_colors.push(AllColors.Get("cyan"));
@@ -65,8 +87,9 @@ class GraphManager implements GraphManagerInterface {
       bounds: Bounds.FromPoints(-1, 1, -1, 1),
       graphs: new Array<GraphInfo>(),
     };
-  }
 
+
+  }
 
   /*******************************************************
    * GETTERS / SETTERS
