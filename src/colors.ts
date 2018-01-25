@@ -261,3 +261,4 @@ var colors = {
 var AllColors = new ColorRegistry(colors);
 export {Color}
 export {AllColors}
+export default AllColors;

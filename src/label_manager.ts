@@ -1,4 +1,4 @@
-import PacketDapperVizInterface from "./packet_dapper_viz";
+import VisualizerInterface from "./visualizer";
 
 import RendererInterface from "./renderer";
 import {RendererCanvasToLocal} from "./transforms";
@@ -42,11 +42,11 @@ class LabelManager implements LabelManagerInterface {
    * CONSTRUCTOR
    *******************************************************/
 
-  constructor(graph_manager: PacketDapperVizInterface,
-              renderer: RendererInterface,
-              container: HTMLElement) {
+  constructor(container: HTMLElement,
+              visualizer: VisualizerInterface,
+              renderer: RendererInterface) {
 
-    this._graph_manager = graph_manager;
+    this._visualizer= visualizer;
     this._renderer = renderer;
     let label_canvas = GetCanvasChildByClass(container, "canvas-labels");
 
@@ -79,8 +79,8 @@ class LabelManager implements LabelManagerInterface {
     twgl.resizeCanvasToDisplaySize(ctx.canvas);
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    for (var i = 0; i < this._graph_manager.Graphs.length; i += 1) {
-      let graph_info = this._graph_manager.Graphs[i];
+    for (var i = 0; i < this._visualizer.Graphs.length; i += 1) {
+      let graph_info = this._visualizer.Graphs[i];
 
       let sqr_x = label_width * i + 10;
       let sqr_y = height - sqr_size / 2;
@@ -99,7 +99,7 @@ class LabelManager implements LabelManagerInterface {
    * PRIVATE DATA
    *******************************************************/
 
-  private _graph_manager: PacketDapperVizInterface;
+  private _visualizer: VisualizerInterface;
   private _renderer: RendererInterface;
   private _label_canvas: CanvasRenderingContext2D;
   private _labels: {

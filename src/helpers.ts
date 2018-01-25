@@ -18,6 +18,17 @@ function GetCanvasChildByClass(el: HTMLElement, cls: string) : HTMLCanvasElement
   return GetCanvasChildByTag(el, "class", cls);
 }
 
+function CreateVecArrayFromPoints(points: Array<number>) : Array<Vec2> {
+  let arr = new Array<Vec2>(points.length / 2);
+  for (let i = 0; i < arr.length; i += 1) {
+    let point_index = i * 2;
+    let p = new Vec2(points[point_index], points[point_index + 1]);
+    arr[i] = p;
+  }
+
+  return arr;
+}
+
 
 function GetBoundsFromGraphPoints(points: Array<number>) : Bounds {
     // We post-process the points
@@ -47,8 +58,7 @@ function CreateMaxBounds(a: Bounds, b: Bounds) : Bounds {
     Math.max(a.y.last, b.y.last))
 }
 
-
-
+export {CreateVecArrayFromPoints};
 export {CreateMaxBounds};
 export {GetBoundsFromGraphPoints};
 export {GetCanvasChildByTag};
