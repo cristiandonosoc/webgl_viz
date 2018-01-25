@@ -1,4 +1,4 @@
-import VisualizerInterface from "./visualizer";
+import PacketDapperVizInterface from "./packet_dapper_viz";
 
 import RendererInterface from "./renderer";
 import {RendererCanvasToLocal} from "./transforms";
@@ -42,7 +42,7 @@ class LabelManager implements LabelManagerInterface {
    * CONSTRUCTOR
    *******************************************************/
 
-  constructor(graph_manager: VisualizerInterface,
+  constructor(graph_manager: PacketDapperVizInterface,
               renderer: RendererInterface,
               container: HTMLElement) {
 
@@ -99,7 +99,7 @@ class LabelManager implements LabelManagerInterface {
    * PRIVATE DATA
    *******************************************************/
 
-  private _graph_manager: VisualizerInterface;
+  private _graph_manager: PacketDapperVizInterface;
   private _renderer: RendererInterface;
   private _label_canvas: CanvasRenderingContext2D;
   private _labels: {

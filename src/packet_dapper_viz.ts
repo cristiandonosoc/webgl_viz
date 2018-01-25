@@ -1,4 +1,3 @@
-
 import {Color, AllColors} from "./colors"
 import {Interaction, InteractionInterface} from "./interaction";
 import {Bounds, Vec2} from "./vectors";
@@ -30,7 +29,7 @@ class GraphInfo {
   bounds: Bounds;               // The max X and Y bounds of this graph
 }
 
-interface VisualizerInterface {
+interface PacketDapperVizInterface {
   /* COMPONENTS */
   // Interaction: InteractionInterface;
   // Renderer: RendererInterface;
@@ -66,7 +65,7 @@ class CanvasHolder {
   axis_manager: AxisManager;
 }
 
-class Visualizer implements VisualizerInterface {
+class PacketDapperViz implements PacketDapperVizInterface {
   /*******************************************************
    * CONSTRUCTOR
    *******************************************************/
@@ -466,6 +465,6 @@ class Visualizer implements VisualizerInterface {
 }
 
 export {GraphInfo};
-export {Visualizer}
-export {VisualizerInterface};
-export default VisualizerInterface;
+export {PacketDapperViz}
+export {PacketDapperVizInterface};
+export default PacketDapperVizInterface;

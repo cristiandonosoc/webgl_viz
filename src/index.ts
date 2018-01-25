@@ -1,4 +1,4 @@
-import {Visualizer} from "./visualizer"
+import {PacketDapperViz} from "./packet_dapper_viz"
 
 // We "cast" the instance"
 
@@ -10,7 +10,7 @@ var labels = <HTMLCanvasElement> document.getElementById("graph-canvas-labels");
 let graph_canvas_container = <HTMLElement> document.getElementById("graph-canvas-container");
 let timing_canvas_container = <HTMLElement> document.getElementById("timing-canvas-container");
 
-var manager = new Visualizer(graph_canvas_container, timing_canvas_container);
+var manager = new PacketDapperViz(graph_canvas_container, timing_canvas_container);
 
 import {GetPositions} from "./test_points";
 
