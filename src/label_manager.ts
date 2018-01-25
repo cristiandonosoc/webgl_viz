@@ -1,4 +1,4 @@
-import GraphManagerInterface from "./graph_manager";
+import VisualizerInterface from "./visualizer";
 
 import RendererInterface from "./renderer";
 import {RendererCanvasToLocal} from "./transforms";
@@ -42,7 +42,7 @@ class LabelManager implements LabelManagerInterface {
    * CONSTRUCTOR
    *******************************************************/
 
-  constructor(graph_manager: GraphManagerInterface,
+  constructor(graph_manager: VisualizerInterface,
               renderer: RendererInterface,
               container: HTMLElement) {
 
@@ -99,7 +99,7 @@ class LabelManager implements LabelManagerInterface {
    * PRIVATE DATA
    *******************************************************/
 
-  private _graph_manager: GraphManagerInterface;
+  private _graph_manager: VisualizerInterface;
   private _renderer: RendererInterface;
   private _label_canvas: CanvasRenderingContext2D;
   private _labels: {

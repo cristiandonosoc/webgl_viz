@@ -30,7 +30,7 @@ class GraphInfo {
   bounds: Bounds;               // The max X and Y bounds of this graph
 }
 
-interface GraphManagerInterface {
+interface VisualizerInterface {
   /* COMPONENTS */
   // Interaction: InteractionInterface;
   // Renderer: RendererInterface;
@@ -66,7 +66,7 @@ class CanvasHolder {
   axis_manager: AxisManager;
 }
 
-class GraphManager implements GraphManagerInterface {
+class Visualizer implements VisualizerInterface {
   /*******************************************************
    * CONSTRUCTOR
    *******************************************************/
@@ -466,6 +466,6 @@ class GraphManager implements GraphManagerInterface {
 }
 
 export {GraphInfo};
-export {GraphManager}
-export {GraphManagerInterface};
-export default GraphManagerInterface;
+export {Visualizer}
+export {VisualizerInterface};
+export default VisualizerInterface;
