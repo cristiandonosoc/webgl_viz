@@ -10,7 +10,7 @@ import AllShaders from "./shaders";
 import {Bounds, Vec2} from "./vectors";
 import {Color} from "./colors";
 import {RendererCalculateBounds} from "./transforms";
-import {GetCanvasChildByClass} from "./helpers";
+import {CreateMaxBounds, GetCanvasChildByClass, GetBoundsFromGraphPoints} from "./helpers";
 
 /**************************************************************************
  * INTERFACES
@@ -39,6 +39,7 @@ interface RendererInterface {
   Offset: Vec2;
   Scale: Vec2;
   Bounds: Bounds;
+  readonly MaxBounds: Bounds;
   readonly Width: number;
   readonly Height: number;
   readonly Canvas: HTMLCanvasElement;
@@ -128,6 +129,7 @@ class Renderer implements RendererInterface {
     this._gl = canvas.getContext("webgl2");
     this._state = {
       bounds: Bounds.FromPoints(/* x */ -1, 1, /* y */ -1, 1),
+      max_bounds: Bounds.FromPoints(/* x */ -1, 1, /* y */ -1, 1),
       offset: new Vec2(0, 0),
       scale: new Vec2(1, 1),
     };
@@ -191,6 +193,10 @@ class Renderer implements RendererInterface {
     this._state.offset = offset;
   }
 
+  get MaxBounds() : Bounds {
+    return this._state.max_bounds;
+  }
+
   get Width() : number {
     return this._gl.canvas.width;
   }
@@ -210,6 +216,11 @@ class Renderer implements RendererInterface {
     elem.buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays)
     elem.gl_primitive = this._gl.LINE_STRIP;
     let elem_id = this.Elements.Register(elem);
+
+    // We calculate the bounds
+    let bounds = GetBoundsFromGraphPoints(points);
+    this._state.max_bounds = CreateMaxBounds(this.MaxBounds, bounds);
+
     return elem_id;
   }
 
@@ -527,6 +538,7 @@ class Renderer implements RendererInterface {
 
   private _state: {
     bounds: Bounds,
+    max_bounds: Bounds,
     offset: Vec2,
     scale: Vec2,
   };

@@ -224,6 +224,7 @@ class GraphManager implements GraphManagerInterface {
       // TODO(donosoc): This is a bug waiting to happen
       let graph_id = canvas_holder.renderer.AddGraph(points);
       canvas_holder.interaction.Start();
+      break;
     }
 
     // We post-process the points
