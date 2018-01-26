@@ -16,6 +16,7 @@ import {GraphInfo, GraphInfoInterface} from "./graph_info";
 interface VisualizerInterface {
   readonly Graphs: Array<GraphInfoInterface>;
 
+  Start() : void;
   AddGraph(name: string, points: number[]) : void;
   Update() : void;
   Draw() : void;
@@ -51,7 +52,8 @@ class Visualizer implements VisualizerInterface {
   }
 
   private _InteractionCallback(i: InteractionInterface) {
-    this.SetClosestPoint(i.CurrentMousePos.local);
+    return;
+    // this.SetClosestPoint(i.CurrentMousePos.local);
   }
 
   /*******************************************************
@@ -60,6 +62,10 @@ class Visualizer implements VisualizerInterface {
 
   get Graphs() : Array<GraphInfoInterface> {
     return this._graphs;
+  }
+
+  Start() : void {
+    this.Interaction.Start();
   }
 
   AddGraph(name: string, points: number[]) : void {

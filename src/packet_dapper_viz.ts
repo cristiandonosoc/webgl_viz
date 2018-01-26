@@ -83,6 +83,9 @@ class PacketDapperViz implements PacketDapperVizInterface {
 
   Start() : void {
     this._running = true;
+    for (let viz of this._visualizers) {
+      viz.Start();
+    }
   }
 
   get Colors() : any {
@@ -163,15 +166,15 @@ class PacketDapperViz implements PacketDapperVizInterface {
   AddGraph(name: string, points: number[]) : void {
     for (let viz of this._visualizers) {
       viz.AddGraph(name, points);
-      viz.ApplyMaxBounds();
     }
+
+    this.ApplyMaxBounds();
   }
 
   // Applies the graph max bounds
   ApplyMaxBounds() : void {
-    for (let canvas_holder of this._canvases) {
-      // We want a copy, not a reference
-      canvas_holder.renderer.Bounds = this.Bounds.Copy();
+    for (let viz of this._visualizers) {
+      viz.ApplyMaxBounds();
     }
   }
 
@@ -225,7 +228,6 @@ class PacketDapperViz implements PacketDapperVizInterface {
    * PRIVATE DATA
    *******************************************************/
 
-  private _canvases: Array<CanvasHolder>;
   private _running: boolean;
 
   // Internal state of the renderer
@@ -241,10 +243,7 @@ class PacketDapperViz implements PacketDapperVizInterface {
 
 
   private _visualizers: Array<VisualizerInterface>;
-
-  private _timing_renderer: Renderer;
-
-  private _canvas_holders: Array<CanvasHolder>;
+ _timing_renderer: Renderer;
 }
 
 export {PacketDapperViz}

@@ -39,7 +39,8 @@ document.getElementById("control-file").addEventListener("change", (event: any) 
     console.log("Loaded file");
     manager.HandleDapFile(reader.result);
     console.log("Processed dap file");
-    requestAnimationFrame(ProcessFrame);
+    manager.Start();
+    // requestAnimationFrame(ProcessFrame);
   });
   reader.readAsText(event.target.files[0]);
 });
