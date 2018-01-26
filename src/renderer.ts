@@ -10,7 +10,7 @@ import AllShaders from "./shaders";
 import {Bounds, Vec2} from "./vectors";
 import {Color} from "./colors";
 import {RendererCalculateBounds} from "./transforms";
-import {CreateMaxBounds, GetCanvasChildByClass} from "./helpers";
+import {CreateMaxBounds, INFINITY, GetCanvasChildByClass} from "./helpers";
 
 import {GraphInfo} from "./visualizer";
 
@@ -75,7 +75,6 @@ interface RendererInterface {
 
 // Globally loaded script
 declare let twgl: any;
-let g_inf = 9999999999999999;   /* BIG NUMBER */
 
 /**
  * RendererElem
@@ -262,14 +261,14 @@ class Renderer implements RendererInterface {
   }
 
   DrawHorizontalLine(y: number, space: DrawSpace, color: Color) : void {
-    let p1 = new Vec2(-g_inf, y);
-    let p2 = new Vec2(+g_inf, y);
+    let p1 = new Vec2(-INFINITY, y);
+    let p2 = new Vec2(+INFINITY, y);
     this.DrawLine(p1, p2, space, color);
   }
 
   DrawVerticalLine(x: number, space: DrawSpace, color: Color) : void {
-    let p1 = new Vec2(x, -g_inf);
-    let p2 = new Vec2(x, +g_inf);
+    let p1 = new Vec2(x, -INFINITY);
+    let p2 = new Vec2(x, +INFINITY);
     this.DrawLine(p1, p2, space, color);
   }
 
@@ -280,10 +279,10 @@ class Renderer implements RendererInterface {
     let max = Math.max(start, end);
     if (space == DrawSpace.PIXEL) {
       let points = Array<Vec2>(4);
-      points[0] = new Vec2(-g_inf, min);
-      points[1] = new Vec2(+g_inf, min);
-      points[2] = new Vec2(-g_inf, max);
-      points[3] = new Vec2(+g_inf, max);
+      points[0] = new Vec2(-INFINITY, min);
+      points[1] = new Vec2(+INFINITY, min);
+      points[2] = new Vec2(-INFINITY, max);
+      points[3] = new Vec2(+INFINITY, max);
       this._DrawTriangleStripPixelSpace(points, color);
     } else {
       throw "Unsupported DrawSpace";
@@ -295,10 +294,10 @@ class Renderer implements RendererInterface {
     let max = Math.max(start, end);
     if (space == DrawSpace.PIXEL) {
       let points = Array<Vec2>(4);
-      points[0] = new Vec2(min, -g_inf);
-      points[1] = new Vec2(min, +g_inf);
-      points[2] = new Vec2(max, -g_inf);
-      points[3] = new Vec2(max, +g_inf);
+      points[0] = new Vec2(min, -INFINITY);
+      points[1] = new Vec2(min, +INFINITY);
+      points[2] = new Vec2(max, -INFINITY);
+      points[3] = new Vec2(max, +INFINITY);
       this._DrawTriangleStripPixelSpace(points, color);
     } else {
       throw "unsupported DrawSpace";

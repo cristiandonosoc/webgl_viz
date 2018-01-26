@@ -11,7 +11,7 @@ import {Visualizer, VisualizerInterface} from "./visualizer";
 // import {ZoomType, UIManager, UIManagerInterface} from "./ui_manager";
 import {ZoomType, UIManagerSingleton} from "./ui_manager";
 
-import {GetCanvasChildByClass} from "./helpers";
+import {INFINITY, GetCanvasChildByClass} from "./helpers";
 
 /**************************************************************************
  * INTERFACE
@@ -35,9 +35,6 @@ interface PacketDapperVizInterface {
 /**************************************************************************
  * IMPLEMENTATION
  **************************************************************************/
-
-let g_inf = 9007199254740991;
-
 
 class CanvasHolder {
   renderer: Renderer;
@@ -217,9 +214,8 @@ class PacketDapperViz implements PacketDapperVizInterface {
 
   // Get a bounds that will be trivially changed in max comparisons
   private _GetMinBounds() : Bounds {
-    return Bounds.FromPoints(+g_inf, -g_inf, +g_inf, -g_inf);
+    return Bounds.FromPoints(+INFINITY, -INFINITY, +INFINITY, -INFINITY);
   }
-
 
   /*******************************************************
    * PRIVATE DATA
