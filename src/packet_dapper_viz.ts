@@ -1,18 +1,11 @@
 import {Color, AllColors} from "./colors"
-import {Interaction, InteractionInterface} from "./interaction";
 import {Bounds, Vec2} from "./vectors";
-
-import {DrawSpace, RendererElemId, Renderer, RendererInterface} from "./renderer";
-import {LabelManager, LabelManagerInterface} from "./label_manager";
-import {AxisManager, AxisManagerInterface} from "./axis_manager";
 
 import VisualizerInterface from "./visualizer_interface";
 import GraphVisualizer from "./graph_visualizer"
 
-// import {ZoomType, UIManager, UIManagerInterface} from "./ui_manager";
 import {ZoomType, UIManagerSingleton} from "./ui_manager";
-
-import {INFINITY, GetCanvasChildByClass} from "./helpers";
+import {INFINITY} from "./helpers";
 
 /**************************************************************************
  * INTERFACE
@@ -34,13 +27,6 @@ interface PacketDapperVizInterface {
 /**************************************************************************
  * IMPLEMENTATION
  **************************************************************************/
-
-class CanvasHolder {
-  renderer: Renderer;
-  interaction: Interaction;
-  label_manager: LabelManager;
-  axis_manager: AxisManager;
-}
 
 class PacketDapperViz implements PacketDapperVizInterface {
   /*******************************************************
@@ -257,9 +243,7 @@ class PacketDapperViz implements PacketDapperVizInterface {
     closest_point?: Vec2,                 // The closest point to the mouse (x-wise)
   };
 
-
   private _visualizers: Array<VisualizerInterface>;
- _timing_renderer: Renderer;
 }
 
 export {PacketDapperViz}

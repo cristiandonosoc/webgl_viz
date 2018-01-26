@@ -2,7 +2,7 @@ import {Vec2} from "./vectors";
 import GraphInfoInterface from "./graph_info"
 
 import InteractionInterface from "./interaction";
-import RendererInterface from "./renderer";
+import InternalRendererInterface from "./internal_renderer";
 
 interface VisualizerInterface {
   readonly Graphs: Array<GraphInfoInterface>;
@@ -21,7 +21,7 @@ interface VisualizerInterface {
   // GETTERS
   readonly Id : number;
   readonly Interaction : InteractionInterface;
-  readonly Renderer: RendererInterface;
+  readonly Renderer: InternalRendererInterface;
 }
 
 export {VisualizerInterface};

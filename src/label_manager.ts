@@ -1,6 +1,6 @@
 import VisualizerInterface from "./visualizer_interface";
 
-import RendererInterface from "./renderer";
+import InternalRendererInterface from "./internal_renderer";
 import {RendererCanvasToLocal} from "./transforms";
 import {Bounds, Vec2} from "./vectors";
 
@@ -44,7 +44,7 @@ class LabelManager implements LabelManagerInterface {
 
   constructor(container: HTMLElement,
               visualizer: VisualizerInterface,
-              renderer: RendererInterface) {
+              renderer: InternalRendererInterface) {
 
     this._visualizer= visualizer;
     this._renderer = renderer;
@@ -100,7 +100,7 @@ class LabelManager implements LabelManagerInterface {
    *******************************************************/
 
   private _visualizer: VisualizerInterface;
-  private _renderer: RendererInterface;
+  private _renderer: InternalRendererInterface;
   private _label_canvas: CanvasRenderingContext2D;
   private _labels: {
     x: {

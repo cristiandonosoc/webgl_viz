@@ -7,8 +7,6 @@
 import {Bounds, Vec2} from "./vectors";
 
 import KeyboardSingleton from "./keyboard";
-import RendererInterface from "./renderer";
-import InteractionInterface from "./interaction";
 
 /*******************************************************
  * INTERFACE

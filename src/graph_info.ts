@@ -1,5 +1,5 @@
 import {Bounds, Vec2} from "./vectors";
-import {RendererElemId} from "./renderer";
+import {RendererElemId} from "./internal_renderer";
 import {AllColors, Color} from "./colors";
 
 /**************************************************************************

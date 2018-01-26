@@ -7,7 +7,7 @@
  * canvas.
  **/
 
-import RendererInterface from "./renderer";
+import InternalRendererInterface from "./internal_renderer";
 
 import {RendererCanvasToLocal} from "./transforms";
 import {TempAddEventListener} from "./type_fixes";
@@ -49,7 +49,7 @@ class Interaction implements InteractionInterface {
    *****************************************************************/
 
   // TODO(donosoc): Decouple zoom from UIManager (now has local data)
-  constructor(renderer: RendererInterface,
+  constructor(renderer: InternalRendererInterface,
               callback: (i: InteractionInterface) => void) {
     this._renderer = renderer;
     this._callback = callback;
@@ -275,7 +275,7 @@ class Interaction implements InteractionInterface {
    * PRIVATE DATA
    **************************************************************************/
 
-  private _renderer: RendererInterface;
+  private _renderer: InternalRendererInterface;
   private _callback: (i: InteractionInterface) => void;
   private _started: boolean;
   private _state: {

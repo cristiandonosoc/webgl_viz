@@ -7,7 +7,7 @@ import {GetCanvasChildByClass} from "./helpers"
 
 import {RendererLocalToCanvas} from "./transforms";
 
-import {DrawSpace, RendererInterface} from "./renderer";
+import {DrawSpace, InternalRendererInterface} from "./internal_renderer";
 
 /**************************************************************************
  * INTERFACE
@@ -108,7 +108,7 @@ class AxisManager implements AxisManagerInterface {
    ****************************************************/
 
   constructor(container: HTMLElement,
-              renderer: RendererInterface) {
+              renderer: InternalRendererInterface) {
     this._renderer = renderer;
 
     let x_axis = GetCanvasChildByClass(container, "x-axis");
@@ -308,7 +308,7 @@ class AxisManager implements AxisManagerInterface {
    * PRIVATE DATA
    **************************************************************************/
 
-  private _renderer: RendererInterface;
+  private _renderer: InternalRendererInterface;
 
   private _state: {
     axes: {

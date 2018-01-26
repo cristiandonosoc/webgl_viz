@@ -1,5 +1,5 @@
 import {Vec2} from "./vectors";
-import RendererInterface from "./renderer";
+import InternalRendererInterface from "./internal_renderer";
 import {RendererCanvasToLocal} from "./transforms";
 
 
@@ -23,7 +23,7 @@ class MousePosition {
     return mouse_pos;
   }
 
-  static FromRendererEvent(renderer: RendererInterface, event: any) : MousePosition {
+  static FromRendererEvent(renderer: InternalRendererInterface, event: any) : MousePosition {
     let mouse_pos = new MousePosition();
     // Screen
     mouse_pos.screen = new Vec2(event.screenX,

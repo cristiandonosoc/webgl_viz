@@ -1,4 +1,4 @@
-import {RendererInterface} from "./renderer";
+import {InternalRendererInterface} from "./internal_renderer";
 import {Bounds, Vec2} from "./vectors";
 
 /* Canvas -> Local */
@@ -18,7 +18,7 @@ function CanvasToLocal(dimensions: Vec2, offset: Vec2, scale: Vec2,
   return local;
 };
 
-function RendererCanvasToLocal(renderer: RendererInterface, point: Vec2) : Vec2 {
+function RendererCanvasToLocal(renderer: InternalRendererInterface, point: Vec2) : Vec2 {
   var dimensions = new Vec2(renderer.Width,
                             renderer.Height);
   var offset = renderer.Offset;
@@ -42,7 +42,7 @@ function LocalToCanvas(dimensions: Vec2, offset: Vec2, scale: Vec2,
   return canvas_pos;
 }
 
-function RendererLocalToCanvas(renderer: RendererInterface, point: Vec2) : Vec2 {
+function RendererLocalToCanvas(renderer: InternalRendererInterface, point: Vec2) : Vec2 {
   var dimensions = new Vec2(renderer.Width,
                             renderer.Height);
   var offset = renderer.Offset;
@@ -50,7 +50,7 @@ function RendererLocalToCanvas(renderer: RendererInterface, point: Vec2) : Vec2 
   return LocalToCanvas(dimensions, offset, scale, point);
 }
 
-function RendererCalculateBounds(renderer: RendererInterface) : Bounds {
+function RendererCalculateBounds(renderer: InternalRendererInterface) : Bounds {
   // We transform the points
   // bottom-left
   let tbl = RendererCanvasToLocal(renderer, new Vec2(0, 0));

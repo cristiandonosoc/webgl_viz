@@ -1,5 +1,5 @@
 import {Bounds, Vec2} from "./vectors";
-import {DrawSpace, RendererElemId, Renderer, RendererInterface} from "./renderer";
+import {DrawSpace, RendererElemId, InternalRenderer, InternalRendererInterface} from "./internal_renderer";
 import {Interaction, InteractionInterface} from "./interaction";
 import {LabelManager, LabelManagerInterface} from "./label_manager";
 import {AxisManager, AxisManagerInterface} from "./axis_manager";
@@ -31,7 +31,7 @@ class TimingVisualizer {
 
   private _Setup(container: HTMLElement, callback: (i: InteractionInterface) => void) {
     this._graphs = new Array<GraphInfoInterface>();
-    this._renderer = new Renderer(container);
+    this._renderer = new InternalRenderer(container);
     this._interaction = new Interaction(this._renderer, callback);
     // this._label_manager = new LabelManager(container, this, this._renderer);
     this._axis_manager = new AxisManager(container, this._renderer);
@@ -133,7 +133,7 @@ class TimingVisualizer {
    * PRIVATE GETTERS
    *******************************************************/
 
-  private get Renderer() : RendererInterface {
+  private get Renderer() : InternalRendererInterface {
     return this._renderer;
   }
 
@@ -155,7 +155,7 @@ class TimingVisualizer {
 
   _closest_point: Vec2;
 
-  _renderer: Renderer;
+  _renderer: InternalRenderer;
   _interaction: Interaction;
   _label_manager: LabelManager;
   _axis_manager: AxisManager;
