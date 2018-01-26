@@ -10,7 +10,9 @@ import AllShaders from "./shaders";
 import {Bounds, Vec2} from "./vectors";
 import {Color} from "./colors";
 import {RendererCalculateBounds} from "./transforms";
-import {CreateMaxBounds, GetCanvasChildByClass, GetBoundsFromGraphPoints} from "./helpers";
+import {CreateMaxBounds, GetCanvasChildByClass} from "./helpers";
+
+import {GraphInfo} from "./visualizer";
 
 /**************************************************************************
  * INTERFACES
@@ -45,8 +47,10 @@ interface RendererInterface {
   readonly Canvas: HTMLCanvasElement;
 
   /* MANAGING INTERFACE */
-  AddGraph(points: number[]) : RendererElemId;
+  // AddGraph(points: number[]) : RendererElemId;
+  AddGraph(graph_info: GraphInfo) : void;
   ResizeCanvas() : void;
+  ApplyMaxBounds() : void;
 
   /* RENDERING INTERFACE */
   Clear(color: Color) : void;
@@ -148,6 +152,10 @@ class Renderer implements RendererInterface {
     return this._elems;
   }
 
+  private get GL() : WebGL2RenderingContext {
+    return this._gl;
+  }
+
   private get ProgramInfos() : any {
     return this._program_infos;
   }
@@ -205,28 +213,33 @@ class Renderer implements RendererInterface {
     return this._gl.canvas.height;
   }
 
-  AddGraph(points: number[]) : RendererElemId {
+  AddGraph(graph_info: GraphInfo) : void {
     // We set the WebGL points
     let arrays = {
-      a_position_coord: points
+      a_position_coord: graph_info.RawPoints,
     };
 
     // We create the renderer elem
     let elem = new RendererElem();
-    elem.buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays)
-    elem.gl_primitive = this._gl.LINE_STRIP;
+    elem.buffer_info = twgl.createBufferInfoFromArrays(this.GL, arrays);
+    elem.gl_primitive = this.GL.LINE_STRIP;
+
+    // Register the element
     let elem_id = this.Elements.Register(elem);
+    graph_info.ElemId = elem_id;
 
-    // We calculate the bounds
-    let bounds = GetBoundsFromGraphPoints(points);
-    this._state.max_bounds = CreateMaxBounds(this.MaxBounds, bounds);
+    // Update the bounds
 
-    return elem_id;
+    this._state.max_bounds = CreateMaxBounds(this.MaxBounds, graph_info.Bounds);
   }
 
   ResizeCanvas() : void {
     twgl.resizeCanvasToDisplaySize(this._gl.canvas);
     this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
+  }
+
+  ApplyMaxBounds() : void {
+    this.Bounds = this.MaxBounds.Copy();
   }
 
   /*************************************************

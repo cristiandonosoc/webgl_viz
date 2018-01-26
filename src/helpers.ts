@@ -1,6 +1,6 @@
 import {Bounds, Vec2} from "./vectors";
 
-let g_inf = 9007199254740991;
+let INFINITY = 9007199254740991;
 
 function GetCanvasChildByTag(el: HTMLElement, tag: string, value: string) : HTMLCanvasElement {
   let children = el.getElementsByTagName("canvas");
@@ -18,38 +18,6 @@ function GetCanvasChildByClass(el: HTMLElement, cls: string) : HTMLCanvasElement
   return GetCanvasChildByTag(el, "class", cls);
 }
 
-function CreateVecArrayFromPoints(points: Array<number>) : Array<Vec2> {
-  let arr = new Array<Vec2>(points.length / 2);
-  for (let i = 0; i < arr.length; i += 1) {
-    let point_index = i * 2;
-    let p = new Vec2(points[point_index], points[point_index + 1]);
-    arr[i] = p;
-  }
-
-  return arr;
-}
-
-
-function GetBoundsFromGraphPoints(points: Array<number>) : Bounds {
-    // We post-process the points
-    let min = new Vec2(+g_inf, +g_inf);
-    let max = new Vec2(-g_inf, -g_inf);
-    let arr = new Array<Vec2>(points.length / 2);
-    for (let i = 0; i < arr.length; i += 1) {
-      let point_index = i * 2;
-      let p = new Vec2(points[point_index], points[point_index + 1]);
-      arr[i] = p;
-
-      // We track the bounds
-      if (p.x < min.x) { min.x = p.x; }
-      if (p.x > max.x) { max.x = p.x; }
-      if (p.y < min.y) { min.y = p.y; }
-      if (p.y > max.y) { max.y = p.y; }
-    }
-
-  return Bounds.FromPoints(min.x, max.x, min.y, max.y);
-}
-
 function CreateMaxBounds(a: Bounds, b: Bounds) : Bounds {
   return Bounds.FromPoints(
     Math.min(a.x.first, b.x.first),
@@ -58,8 +26,7 @@ function CreateMaxBounds(a: Bounds, b: Bounds) : Bounds {
     Math.max(a.y.last, b.y.last))
 }
 
-export {CreateVecArrayFromPoints};
+export {INFINITY}
 export {CreateMaxBounds};
-export {GetBoundsFromGraphPoints};
 export {GetCanvasChildByTag};
 export {GetCanvasChildByClass};

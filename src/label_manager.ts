@@ -87,11 +87,11 @@ class LabelManager implements LabelManagerInterface {
 
       ctx.strokeStyle = "black";
       ctx.strokeRect(sqr_x, sqr_y, sqr_size, sqr_size);
-      ctx.fillStyle = graph_info.color.RgbString;
+      ctx.fillStyle = graph_info.Color.RgbString;
       ctx.fillRect(sqr_x, sqr_y, sqr_size, sqr_size);
 
       ctx.fillStyle = "black";
-      ctx.fillText(graph_info.name, label_width * i + 12 + sqr_size, height + sqr_size / 3, label_width);
+      ctx.fillText(graph_info.Name, label_width * i + 12 + sqr_size, height + sqr_size / 3, label_width);
     }
   }
 

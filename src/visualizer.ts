@@ -4,29 +4,19 @@ import {Interaction, InteractionInterface} from "./interaction";
 import {LabelManager, LabelManagerInterface} from "./label_manager";
 import {AxisManager, AxisManagerInterface} from "./axis_manager";
 
-import {CreateVecArrayFromPoints} from "./helpers";
-
 import {ZoomType, UIManagerSingleton} from "./ui_manager";
 import {AllColors, Color} from "./colors";
 
+import {GraphInfo, GraphInfoInterface} from "./graph_info";
 
 /**************************************************************************
  * INTERFACE
  **************************************************************************/
 
-class GraphInfo {
-  name = "";
-  elem_id: RendererElemId;      // The points registered with the renderer
-  points: Array<Vec2>;          // The points loaded and sorted (by X-axis)
-  color: Color;                 // The color on which to render the graph
-  bounds: Bounds;               // The max X and Y bounds of this graph
-}
-
 interface VisualizerInterface {
+  readonly Graphs: Array<GraphInfoInterface>;
 
   AddGraph(name: string, points: number[]) : void;
-  readonly Graphs: Array<GraphInfo>;
-
   Update() : void;
   Draw() : void;
 
@@ -42,6 +32,7 @@ class Visualizer implements VisualizerInterface {
   /*******************************************************
    * CONSTRUCTOR
    *******************************************************/
+
   constructor(container: HTMLElement) {
     let ctx = this;
     function callback(i: InteractionInterface) : void {
@@ -52,12 +43,11 @@ class Visualizer implements VisualizerInterface {
   }
 
   private _Setup(container: HTMLElement, callback: (i: InteractionInterface) => void) {
-    this._graphs = new Array<GraphInfo>();
+    this._graphs = new Array<GraphInfoInterface>();
     this._renderer = new Renderer(container);
     this._interaction = new Interaction(this._renderer, callback);
     this._label_manager = new LabelManager(container, this, this._renderer);
     this._axis_manager = new AxisManager(container, this._renderer);
-
   }
 
   private _InteractionCallback(i: InteractionInterface) {
@@ -68,25 +58,16 @@ class Visualizer implements VisualizerInterface {
    * PUBLIC INTERFACE DATA
    *******************************************************/
 
-  get Graphs() : Array<GraphInfo> {
+  get Graphs() : Array<GraphInfoInterface> {
     return this._graphs;
   }
 
   AddGraph(name: string, points: number[]) : void {
-    // TODO(donosoc): The renderer should receive a graph_info
-    //                datastructure, not plain points
-    let graph_id = this.Renderer.AddGraph(points);
 
-    let graph_info = new GraphInfo();
-    graph_info.name = name;
-    graph_info.elem_id = graph_id;
-    let arr = CreateVecArrayFromPoints(points);
-    graph_info.points = arr.sort((p1: Vec2, p2: Vec2) => {
-      return p1.x - p2.x;
-    });
-    graph_info.color = AllColors.Get("red");
-    graph_info.bounds = Bounds.FromPoints(-1, 1, -1, 1);
-
+    // TODO(donosoc): Give a correct color to the graph
+    let graph_info = new GraphInfo(name, points);
+    // TODO(donosoc): Verify that this is working as reference
+    this.Renderer.AddGraph(graph_info);
     this._graphs.push(graph_info);
   }
 
@@ -95,7 +76,7 @@ class Visualizer implements VisualizerInterface {
   }
 
   ApplyMaxBounds() : void {
-    throw new Error("NOT IMPLEMENTED");
+    this.Renderer.ApplyMaxBounds();
   }
 
   Update() : void {
@@ -138,7 +119,7 @@ class Visualizer implements VisualizerInterface {
     this.Renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
 
     for (let graph_info of this.Graphs) {
-      this.Renderer.DrawElement(graph_info.elem_id, DrawSpace.LOCAL, graph_info.color);
+      this.Renderer.DrawElement(graph_info.ElemId, DrawSpace.LOCAL, graph_info.Color);
     }
 
     // Draw mouse vertical line
@@ -162,7 +143,7 @@ class Visualizer implements VisualizerInterface {
 
     // For now we search on the last graph
     let last_graph = this.Graphs[this.Graphs.length - 1];
-    let points = last_graph.points;
+    let points = last_graph.Points;
 
     var len = points.length;
     if (pos.x <= points[0].x) {
@@ -239,7 +220,7 @@ class Visualizer implements VisualizerInterface {
   _label_manager: LabelManager;
   _axis_manager: AxisManager;
 
-  _graphs: Array<GraphInfo>;
+  _graphs: Array<GraphInfoInterface>;
 }
 
 

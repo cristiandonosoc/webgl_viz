@@ -53,16 +53,13 @@ class PacketDapperViz implements PacketDapperVizInterface {
 
   constructor(graph_canvas_container: HTMLElement,
               timing_canvas_container: HTMLElement) {
-    this.SetupState();
+    this._SetupState();
 
+    // Create visualizers
     this._visualizers.push(new Visualizer(graph_canvas_container));
   }
 
-  private _GraphCallback(i: InteractionInterface) {
-    this.SetClosestPoint(i.CurrentMousePos.local);
-  }
-
-  private SetupState() {
+  private _SetupState() {
 
     let graph_colors = new Array<Color>();
     graph_colors.push(AllColors.Get("deeppink"));
@@ -79,6 +76,8 @@ class PacketDapperViz implements PacketDapperVizInterface {
       },
       bounds: Bounds.FromPoints(-1, 1, -1, 1),
     };
+
+    this._visualizers = new Array<VisualizerInterface>();
   }
 
   /*******************************************************
