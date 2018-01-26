@@ -126,8 +126,6 @@ class Interaction implements InteractionInterface {
     this._state.mouse.down_pos = mouse_pos;
     this._state.mouse.dragging = true;
     this._state.mouse.button = event.button;
-
-    this.PostChange();
   }
 
   private MouseUp = (event: any) => {
@@ -143,8 +141,6 @@ class Interaction implements InteractionInterface {
     if (old_button == MouseButtons.RIGHT) {
       this._ProcessZoomDrag(event);
     }
-
-    this.PostChange();
   }
 
   private MouseMove = (event: any) => {
@@ -152,7 +148,6 @@ class Interaction implements InteractionInterface {
     if (this._state.mouse.dragging) {
       this._ProcessDrag(event);
     }
-    this.PostChange();
   }
 
   private MouseWheel = (event: any) => {
@@ -199,6 +194,10 @@ class Interaction implements InteractionInterface {
   // Method to call after a change has happened
   private PostChange() {
     // TODO(donosoc): Mark the view as dirty when that is implemented
+    // Call the given callback
+    if (this._callback) {
+      this._callback(this);
+    }
   }
 
   /**************************************************************
@@ -213,8 +212,6 @@ class Interaction implements InteractionInterface {
     this._state.mouse.last_pos = this._state.mouse.current_pos;
     this._state.mouse.current_pos = MousePosition.FromRendererEvent(this._renderer, event);
 
-    // Call the given callback
-    this._callback(this);
   }
 
   private _ProcessDrag(event: any) {
@@ -242,6 +239,8 @@ class Interaction implements InteractionInterface {
     // offset.y *= -1;
 
     this._renderer.Offset = Vec2.Sum(this._renderer.Offset, offset);
+
+    this.PostChange();
   }
 
   private _ProcessZoomDrag(event: any) {
@@ -268,8 +267,9 @@ class Interaction implements InteractionInterface {
     }
 
     this._renderer.Bounds = bounds;
-  }
 
+    this.PostChange();
+  }
 
   /**************************************************************************
    * PRIVATE DATA
