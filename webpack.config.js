@@ -1,4 +1,5 @@
 const path = require("path");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 module.exports = {
@@ -23,7 +24,11 @@ module.exports = {
       new ExtractTextPlugin({
         filename: "bundled_style.css",
         allChunks: true,
-      })
+      }),
+      new CopyWebpackPlugin([
+          { from: "html/packet_dapper_viz.html", to: "./" },
+          { from: "resources", to: "resources" }
+      ])
   ],
   resolve: {
     extensions: [".tsx", ".ts", ".js"]

@@ -25,5 +25,5 @@ So check this out. Something that would only be a one liner with gcc:
 1. Install Node.js and ensure npm is present
 2. Install dependencies (typescript, webpack, ts-loader, sass, etc)
   - npm install -g typescript ts-loader webpack node-sass css-loader sass-loader
-    extract-text-webpack-plugin
+    extract-text-webpack-plugin copy-webpack-plugin
 3. run webpack

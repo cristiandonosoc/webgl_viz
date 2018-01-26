@@ -1,4 +1,4 @@
-///<reference path="resources/es6.d.ts" />
+///<reference path="third_party_interfaces/es6.d.ts" />
 
 import {AllColors} from "./colors";
 import {Vec2} from "./vectors";

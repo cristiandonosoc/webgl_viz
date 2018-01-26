@@ -1,0 +1,80 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="bundled_style.css" />
+    <style>
+    </style>
+  </head>
+<body>
+  <div class="stats">
+    <div class="stat-group">
+      <div><span class="label">OffsetX: </span><input id="offset-x" /></div>
+      <div><span class="label">OffsetY: </span><input id="offset-y" /></div>
+    </div>
+    <div class="stat-group">
+      <div><span class="label">ScreenX: </span><input id="screen-x" /></div>
+      <div><span class="label">ScreenY: </span><input id="screen-y" /></div>
+    </div>
+    <div class="stat-group">
+      <div><span class="label">CanvasX: </span><input id="canvas-x" /></div>
+      <div><span class="label">CanvasY: </span><input id="canvas-y" /></div>
+    </div>
+    <div class="stat-group">
+      <div><span class="label">LocalX: </span><input id="local-x" /></div>
+      <div><span class="label">LocalY: </span><input id="local-y" /></div>
+    </div>
+    <div class="stat-group">
+      <div><span class="label">ScaleX: </span><input id="scale-x" /></div>
+      <div><span class="label">ScaleY: </span><input id="scale-y" /></div>
+    </div>
+    <div class="stat-group">
+      <div><span class="label">BoundsX: </span><input id="bounds-x-min" /><span>:</span><input id="bounds-x-max" /></div>
+      <div><span class="label">BoundsY: </span><input id="bounds-y-min" /><span>:</span><input id="bounds-y-max" /></div>
+    </div>
+  </div>
+  <div class="controls">
+    <input type="file" id="control-file" />
+    <button id="control-load-default-data" type="button">Load Test Data</button>
+    <button id="control-expand" type="button">Expand</button>
+    <span>
+      <input type="radio" id="control-vertical-zoom" name="control-zoom" checked />
+      <label for="control-vertical-zoom">Vertical Zoom</label>
+      <input type="radio" id="control-horizontal-zoom" name="control-zoom" />
+      <label for="control-horizontal-zoom">Horizontal Zoom</label>
+      <input type="radio" id="control-box-zoom" name="control-zoom" />
+      <label for="control-box-zoom">Box Zoom</label>
+    </span>
+    <label id="ctrl-key" class="hidden">CTRL</label>
+    <label id="alt-key" class="hidden">ALT</label>
+    <label id="shift-key" class="hidden">SHIFT</label>
+  </div>
+  <div id="main-container">
+    <div class="graph-container">
+      <div class="canvas-container" id="graph-canvas-container">
+        <canvas class="canvas-labels" id="graph-canvas-labels"></canvas>
+        <canvas class="central-canvas" id="graph-canvas" oncontextmenu="return false"></canvas>
+        <canvas class="x-axis" id="graph-canvas-x-axis"></canvas>
+        <canvas class="y-axis" id="graph-canvas-y-axis"></canvas>
+      </div>
+      <!-- <div class="x-labels"> -->
+      <!--   <input type="number" step="any" class="top" /> -->
+      <!--   <input type="number" step="any" class="bottom" /> -->
+      <!-- </div> -->
+      <!-- <div class="y-labels"> -->
+      <!--   <input type="number" step="any" class="top" /> -->
+      <!--   <input type="number" step="any" class="bottom" /> -->
+      <!-- </div> -->
+    </div>
+    <div class="graph-container">
+      <div class="canvas-container" id="timing-canvas-container">
+        <canvas class="canvas-labels" id="timing-canvas-labels"></canvas>
+        <canvas class="central-canvas" id="timing-canvas" oncontextmenu="return false"></canvas>
+        <canvas class="x-axis" id="timing-canvas-x-axis"></canvas>
+        <canvas class="y-axis" id="timing-canvas-y-axis"></canvas>
+      </div>
+    </div>
+  </div>
+  <!-- SCRIPTS -->
+  <script src="resources/twgl.js"></script>
+  <script src="bundled_app.js"></script>
+</body>
+</html>
