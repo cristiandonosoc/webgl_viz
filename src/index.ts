@@ -27,7 +27,9 @@ document.getElementById("control-load-default-data").addEventListener("click", (
     let graph = graphs[i];
     manager.AddGraph(name, graph);
   }
-  requestAnimationFrame(ProcessFrame);
+
+  manager.Start();
+  // requestAnimationFrame(ProcessFrame);
 });
 
 document.getElementById("control-file").addEventListener("change", (event: any) => {

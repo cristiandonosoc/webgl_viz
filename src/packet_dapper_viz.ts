@@ -18,10 +18,8 @@ import {INFINITY, GetCanvasChildByClass} from "./helpers";
  **************************************************************************/
 
 interface PacketDapperVizInterface {
-  /* STATE */
-  Valid: boolean;
-
   /* ACTIONS */
+  Start() : void;
   FrameLoop() : void;   /* Update + Draw */
   // Update() : void;
   // Draw() : void;
@@ -54,6 +52,7 @@ class PacketDapperViz implements PacketDapperVizInterface {
 
     // Create visualizers
     this._visualizers.push(new Visualizer(graph_canvas_container));
+    console.log("LOADED VISUALIZERS");
   }
 
   private _SetupState() {
@@ -75,18 +74,23 @@ class PacketDapperViz implements PacketDapperVizInterface {
     };
 
     this._visualizers = new Array<VisualizerInterface>();
+    this._running = false;
   }
 
   /*******************************************************
-   * GETTERS / SETTERS
+   * PUBLIC INTERFACE
    *******************************************************/
+
+  Start() : void {
+    this._running = true;
+  }
 
   get Colors() : any {
     return this._state.colors;
   }
 
-  get Valid() : boolean {
-    return false;
+  get Running() : boolean {
+    return this._running;
   }
 
   get Bounds() :  Bounds {
@@ -192,7 +196,7 @@ class PacketDapperViz implements PacketDapperVizInterface {
   }
 
   private Draw() : void {
-    if (!this.Valid) {
+    if (!this.Running) {
       return;
     }
 
@@ -222,11 +226,7 @@ class PacketDapperViz implements PacketDapperVizInterface {
    *******************************************************/
 
   private _canvases: Array<CanvasHolder>;
-
-  // private _renderer: Renderer;            // Manages WebGL rendering
-  // private _interaction: Interaction;      // Manages interaction with browser (mostly mouse)
-  // private _label_manager: LabelManager;   // Manages interaction with DOM
-  // private _axis_manager: AxisManager;     // Manages axis and scales
+  private _running: boolean;
 
   // Internal state of the renderer
   private _state: {

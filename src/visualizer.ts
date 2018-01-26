@@ -63,6 +63,9 @@ class Visualizer implements VisualizerInterface {
   }
 
   AddGraph(name: string, points: number[]) : void {
+    console.log("VISUALIZER ADDING: ",
+                "NAME: ", name);
+
 
     // TODO(donosoc): Give a correct color to the graph
     let graph_info = new GraphInfo(name, points);
