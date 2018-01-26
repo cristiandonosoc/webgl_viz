@@ -17,17 +17,30 @@ import VisualizerInterface from "./visualizer_interface";
  **************************************************************************/
 
 class GraphVisualizer implements VisualizerInterface {
+
+  static id : number = 0;
+
   /*******************************************************
    * CONSTRUCTOR
    *******************************************************/
 
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement,
+              viz_callback?: (i:VisualizerInterface) => void) {
+    this._id = GraphVisualizer.id++;
+    console.log("SET ID: ", this._id);
     let ctx = this;
-    function callback(i: InteractionInterface) : void {
+    function int_callback(i: InteractionInterface) : void {
       ctx._InteractionCallback(i);
+      // We see if we have to call the program
+      if (ctx._interaction_callback) {
+        ctx._interaction_callback(ctx);
+      }
     }
 
-    this._Setup(container, callback);
+    this._Setup(container, int_callback);
+    if (viz_callback) {
+      this.SetInteractionCallback(viz_callback);
+    }
   }
 
   private _Setup(container: HTMLElement, callback: (i: InteractionInterface) => void) {
@@ -46,6 +59,16 @@ class GraphVisualizer implements VisualizerInterface {
   /*******************************************************
    * PUBLIC INTERFACE DATA
    *******************************************************/
+
+  get Id() : number { return this._id; }
+
+  ReactToOtherVisualizer(v: VisualizerInterface) : void {
+    // We only care on obtaining the horizontal zoom
+    let new_bounds = v.Renderer.Bounds.Copy();
+    new_bounds.y = this.Renderer.Bounds.y;
+
+    this.Renderer.Bounds = new_bounds;
+  }
 
   get Graphs() : Array<GraphInfoInterface> {
     return this._graphs;
@@ -94,6 +117,10 @@ class GraphVisualizer implements VisualizerInterface {
 
   ApplyMaxBounds() : void {
     this.Renderer.ApplyMaxBounds();
+  }
+
+  SetInteractionCallback(callback: (i: VisualizerInterface) => void) : void {
+    this._interaction_callback = callback;
   }
 
   Update() : void {
@@ -203,17 +230,15 @@ class GraphVisualizer implements VisualizerInterface {
   }
 
 
-
-
   /*******************************************************
-   * PRIVATE GETTERS
+   * GETTERS
    *******************************************************/
 
-  private get Renderer() : RendererInterface {
+  get Renderer() : RendererInterface {
     return this._renderer;
   }
 
-  private get Interaction() : InteractionInterface {
+  get Interaction() : InteractionInterface {
     return this._interaction;
   }
 
@@ -229,14 +254,17 @@ class GraphVisualizer implements VisualizerInterface {
    * PRIVATE DATA
    *******************************************************/
 
-  _closest_point: Vec2;
+  private _id: number;
+  private _closest_point: Vec2;
 
-  _renderer: Renderer;
-  _interaction: Interaction;
-  _label_manager: LabelManager;
-  _axis_manager: AxisManager;
+  private _renderer: Renderer;
+  private _interaction: Interaction;
+  private _label_manager: LabelManager;
+  private _axis_manager: AxisManager;
 
-  _graphs: Array<GraphInfoInterface>;
+  private _graphs: Array<GraphInfoInterface>;
+
+  private _interaction_callback: (i: VisualizerInterface) => void;
 }
 
 /**************************************************************************

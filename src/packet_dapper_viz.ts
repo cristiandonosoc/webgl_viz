@@ -51,10 +51,24 @@ class PacketDapperViz implements PacketDapperVizInterface {
               timing_canvas_container: HTMLElement) {
     this._SetupState();
 
+    let ctx = this;
+    function viz_callback(v: VisualizerInterface) : void {
+      ctx._VisualizerInteractionCallback(v);
+    }
+
     // Create visualizers
-    this._visualizers.push(new GraphVisualizer(graph_canvas_container));
-    this._visualizers.push(new GraphVisualizer(timing_canvas_container));
+    //
+    this._visualizers.push(new GraphVisualizer(graph_canvas_container, viz_callback));
+    this._visualizers.push(new GraphVisualizer(timing_canvas_container, viz_callback));
     console.log("LOADED VISUALIZERS");
+  }
+
+  private _VisualizerInteractionCallback(v: VisualizerInterface) : void {
+    for (let viz of this._visualizers) {
+      if (viz.Id != v.Id) {
+        viz.ReactToOtherVisualizer(v);
+      }
+    }
   }
 
   private _SetupState() {

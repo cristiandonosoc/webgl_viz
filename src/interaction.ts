@@ -291,6 +291,7 @@ class Interaction implements InteractionInterface {
       up_pos: MousePosition,
     },
   };
+
 }
 
 /**************************************************************************

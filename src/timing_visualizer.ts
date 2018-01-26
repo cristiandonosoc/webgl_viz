@@ -15,7 +15,7 @@ import VisualizerInterface from "./visualizer_interface";
  * IMPLEMENTATION
  **************************************************************************/
 
-class TimingVisualizer implements VisualizerInterface {
+class TimingVisualizer {
 
   /*******************************************************
    * CONSTRUCTOR
@@ -33,7 +33,7 @@ class TimingVisualizer implements VisualizerInterface {
     this._graphs = new Array<GraphInfoInterface>();
     this._renderer = new Renderer(container);
     this._interaction = new Interaction(this._renderer, callback);
-    this._label_manager = new LabelManager(container, this, this._renderer);
+    // this._label_manager = new LabelManager(container, this, this._renderer);
     this._axis_manager = new AxisManager(container, this._renderer);
   }
 

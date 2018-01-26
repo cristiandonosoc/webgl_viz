@@ -1,6 +1,9 @@
 import {Vec2} from "./vectors";
 import GraphInfoInterface from "./graph_info"
 
+import InteractionInterface from "./interaction";
+import RendererInterface from "./renderer";
+
 interface VisualizerInterface {
   readonly Graphs: Array<GraphInfoInterface>;
 
@@ -9,8 +12,16 @@ interface VisualizerInterface {
   Update() : void;
   Draw() : void;
 
+  SetInteractionCallback(callback: (i: VisualizerInterface) => void) : void;
+  ReactToOtherVisualizer(v: VisualizerInterface) : void;
+
   SetClosestPoint(point: Vec2) : void;
   ApplyMaxBounds() : void;
+
+  // GETTERS
+  readonly Id : number;
+  readonly Interaction : InteractionInterface;
+  readonly Renderer: RendererInterface;
 }
 
 export {VisualizerInterface};
