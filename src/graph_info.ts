@@ -1,4 +1,3 @@
-import {INFINITY} from "./helpers";
 import {Bounds, Vec2} from "./vectors";
 import {RendererElemId} from "./renderer";
 import {AllColors, Color} from "./colors";
@@ -9,9 +8,9 @@ import {AllColors, Color} from "./colors";
 
 interface GraphInfoInterface {
   readonly Name: string;
-  readonly RawPoints: Array<number>;
-  readonly Points: Array<Vec2>;
-  readonly Bounds: Bounds;
+  RawPoints: Array<number>;
+  Points: Array<Vec2>;
+  Bounds: Bounds;
 
   ElemId: RendererElemId;
   Color: Color;
@@ -21,16 +20,13 @@ interface GraphInfoInterface {
  * IMPLEMENTATION
  **************************************************************************/
 
-class GraphInfo {
+class GraphInfo implements GraphInfoInterface{
   /*******************************************************
    * CONSTRUCTOR
    *******************************************************/
 
-  constructor(name: string, graph_points: number[], color?: Color) {
+  constructor(name: string, color?: Color) {
     this._name = name;
-
-    // Sets _points and _bounds
-    this._ProcessPoints(graph_points);
 
     if (color) {
       this._color = color;
@@ -57,32 +53,17 @@ class GraphInfo {
     this._color = color;
   }
 
+  set RawPoints(points: Array<number>) {
+    this._raw_points = points;
+  }
+
+  set Points(points: Array<Vec2>) {
+    this._points = points;
+  }
+
   /*******************************************************
    * PRIVATE METHODS
    *******************************************************/
-
-  private _ProcessPoints(points: number[]) : void {
-    this._raw_points = points;
-    let arr = new Array<Vec2>(points.length / 2);
-    let min = new Vec2(+INFINITY, +INFINITY);
-    let max = new Vec2(-INFINITY, -INFINITY);
-    for (let i = 0; i < arr.length; i += 1) {
-      let point_index = i * 2;
-      let p = new Vec2(points[point_index], points[point_index + 1]);
-      arr[i] = p;
-
-      // We go by tracking the bounds
-      if (p.x < min.x) { min.x = p.x; }
-      if (p.x > max.x) { max.x = p.x; }
-      if (p.y < min.y) { min.y = p.y; }
-      if (p.y > max.y) { max.y = p.y; }
-    }
-
-    // We set the points
-    this._points = arr;
-    this._bounds = Bounds.FromPoints(min.x, max.x, min.y, max.y);
-  }
-
 
 
   /*******************************************************
