@@ -61,6 +61,10 @@ class GraphInfo implements GraphInfoInterface{
     this._points = points;
   }
 
+  set Bounds(bounds: Bounds) {
+    this._bounds = bounds;
+  }
+
   /*******************************************************
    * PRIVATE METHODS
    *******************************************************/

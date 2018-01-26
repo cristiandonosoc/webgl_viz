@@ -61,6 +61,7 @@ class GraphVisualizer implements VisualizerInterface {
 
     // TODO(donosoc): Give a correct color to the graph
     let graph_info = new GraphInfo(name);
+    this._ProcessPoints(graph_info, points);
     this.Renderer.AddGraph(graph_info);
     this._graphs.push(graph_info);
   }

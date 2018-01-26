@@ -53,6 +53,7 @@ class PacketDapperViz implements PacketDapperVizInterface {
 
     // Create visualizers
     this._visualizers.push(new GraphVisualizer(graph_canvas_container));
+    this._visualizers.push(new GraphVisualizer(timing_canvas_container));
     console.log("LOADED VISUALIZERS");
   }
 

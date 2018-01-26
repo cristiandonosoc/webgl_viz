@@ -54,15 +54,15 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   AddGraph(name: string, points: number[]) : void {
-    console.log("VISUALIZER ADDING: ",
-                "NAME: ", name);
+    // console.log("VISUALIZER ADDING: ",
+    //             "NAME: ", name);
 
 
-    // TODO(donosoc): Give a correct color to the graph
-    let graph_info = new GraphInfo(name, points);
-    // TODO(donosoc): Verify that this is working as reference
-    this.Renderer.AddGraph(graph_info);
-    this._graphs.push(graph_info);
+    // // TODO(donosoc): Give a correct color to the graph
+    // let graph_info = new GraphInfo(name, points);
+    // // TODO(donosoc): Verify that this is working as reference
+    // this.Renderer.AddGraph(graph_info);
+    // this._graphs.push(graph_info);
   }
 
   SetClosestPoint(point: Vec2) {
