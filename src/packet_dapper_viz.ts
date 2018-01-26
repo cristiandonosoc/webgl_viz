@@ -6,7 +6,8 @@ import {DrawSpace, RendererElemId, Renderer, RendererInterface} from "./renderer
 import {LabelManager, LabelManagerInterface} from "./label_manager";
 import {AxisManager, AxisManagerInterface} from "./axis_manager";
 
-import {Visualizer, VisualizerInterface} from "./visualizer";
+import VisualizerInterface from "./visualizer_interface";
+import GraphVisualizer from "./graph_visualizer"
 
 // import {ZoomType, UIManager, UIManagerInterface} from "./ui_manager";
 import {ZoomType, UIManagerSingleton} from "./ui_manager";
@@ -51,7 +52,7 @@ class PacketDapperViz implements PacketDapperVizInterface {
     this._SetupState();
 
     // Create visualizers
-    this._visualizers.push(new Visualizer(graph_canvas_container));
+    this._visualizers.push(new GraphVisualizer(graph_canvas_container));
     console.log("LOADED VISUALIZERS");
   }
 

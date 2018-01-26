@@ -1,4 +1,4 @@
-import VisualizerInterface from "./visualizer";
+import VisualizerInterface from "./visualizer_interface";
 
 import RendererInterface from "./renderer";
 import {RendererCanvasToLocal} from "./transforms";

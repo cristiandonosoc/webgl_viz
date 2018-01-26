@@ -12,7 +12,7 @@ import {Color} from "./colors";
 import {RendererCalculateBounds} from "./transforms";
 import {CreateMaxBounds, INFINITY, GetCanvasChildByClass} from "./helpers";
 
-import {GraphInfo} from "./visualizer";
+import GraphInfoInterface from "./graph_info";
 
 /**************************************************************************
  * INTERFACES
@@ -48,7 +48,7 @@ interface RendererInterface {
 
   /* MANAGING INTERFACE */
   // AddGraph(points: number[]) : RendererElemId;
-  AddGraph(graph_info: GraphInfo) : void;
+  AddGraph(graph_info: GraphInfoInterface) : void;
   ResizeCanvas() : void;
   ApplyMaxBounds() : void;
 
@@ -212,7 +212,7 @@ class Renderer implements RendererInterface {
     return this._gl.canvas.height;
   }
 
-  AddGraph(graph_info: GraphInfo) : void {
+  AddGraph(graph_info: GraphInfoInterface) : void {
     // We set the WebGL points
     let arrays = {
       a_position_coord: graph_info.RawPoints,

@@ -9,27 +9,13 @@ import {AllColors, Color} from "./colors";
 
 import {GraphInfo, GraphInfoInterface} from "./graph_info";
 
-/**************************************************************************
- * INTERFACE
- **************************************************************************/
-
-interface VisualizerInterface {
-  readonly Graphs: Array<GraphInfoInterface>;
-
-  Start() : void;
-  AddGraph(name: string, points: number[]) : void;
-  Update() : void;
-  Draw() : void;
-
-  SetClosestPoint(point: Vec2) : void;
-  ApplyMaxBounds() : void;
-}
+import VisualizerInterface from "./visualizer_interface";
 
 /**************************************************************************
  * IMPLEMENTATION
  **************************************************************************/
 
-class Visualizer implements VisualizerInterface {
+class GraphVisualizer implements VisualizerInterface {
   /*******************************************************
    * CONSTRUCTOR
    *******************************************************/
@@ -233,8 +219,6 @@ class Visualizer implements VisualizerInterface {
 }
 
 
-export {GraphInfo}
-export {Visualizer};
+export {GraphVisualizer};
 export {VisualizerInterface};
-export default VisualizerInterface;
-
+export default GraphVisualizer;
