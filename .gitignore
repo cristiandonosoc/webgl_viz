@@ -3,4 +3,3 @@ output/*
 node_modules/*
 bin/*
 webpack
-Makefile
