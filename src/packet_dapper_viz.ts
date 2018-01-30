@@ -8,6 +8,8 @@ import TimingVisualizer from "./timing_visualizer";
 import {ZoomType, UIManagerSingleton} from "./ui_manager";
 import {INFINITY} from "./helpers";
 
+import {DataLoader} from "./data_loader";
+
 /**************************************************************************
  * INTERFACE
  **************************************************************************/
@@ -104,6 +106,12 @@ class PacketDapperViz implements PacketDapperVizInterface {
   }
 
   HandleDapFile = (content: string) => {
+
+
+    let a = new DataLoader();
+    a.ParseFile("test", content);
+
+
     // We split into lines
     let lines = content.split("\n");
     console.info("Read %d lines", lines.length);
