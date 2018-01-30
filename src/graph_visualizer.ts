@@ -1,4 +1,4 @@
-import {INFINITY} from "./helpers";
+import {IdManager, INFINITY} from "./helpers";
 import {Bounds, Vec2} from "./vectors";
 import {DrawSpace, RendererElemId, InternalRenderer, InternalRendererInterface} from "./internal_renderer";
 import {Interaction, InteractionInterface} from "./interaction";
@@ -18,15 +18,13 @@ import VisualizerInterface from "./visualizer_interface";
 
 class GraphVisualizer implements VisualizerInterface {
 
-  static id : number = 0;
-
   /*******************************************************
    * CONSTRUCTOR
    *******************************************************/
 
   constructor(container: HTMLElement,
               viz_callback?: (i:VisualizerInterface) => void) {
-    this._id = GraphVisualizer.id++;
+    this._id = IdManager.GetVisualizerId();
     console.log("SET ID: ", this._id);
     let ctx = this;
     function int_callback(i: InteractionInterface) : void {
@@ -43,7 +41,8 @@ class GraphVisualizer implements VisualizerInterface {
     }
   }
 
-  private _Setup(container: HTMLElement, callback: (i: InteractionInterface) => void) {
+  private _Setup(container: HTMLElement,
+                 callback: (i: InteractionInterface) => void) {
     this._graphs = new Array<GraphInfoInterface>();
     this._renderer = new InternalRenderer(container);
     this._interaction = new Interaction(this._renderer, callback);
@@ -119,7 +118,7 @@ class GraphVisualizer implements VisualizerInterface {
     this.Renderer.ApplyMaxBounds();
   }
 
-  SetInteractionCallback(callback: (i: VisualizerInterface) => void) : void {
+  SetInteractionCallback(callback: (i: VisualizerInterface) => void): void {
     this._interaction_callback = callback;
   }
 

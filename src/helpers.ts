@@ -26,6 +26,16 @@ function CreateMaxBounds(a: Bounds, b: Bounds) : Bounds {
     Math.max(a.y.last, b.y.last))
 }
 
+class IdManager {
+
+  static GetVisualizerId() : number {
+    return IdManager._visualizer_id++;
+  }
+
+  private static _visualizer_id : number = 0;
+}
+
+export {IdManager}
 export {INFINITY}
 export {CreateMaxBounds};
 export {GetCanvasChildByTag};

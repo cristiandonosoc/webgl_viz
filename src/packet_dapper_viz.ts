@@ -3,6 +3,7 @@ import {Bounds, Vec2} from "./vectors";
 
 import VisualizerInterface from "./visualizer_interface";
 import GraphVisualizer from "./graph_visualizer"
+import TimingVisualizer from "./timing_visualizer";
 
 import {ZoomType, UIManagerSingleton} from "./ui_manager";
 import {INFINITY} from "./helpers";
@@ -45,7 +46,7 @@ class PacketDapperViz implements PacketDapperVizInterface {
     // Create visualizers
     //
     this._visualizers.push(new GraphVisualizer(graph_canvas_container, viz_callback));
-    this._visualizers.push(new GraphVisualizer(timing_canvas_container, viz_callback));
+    this._visualizers.push(new TimingVisualizer(timing_canvas_container, viz_callback));
     console.log("LOADED VISUALIZERS");
   }
 

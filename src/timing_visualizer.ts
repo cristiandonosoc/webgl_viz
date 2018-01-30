@@ -4,6 +4,7 @@ import {Interaction, InteractionInterface} from "./interaction";
 import {LabelManager, LabelManagerInterface} from "./label_manager";
 import {AxisManager, AxisManagerInterface} from "./axis_manager";
 
+import {IdManager} from "./helpers";
 import {ZoomType, UIManagerSingleton} from "./ui_manager";
 import {AllColors, Color} from "./colors";
 
@@ -15,35 +16,57 @@ import VisualizerInterface from "./visualizer_interface";
  * IMPLEMENTATION
  **************************************************************************/
 
-class TimingVisualizer {
+class TimingVisualizer implements VisualizerInterface {
 
   /*******************************************************
    * CONSTRUCTOR
    *******************************************************/
 
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement,
+              viz_callback?: (i:VisualizerInterface) => void) {
+    this._id = IdManager.GetVisualizerId();
+
     let ctx = this;
     this._Setup(container, function (i: InteractionInterface) {
       ctx._InteractionCallback(i);
     });
 
+
+    if (viz_callback) {
+      this.SetInteractionCallback(viz_callback);
+    }
   }
 
   private _Setup(container: HTMLElement, callback: (i: InteractionInterface) => void) {
     this._graphs = new Array<GraphInfoInterface>();
     this._renderer = new InternalRenderer(container);
     this._interaction = new Interaction(this._renderer, callback);
-    // this._label_manager = new LabelManager(container, this, this._renderer);
+    this._label_manager = new LabelManager(container, this, this._renderer);
     this._axis_manager = new AxisManager(container, this._renderer);
   }
 
   private _InteractionCallback(i: InteractionInterface) : void {
-
+    return;
+    // this.SetClosestPoint(i.CurrentMousePos.local);
   }
 
   /*******************************************************
    * PUBLIC INTERFACE DATA
    *******************************************************/
+
+  get Id() : number { return this._id; }
+
+  SetInteractionCallback(callback: (i: VisualizerInterface) => void): void {
+    this._interaction_callback = callback;
+  }
+
+  ReactToOtherVisualizer(v: VisualizerInterface) : void {
+    // We only care on obtaining the horizontal zoom
+    let new_bounds = v.Renderer.Bounds.Copy();
+    new_bounds.y = this.Renderer.Bounds.y;
+
+    this.Renderer.Bounds = new_bounds;
+  }
 
   get Graphs() : Array<GraphInfoInterface> {
     return this._graphs;
@@ -77,7 +100,6 @@ class TimingVisualizer {
     this.Renderer.ResizeCanvas();
     this.LabelManager.Update();
     this.AxisManager.Update();
-
   }
 
   Draw() : void {
@@ -125,19 +147,17 @@ class TimingVisualizer {
     if (this._closest_point) {
       this.Renderer.DrawIcon(this._closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));
     }
-
-
   }
 
   /*******************************************************
-   * PRIVATE GETTERS
+   * GETTERS
    *******************************************************/
 
-  private get Renderer() : InternalRendererInterface {
+  get Renderer() : InternalRendererInterface {
     return this._renderer;
   }
 
-  private get Interaction() : InteractionInterface {
+  get Interaction() : InteractionInterface {
     return this._interaction;
   }
 
@@ -153,6 +173,8 @@ class TimingVisualizer {
    * PRIVATE DATA
    *******************************************************/
 
+  private _id: number;
+
   _closest_point: Vec2;
 
   _renderer: InternalRenderer;
@@ -161,6 +183,8 @@ class TimingVisualizer {
   _axis_manager: AxisManager;
 
   _graphs: Array<GraphInfoInterface>;
+
+  private _interaction_callback: (i: VisualizerInterface) => void;
 }
 
 /**************************************************************************
