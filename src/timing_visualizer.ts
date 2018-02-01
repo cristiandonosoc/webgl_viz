@@ -57,6 +57,19 @@ class TimingVisualizer implements VisualizerInterface {
    * PUBLIC INTERFACE DATA
    *******************************************************/
 
+  get Colors() : {[K:string]: Color} { return this._colors; }
+
+  GetColor(key: string) : Color {
+    return this._colors[key];
+  }
+
+  SetColor(key: string, color: Color) : boolean {
+    this._colors[key] = color;
+    return true;
+  }
+
+
+
   get Id() : number { return this._id; }
 
   SetInteractionCallback(callback: (i: VisualizerInterface) => void): void {
@@ -180,6 +193,7 @@ class TimingVisualizer implements VisualizerInterface {
    * PRIVATE DATA
    *******************************************************/
 
+  private _colors: {[K:string]: Color};
   private _id: number;
 
   _closest_point: Vec2;

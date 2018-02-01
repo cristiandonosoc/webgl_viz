@@ -71,20 +71,29 @@ class Color {
 }
 
 class ColorRegistry {
-  colors: {[key: string]: Color};
 
-  constructor(colors: {[key: string]: number[]}) {
-    this.colors = {}
+  constructor(colors: {[key: string]: number[]},
+              default_colors: Array<string>) {
+    this._colors = {}
+    this._default_colors = default_colors;
     for (let key in colors) {
       let color = new Color(colors[key]);
       color.name = key;
-      this.colors[key] = color;
+      this._colors[key] = color;
     }
   }
 
   Get(color_name: string) : Color {
-    return this.colors[color_name];
+    return this._colors[color_name];
   }
+
+  GetDefaultColor(index: number) : Color {
+    return this.Get(this._default_colors[index]);
+  }
+
+
+  private _colors: {[key: string]: Color};
+  private _default_colors: Array<string>;
 };
 
 /************************************************
@@ -258,7 +267,17 @@ var colors = {
   yellowgreen: [0.603922, 0.803922, 0.196078, 1],
 };
 
-var AllColors = new ColorRegistry(colors);
+let default_colors = [
+  "goldenrod",
+  "ivory",
+  "pink",
+  "steelblue",
+  "yellow",
+  "violet",
+];
+
+
+var AllColors = new ColorRegistry(colors, default_colors);
 export {Color}
 export {AllColors}
 export default AllColors;

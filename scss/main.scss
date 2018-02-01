@@ -18,6 +18,8 @@ $canvas-border-right: 50px;
 $canvas-x-axis-height: 50px;
 $canvas-y-axis-width: 75px;
 
+$graph-container-height: 500px;
+
 $label-width-x: 75px;
 $label-width-y: 75px;
 
@@ -65,7 +67,7 @@ body {
 
   .graph-container {
     position: relative;
-    height: 500px;
+    height: $graph-container-height;
     width: 100%;
 
     .canvas-container {

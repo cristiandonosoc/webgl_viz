@@ -50,6 +50,7 @@ class GraphVisualizer implements VisualizerInterface {
     this._interaction = new Interaction(this._renderer, callback);
     this._label_manager = new LabelManager(container, this, this._renderer);
     this._axis_manager = new AxisManager(container, this._renderer);
+    this._colors = {};
   }
 
   private _InteractionCallback(i: InteractionInterface) {
@@ -60,6 +61,17 @@ class GraphVisualizer implements VisualizerInterface {
   /*******************************************************
    * PUBLIC INTERFACE DATA
    *******************************************************/
+
+  get Colors() : {[K:string]: Color} { return this._colors; }
+
+  GetColor(key: string) : Color {
+    return this._colors[key];
+  }
+
+  SetColor(key: string, color: Color) : boolean {
+    this._colors[key] = color;
+    return true;
+  }
 
   get Id() : number { return this._id; }
 
@@ -85,7 +97,7 @@ class GraphVisualizer implements VisualizerInterface {
     // We create the entries
     for (let i = 0; i < data.Names.length - 1; i++) {
       let name = `${data.Names[i]} -> ${data.Names[i+1]}`;
-      this._graphs.push(new GraphInfo(name));
+      this._graphs.push(new GraphInfo(name, AllColors.GetDefaultColor(i)));
     }
 
     let min_tsbase = Math.min(...data.TsBase);
@@ -275,6 +287,7 @@ class GraphVisualizer implements VisualizerInterface {
    * PRIVATE DATA
    *******************************************************/
 
+  private _colors: {[K:string]: Color};
   private _id: number;
   private _closest_point: Vec2;
 
