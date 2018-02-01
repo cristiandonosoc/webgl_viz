@@ -21,7 +21,7 @@ interface VisualizerInterface {
   GetColor(key: string) : Color;
   SetColor(key: string, color: Color) : boolean;
 
-  SetInteractionCallback(callback: (i: VisualizerInterface) => void) : void;
+  SetGlobalInteractionCallback(callback: (i: VisualizerInterface) => void) : void;
   ReactToOtherVisualizer(v: VisualizerInterface) : void;
 
   SetClosestPoint(point: Vec2) : void;

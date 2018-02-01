@@ -35,7 +35,7 @@ class TimingVisualizer implements VisualizerInterface {
 
 
     if (viz_callback) {
-      this.SetInteractionCallback(viz_callback);
+      this.SetGlobalInteractionCallback(viz_callback);
     }
   }
 
@@ -49,6 +49,11 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   private _InteractionCallback(i: InteractionInterface) : void {
+    // We see if we have to call the program
+    if (this._global_interaction_callback) {
+      this._global_interaction_callback(this);
+    }
+
     return;
     // this.SetClosestPoint(i.CurrentMousePos.local);
   }
@@ -72,8 +77,8 @@ class TimingVisualizer implements VisualizerInterface {
 
   get Id() : number { return this._id; }
 
-  SetInteractionCallback(callback: (i: VisualizerInterface) => void): void {
-    this._interaction_callback = callback;
+  SetGlobalInteractionCallback(callback: (i: VisualizerInterface) => void): void {
+    this._global_interaction_callback = callback;
   }
 
   ReactToOtherVisualizer(v: VisualizerInterface) : void {
@@ -219,7 +224,7 @@ class TimingVisualizer implements VisualizerInterface {
 
   _graphs: Array<GraphInfoInterface>;
 
-  private _interaction_callback: (i: VisualizerInterface) => void;
+  private _global_interaction_callback: (i: VisualizerInterface) => void;
 }
 
 /**************************************************************************
