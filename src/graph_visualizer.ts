@@ -88,10 +88,13 @@ class GraphVisualizer implements VisualizerInterface {
       this._graphs.push(new GraphInfo(name));
     }
 
+    let min_tsbase = Math.min(...data.TsBase);
+
     // We create the raw points for each graph
     for (let entry of data.Entries) {
       for (let i = 0; i < entry.Data.length - 1; i++) {
-        let x = entry.Data[i];
+        let offset = data.TsBase[i] - min_tsbase;
+        let x = offset + entry.Data[i];
         let y = entry.Data[i+1] - entry.Data[i];
 
         this._graphs[i].RawPoints.push(x, y);
