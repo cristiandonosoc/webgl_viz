@@ -57,6 +57,7 @@ interface InternalRendererInterface {
   readonly Width: number;
   readonly Height: number;
   readonly Canvas: HTMLCanvasElement;
+  readonly GL: WebGL2RenderingContext;
 
   /* MANAGING INTERFACE */
   // AddGraph(points: number[]) : RendererElemId;
@@ -165,7 +166,7 @@ class InternalRenderer implements InternalRendererInterface {
     return this._elems;
   }
 
-  private get GL() : WebGL2RenderingContext {
+  get GL() : WebGL2RenderingContext {
     return this._gl;
   }
 
@@ -235,7 +236,11 @@ class InternalRenderer implements InternalRendererInterface {
     // We create the renderer elem
     let elem = new RendererElem();
     elem.buffer_info = twgl.createBufferInfoFromArrays(this.GL, arrays);
-    elem.gl_primitive = this.GL.LINE_STRIP;
+    if (graph_info.GLPrimitive != undefined) {
+      elem.gl_primitive = graph_info.GLPrimitive;
+    } else {
+      elem.gl_primitive = this.GL.LINE_STRIP;
+    }
 
     // Register the element
     let elem_id = this.Elements.Register(elem);

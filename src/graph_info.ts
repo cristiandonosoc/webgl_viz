@@ -11,6 +11,9 @@ interface GraphInfoInterface {
   RawPoints: Array<number>;
   Points: Array<Vec2>;
   Bounds: Bounds;
+  // Use InternalRenderer.GL to get the primitive enum */
+  // ie: InternalRenderer.GL.LINES
+  readonly GLPrimitive: any;
 
   ElemId: RendererElemId;
   Color: Color;
@@ -30,6 +33,7 @@ class GraphInfo implements GraphInfoInterface{
 
     this._raw_points = Array<number>();
     this._points = Array<Vec2>();
+    this._bounds = Bounds.FromPoints(-1, 1, -1, 1);
 
     if (color) {
       this._color = color;
@@ -48,6 +52,7 @@ class GraphInfo implements GraphInfoInterface{
   get Points() : Array<Vec2> { return this._points; }
   get Color() : Color { return this._color; }
   get Bounds() : Bounds { return this._bounds; }
+  get GLPrimitive() : any { return this._gl_primitive; }
 
   set ElemId(elem_id: RendererElemId) {
     this._elem_id = elem_id;
@@ -68,6 +73,10 @@ class GraphInfo implements GraphInfoInterface{
     this._bounds = bounds;
   }
 
+  set GLPrimitive(p) {
+    this._gl_primitive = p;
+  }
+
   /*******************************************************
    * PRIVATE METHODS
    *******************************************************/
@@ -83,6 +92,7 @@ class GraphInfo implements GraphInfoInterface{
   private _points: Array<Vec2>;
   private _color: Color;
   private _bounds: Bounds;
+  private _gl_primitive: any;
 }
 
 /**************************************************************************

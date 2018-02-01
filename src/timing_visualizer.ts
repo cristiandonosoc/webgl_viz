@@ -93,19 +93,33 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   LoadData(data: PDDataInterface) : void {
+    // We calculate the points
+    let points = new Array<number>();
 
-  }
+    let min_tsbase = Math.min(...data.TsBase);
+    let offset = data.TsBase[0] - min_tsbase;
 
-  AddGraph(name: string, points: number[]) : void {
-    // console.log("VISUALIZER ADDING: ",
-    //             "NAME: ", name);
+    let ybase = 0;
 
+    for (let entry of data.Entries) {
+      // We add the first point
+      let xbase = offset + entry.Data[0];
 
-    // // TODO(donosoc): Give a correct color to the graph
-    // let graph_info = new GraphInfo(name, points);
-    // // TODO(donosoc): Verify that this is working as reference
-    // this.Renderer.AddGraph(graph_info);
-    // this._graphs.push(graph_info);
+      for (let i = 0; i < entry.Data.length - 1; i++) {
+        points.push(offset + entry.Data[i]);
+        points.push(ybase + i * 0.2);
+
+        points.push(offset + entry.Data[i+1]);
+        points.push(ybase + (i + 1) * 0.2);
+      }
+    }
+
+    let graph_info = new GraphInfo("Test");
+
+    graph_info.RawPoints = points;
+    graph_info.GLPrimitive = this.Renderer.GL.LINES;
+    this.Renderer.AddGraph(graph_info);
+    this._graphs.push(graph_info);
   }
 
   SetClosestPoint(point: Vec2) {

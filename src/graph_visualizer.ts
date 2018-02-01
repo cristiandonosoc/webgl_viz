@@ -27,7 +27,6 @@ class GraphVisualizer implements VisualizerInterface {
   constructor(container: HTMLElement,
               viz_callback?: (i:VisualizerInterface) => void) {
     this._id = IdManager.GetVisualizerId();
-    console.log("SET ID: ", this._id);
     let ctx = this;
     function int_callback(i: InteractionInterface) : void {
       ctx._InteractionCallback(i);
@@ -92,8 +91,6 @@ class GraphVisualizer implements VisualizerInterface {
   }
 
   LoadData(data: PDDataInterface) : void {
-    console.log("ENTRIES", data.Entries.length);
-
     // We create the entries
     for (let i = 0; i < data.Names.length - 1; i++) {
       let name = `${data.Names[i]} -> ${data.Names[i+1]}`;
@@ -117,7 +114,6 @@ class GraphVisualizer implements VisualizerInterface {
     // pass them on to the renderer
     for (let graph_info of this._graphs) {
       GraphVisualizer._ProcessGraphInfo(graph_info);
-      console.log(graph_info.RawPoints.length);
       this.Renderer.AddGraph(graph_info);
     }
   }
