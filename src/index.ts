@@ -21,14 +21,14 @@ document.getElementById("control-expand").addEventListener("click", (event) => {
 });
 
 document.getElementById("control-load-default-data").addEventListener("click", (event) => {
-  let graphs = GetPositions();
-  for (var i = 0; i < graphs.length; i += 1) {
-    let name = `Graph ${i}`;
-    let graph = graphs[i];
-    manager.AddGraph(name, graph);
-  }
+  // let graphs = GetPositions();
+  // for (var i = 0; i < graphs.length; i += 1) {
+  //   let name = `Graph ${i}`;
+  //   let graph = graphs[i];
+  //   manager.AddGraph(name, graph);
+  // }
 
-  manager.Start();
+  // manager.Start();
   // requestAnimationFrame(ProcessFrame);
 });
 
@@ -37,7 +37,7 @@ document.getElementById("control-file").addEventListener("change", (event: any) 
   let reader = new FileReader();
   reader.addEventListener("loadend", (event: any) => {
     console.log("Loaded file");
-    manager.HandleDapFile(reader.result);
+    manager.LoadPDFile(reader.result);
     console.log("Processed dap file");
     manager.Start();
     // requestAnimationFrame(ProcessFrame);

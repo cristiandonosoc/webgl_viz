@@ -1,3 +1,6 @@
+import {PDData, PDEntry} from "./data_loader";
+import {PDDataInterface, PDEntryInterface} from "./data_loader";
+
 var positions = [
 -2, -2,
 -1.9839357429718876, -1.8478119435300127,
@@ -271,7 +274,4 @@ function GetPositions() : Array<Array<number>> {
   return pp;
 }
 
-
 export {GetPositions};
-export default positions;
-

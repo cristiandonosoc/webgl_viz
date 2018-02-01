@@ -24,7 +24,7 @@ interface PDDataInterface {
 }
 
 interface DataLoaderInterface {
-  ParseFile(filename: string, file_content: string) : PDDataInterface;
+  ParseFile(file_content: string) : PDDataInterface;
 }
 
 
@@ -35,9 +35,7 @@ interface DataLoaderInterface {
 class PDEntry implements PDEntryInterface {
   constructor() {
     this._data = new Array<number>();
-
   }
-
 
   get Data() : Array<number> { return this._data; }
 
@@ -102,22 +100,22 @@ class DataLoader implements DataLoaderInterface {
     throw "Error parsing file. Aborting.";
   }
 
-  ParseFile(filename: string, file_content: string) : PDDataInterface {
+  ParseFile(file_content: string) : PDDataInterface {
     let data = new PDData();
 
     let lines = file_content.split("\n");
     console.info("Read %d lines", lines.length);
 
-    this._ParseTsBase(lines, data);
-    this._ParseNames(lines, data);
-    this._ParseEntries(lines, data);
+    DataLoader._ParseTsBase(lines, data);
+    DataLoader._ParseNames(lines, data);
+    DataLoader._ParseEntries(lines, data);
 
     data.Valid = true;
     return data;
   }
 
 
-  private _ParseTsBase(lines: Array<string>, data: PDData) : void {
+  private static _ParseTsBase(lines: Array<string>, data: PDData) : void {
     let found = false;
     for (let line_index = 0;
          line_index < lines.length;
@@ -144,7 +142,7 @@ class DataLoader implements DataLoaderInterface {
     }
   }
 
-  private _ParseNames(lines: Array<string>, data: PDData) : void {
+  private static _ParseNames(lines: Array<string>, data: PDData) : void {
     let found = false;
     for (let line_index = 0;
          line_index < lines.length;
@@ -174,7 +172,7 @@ class DataLoader implements DataLoaderInterface {
     }
   }
 
-  private _ParseEntries(lines: Array<string>, data: PDData) : void {
+  private static _ParseEntries(lines: Array<string>, data: PDData) : void {
     for (let line_index = 0;
          line_index < lines.length;
          line_index++) {
@@ -183,7 +181,6 @@ class DataLoader implements DataLoaderInterface {
       if (line.length == 0) {
         continue;
       }
-
 
       // We skip the TSBASE and OFFST lines
       if (line.lastIndexOf("TSBASE", 0) == 0) {
@@ -206,18 +203,30 @@ class DataLoader implements DataLoaderInterface {
       }
 
       // We create the entry
-      let entry = new PDEntry();
-      // We parse the timings
-      time_strings.forEach(function(str:string) : void {
-        let p = parseFloat(str);
-        if (p == NaN) {
-          DataLoader.ThrowError(line_index + 1,
-                                "Cannot parse time in line: %s", line);
-        }
-        // We add it
-        entry.Data.push(p);
-      });
+      let entry = DataLoader._CreateEntry(time_strings, line_index, line);
+
+      // We add it to the data
+      data.Entries.push(entry);
     }
+  }
+
+  private static _CreateEntry(time_strings: string[],
+                              line_index: number,
+                              line: string) : PDEntry {
+    // We create the entry
+    let entry = new PDEntry();
+    // We parse the timings
+    time_strings.forEach(function(str: string) : void {
+      let p = parseFloat(str);
+      if (p == NaN) {
+        DataLoader.ThrowError(line_index + 1,
+                              "Cannot parse time in line: %s", line);
+      }
+      // We add it
+      entry.Data.push(p);
+    });
+
+    return entry;
   }
 }
 
@@ -225,4 +234,3 @@ class DataLoader implements DataLoaderInterface {
 export {PDData, PDDataInterface}
 export {PDEntry, PDEntryInterface}
 export {DataLoader, DataLoaderInterface}
-

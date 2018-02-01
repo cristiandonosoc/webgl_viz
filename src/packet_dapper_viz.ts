@@ -8,7 +8,7 @@ import TimingVisualizer from "./timing_visualizer";
 import {ZoomType, UIManagerSingleton} from "./ui_manager";
 import {INFINITY} from "./helpers";
 
-import {DataLoader} from "./data_loader";
+import {PDDataInterface, DataLoader} from "./data_loader";
 
 /**************************************************************************
  * INTERFACE
@@ -16,6 +16,7 @@ import {DataLoader} from "./data_loader";
 
 interface PacketDapperVizInterface {
   /* ACTIONS */
+  LoadPDFile(content: string) : void;
   Start() : void;
   FrameLoop() : void;   /* Update + Draw */
   // Update() : void;
@@ -105,78 +106,14 @@ class PacketDapperViz implements PacketDapperVizInterface {
     return this._state.bounds;
   }
 
-  HandleDapFile = (content: string) => {
+  LoadPDFile(content: string) : void {
+    let loader = new DataLoader();
+    this._data = loader.ParseFile(content);
+    console.log("DATA: COUNT:", this._data.Count, "ENTRIES:", this._data.Entries.length);
 
-
-    let a = new DataLoader();
-    a.ParseFile("test", content);
-
-
-    // We split into lines
-    let lines = content.split("\n");
-    console.info("Read %d lines", lines.length);
-
-    // We count how many graphs
-    let first_line = lines[0];
-    if (first_line.lastIndexOf("TSBASE", 0) != 0) {
-      throw "Invalid file";
-    }
-
-    // We get the base times for each pcap
-    let first_split = first_line.split(" ");
-    let base = new Array<number>();
-    for (var j = 1; j < first_split.length; j += 1) {
-      base.push(parseFloat(first_split[j]));
-    }
-
-
-    // We go over the lines
-    let graphs = new Array<Array<number>>(base.length);
-    for (var i = 0; i < graphs.length; i += 1) {
-      graphs[i] = new Array<number>();
-    }
-
-    let limit = 40;
-    for (let i = 0; i < lines.length; i += 1) {
-      let line = lines[i];
-      if (line.lastIndexOf("TSBASE", 0) === 0) {
-        console.info("Skipping: %s", line);
-        continue;
-      }
-      if (line.lastIndexOf("OFFST", 0) === 0) {
-        console.info("Skipping: %s", line);
-        continue;
-      }
-
-      let split = line.split(" ");
-      let tokens = split.slice(3, split.length);
-      if (tokens.length != base.length) {
-        console.error("Wrongly formatted line");
-        continue;
-      }
-
-      // We add the graphs
-      let parsed = tokens.map(function(i: string) : number {
-        return parseFloat(i);
-      });
-      for (var j = 0; j < tokens.length - 1; j += 1) {
-        graphs[j].push(parsed[j]);
-        graphs[j].push(parsed[j + 1] - parsed[j]);
-      }
-      graphs[graphs.length - 1].push(parsed[0]);
-      graphs[graphs.length - 1].push(parsed[parsed.length - 1] - parsed[0]);
-    }
-
-    for (var i = 0; i < graphs.length; i += 1) {
-      let name = `Graph ${i}`;
-      let graph_points = graphs[i];
-      this.AddGraph(name, graph_points);
-    }
-  }
-
-  AddGraph(name: string, points: number[]) : void {
+    // We add the data to the visualizers
     for (let viz of this._visualizers) {
-      viz.AddGraph(name, points);
+      viz.LoadData(this._data);
     }
 
     this.ApplyMaxBounds();
@@ -253,6 +190,7 @@ class PacketDapperViz implements PacketDapperVizInterface {
   };
 
   private _visualizers: Array<VisualizerInterface>;
+  private _data : PDDataInterface;
 }
 
 export {PacketDapperViz}

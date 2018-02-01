@@ -4,11 +4,15 @@ import GraphInfoInterface from "./graph_info"
 import InteractionInterface from "./interaction";
 import InternalRendererInterface from "./internal_renderer";
 
+import {PDDataInterface} from "./data_loader";
+
 interface VisualizerInterface {
   readonly Graphs: Array<GraphInfoInterface>;
 
   Start() : void;
-  AddGraph(name: string, points: number[]) : void;
+
+  LoadData(data: PDDataInterface) : void;
+
   Update() : void;
   Draw() : void;
 

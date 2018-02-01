@@ -28,6 +28,9 @@ class GraphInfo implements GraphInfoInterface{
   constructor(name: string, color?: Color) {
     this._name = name;
 
+    this._raw_points = Array<number>();
+    this._points = Array<Vec2>();
+
     if (color) {
       this._color = color;
     } else {

@@ -12,6 +12,8 @@ import {GraphInfo, GraphInfoInterface} from "./graph_info";
 
 import VisualizerInterface from "./visualizer_interface";
 
+import {PDDataInterface} from "./data_loader";
+
 /**************************************************************************
  * IMPLEMENTATION
  **************************************************************************/
@@ -77,25 +79,42 @@ class GraphVisualizer implements VisualizerInterface {
     this.Interaction.Start();
   }
 
-  AddGraph(name: string, points: number[]) : void {
-    console.log("VISUALIZER ADDING: ",
-                "NAME: ", name);
+  LoadData(data: PDDataInterface) : void {
+    console.log("ENTRIES", data.Entries.length);
 
-    // TODO(donosoc): Give a correct color to the graph
-    let graph_info = new GraphInfo(name);
-    this._ProcessPoints(graph_info, points);
-    this.Renderer.AddGraph(graph_info);
-    this._graphs.push(graph_info);
+    // We create the entries
+    for (let i = 0; i < data.Names.length - 1; i++) {
+      let name = `${data.Names[i]} -> ${data.Names[i+1]}`;
+      this._graphs.push(new GraphInfo(name));
+    }
+
+    // We create the raw points for each graph
+    for (let entry of data.Entries) {
+      for (let i = 0; i < entry.Data.length - 1; i++) {
+        let x = entry.Data[i];
+        let y = entry.Data[i+1] - entry.Data[i];
+
+        this._graphs[i].RawPoints.push(x, y);
+      }
+    }
+
+    // Now we can just post-process the points and
+    // pass them on to the renderer
+    for (let graph_info of this._graphs) {
+      GraphVisualizer._ProcessGraphInfo(graph_info);
+      console.log(graph_info.RawPoints.length);
+      this.Renderer.AddGraph(graph_info);
+    }
   }
 
-  private _ProcessPoints(graph_info: GraphInfoInterface, points: number[]) : void {
-    graph_info.RawPoints = points;
-    let arr = new Array<Vec2>(points.length / 2);
+  static _ProcessGraphInfo(graph_info: GraphInfoInterface) : void {
+    let arr = new Array<Vec2>(graph_info.RawPoints.length / 2);
     let min = new Vec2(+INFINITY, +INFINITY);
     let max = new Vec2(-INFINITY, -INFINITY);
     for (let i = 0; i < arr.length; i += 1) {
       let point_index = i * 2;
-      let p = new Vec2(points[point_index], points[point_index + 1]);
+      let p = new Vec2(graph_info.RawPoints[point_index],
+                       graph_info.RawPoints[point_index + 1]);
       arr[i] = p;
 
       // We go by tracking the bounds

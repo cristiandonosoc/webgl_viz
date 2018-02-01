@@ -12,6 +12,8 @@ import {GraphInfo, GraphInfoInterface} from "./graph_info";
 
 import VisualizerInterface from "./visualizer_interface";
 
+import {PDDataInterface} from "./data_loader";
+
 /**************************************************************************
  * IMPLEMENTATION
  **************************************************************************/
@@ -37,7 +39,8 @@ class TimingVisualizer implements VisualizerInterface {
     }
   }
 
-  private _Setup(container: HTMLElement, callback: (i: InteractionInterface) => void) {
+  private _Setup(container: HTMLElement,
+                 callback: (i: InteractionInterface) => void) {
     this._graphs = new Array<GraphInfoInterface>();
     this._renderer = new InternalRenderer(container);
     this._interaction = new Interaction(this._renderer, callback);
@@ -74,6 +77,10 @@ class TimingVisualizer implements VisualizerInterface {
 
   Start() : void {
     this.Interaction.Start();
+  }
+
+  LoadData(data: PDDataInterface) : void {
+
   }
 
   AddGraph(name: string, points: number[]) : void {
