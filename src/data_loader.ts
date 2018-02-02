@@ -5,83 +5,6 @@
  * Class in charge of parsing and loading the data from Packet Dapper.
  **/
 
-/**************************************************************************
- * INTERFACE
- **************************************************************************/
-
-interface PDEntryInterface {
-  readonly Data: Array<number>;
-}
-
-interface PDDataInterface {
-  readonly Valid: boolean;
-  readonly Count: number;
-  readonly TsBase: Array<number>;
-  readonly Offsets: Array<number>;
-  readonly Names: Array<string>;
-
-  readonly Entries: Array<PDEntryInterface>;
-}
-
-interface DataLoaderInterface {
-  ParseFile(file_content: string) : PDDataInterface;
-}
-
-
-/**************************************************************************
- * IMPLEMENTATION
- **************************************************************************/
-
-class PDEntry implements PDEntryInterface {
-  constructor() {
-    this._data = new Array<number>();
-  }
-
-  get Data() : Array<number> { return this._data; }
-
-  private _data: Array<number>;
-}
-
-class PDData implements PDDataInterface {
-  /*******************************************************
-   * CONSTRUCTOR
-   *******************************************************/
-  constructor() {
-    this._ts_base = new Array<number>();
-    this._offsets = new Array<number>();
-    this._entries = new Array<PDEntry>();
-    this._names = new Array<string>();
-    this._valid = false;
-  }
-
-  /*******************************************************
-   * PUBLIC INTERFACE
-   *******************************************************/
-
-  get Valid() : boolean { return this._valid; }
-  set Valid(valid: boolean) { this._valid = valid; }
-
-  get Count() : number { return this._entries.length; }
-  get TsBase() : Array<number> { return this._ts_base; }
-  get Offsets() : Array<number> { return this._offsets; }
-
-  get Entries() : Array<PDEntryInterface> {
-    return this._entries;
-  }
-
-  get Names() : Array<string> { return this._names; }
-
-  /*******************************************************
-   * PRIVATE DATA
-   *******************************************************/
-
-  private _valid: boolean;
-  private _entries: Array<PDEntry>;
-  private _ts_base: Array<number>;
-  private _offsets: Array<number>;
-  private _names: Array<string>;
-}
-
 /**
  * NOTE(donosoc): This class does the *stupidest* parsing of the
  *                file by looking for a particular line per loop,
@@ -92,6 +15,23 @@ class PDData implements PDDataInterface {
  *                metadata instead of having to search for particular
  *                lines within a text file.
  **/
+
+import {PDEntry} from "./data";
+import {PDMatch} from "./data";
+import {PDData, PDDataInterface} from "./data";
+
+/**************************************************************************
+ * INTERFACE
+ **************************************************************************/
+
+interface DataLoaderInterface {
+  ParseFile(file_content: string) : PDDataInterface;
+}
+
+/**************************************************************************
+ * IMPLEMENTATION
+ **************************************************************************/
+
 class DataLoader implements DataLoaderInterface {
   private static ThrowError(line_num: number,
     fmt: string, ...args: any[]) : void {
@@ -203,34 +143,34 @@ class DataLoader implements DataLoaderInterface {
       }
 
       // We create the entry
-      let entry = DataLoader._CreateEntry(time_strings, line_index, line);
-
-      // We add it to the data
-      data.Entries.push(entry);
+      let match = DataLoader._CreateMatch(time_strings, line_index, line);
+      data.Matches.push(match);
     }
   }
 
-  private static _CreateEntry(time_strings: string[],
+  private static _CreateMatch(time_strings: string[],
                               line_index: number,
-                              line: string) : PDEntry {
+                              line: string) : PDMatch {
     // We create the entry
-    let entry = new PDEntry();
+    let match = new PDMatch();
+
     // We parse the timings
-    time_strings.forEach(function(str: string) : void {
-      let p = parseFloat(str);
-      if (p == NaN) {
+    time_strings.forEach(function(str: string, i: number) : void {
+      let value = parseFloat(str);
+      if (value == NaN) {
         DataLoader.ThrowError(line_index + 1,
                               "Cannot parse time in line: %s", line);
       }
-      // We add it
-      entry.Data.push(p);
+
+      let entry = new PDEntry(i, value);
+      match.Entries.push(entry);
     });
 
-    return entry;
+    return match;
   }
 }
 
 
-export {PDData, PDDataInterface}
-export {PDEntry, PDEntryInterface}
+export {PDDataInterface};
 export {DataLoader, DataLoaderInterface}
+export default DataLoaderInterface;

@@ -109,7 +109,6 @@ class PacketDapperViz implements PacketDapperVizInterface {
   LoadPDFile(content: string) : void {
     let loader = new DataLoader();
     this._data = loader.ParseFile(content);
-    console.log("DATA: COUNT:", this._data.Count, "ENTRIES:", this._data.Entries.length);
 
     // We add the data to the visualizers
     for (let viz of this._visualizers) {

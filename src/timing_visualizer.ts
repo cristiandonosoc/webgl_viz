@@ -101,21 +101,26 @@ class TimingVisualizer implements VisualizerInterface {
     // We calculate the points
     let points = new Array<number>();
 
+    let missed_points = new Array<number>();
+
     let min_tsbase = Math.min(...data.TsBase);
     let offset = data.TsBase[0] - min_tsbase;
 
     let ybase = 0;
 
-    for (let entry of data.Entries) {
-      for (let i = 0; i < entry.Data.length - 1; i++) {
+    for (let match of data.Matches) {
+      for (let i = 0; i < match.Entries.length - 1; i++) {
 
-        let offset_from = data.TsBase[i] - min_tsbase;
-        let offset_to = data.TsBase[i+1] - min_tsbase;
+        let from_entry = match.Entries[i];
+        let to_entry = match.Entries[i+1];
 
-        points.push(offset_from + entry.Data[i]);
+        let from_offset = data.TsBase[i] - min_tsbase;
+        let to_offset = data.TsBase[i+1] - min_tsbase;
+
+        points.push(from_offset + from_entry.Value);
         points.push(ybase + i * 0.2);
 
-        points.push(offset_to + entry.Data[i+1]);
+        points.push(to_offset + to_entry.Value);
         points.push(ybase + (i + 1) * 0.2);
       }
     }
