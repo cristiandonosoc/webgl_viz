@@ -69,6 +69,7 @@ interface InternalRendererInterface {
   Clear(color: Color) : void;
 
   DrawElement(id: RendererElemId, space: DrawSpace, color: Color) : void;
+  DrawIconElement(id: RendererElemId, space: DrawSpace, color: Color) : void;
 
   DrawLine(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void;
   DrawHorizontalLine(y: number, space: DrawSpace, color: Color) : void;
@@ -364,6 +365,18 @@ class InternalRenderer implements InternalRendererInterface {
     }
   }
 
+  DrawIconElement(elem_id: RendererElemId, space: DrawSpace, color: Color) : void {
+    let elem = this.Elements.Get(elem_id);
+    if (!elem) {
+      throw "Cannot find element";
+    }
+    if (space == DrawSpace.LOCAL) {
+      this._DrawIconElementLocalSpace(elem, color);
+    } else {
+      throw "Unsupported DrawSpace";
+    }
+  }
+
   /**************************************************************************
    * PRIVATE FUNCTIONS
    **************************************************************************/
@@ -437,7 +450,29 @@ class InternalRenderer implements InternalRendererInterface {
       u_color: color.AsArray(),
     };
     twgl.setUniforms(program_info, uniforms);
-    twgl.drawBufferInfo(this._gl, elem.buffer_info, elem.gl_primitive);
+    if (elem.gl_primitive == this.GL.LINES) {
+      this.GL.drawArrays(this.GL.LINES, 0, elem.buffer_info.numElements / 2);
+    } else {
+      twgl.drawBufferInfo(this._gl, elem.buffer_info, elem.gl_primitive);
+    }
+  }
+
+  private _DrawIconElementLocalSpace(elem: RendererElem, color: Color) : void {
+    let program_info = this.ProgramInfos.local_ps;
+    this.GL.useProgram(program_info.program);
+    twgl.setBuffersAndAttributes(this.GL, program_info, elem.buffer_info);
+    let uniforms = {
+      u_offset: this.Offset.AsArray(),
+      u_scale: this.Scale.AsArray(),
+      u_color: color.AsArray(),
+      u_point_size: 5,
+      u_sampler: 0
+    };
+    twgl.setUniforms(program_info, uniforms);
+    this.GL.activeTexture(this.GL.TEXTURE0);
+    this.GL.bindTexture(this.GL.TEXTURE_2D, this.cross_texture);
+    // twgl.drawBufferInfo(this.GL, elem.buffer_info, elem.gl_primitive);
+    this.GL.drawArrays(this.GL.POINTS, 0, elem.buffer_info.numElements / 2);
   }
 
   /* DRAW LINE */
@@ -521,7 +556,6 @@ class InternalRenderer implements InternalRendererInterface {
       u_offset: this._state.offset.AsArray(),
       u_scale: this._state.scale.AsArray(),
       u_color: color.AsArray(),
-      u_resolution: [this._gl.canvas.width, this._gl.canvas.height],
       u_point_size: 10,
       u_sampler: 0
     };
@@ -530,6 +564,7 @@ class InternalRenderer implements InternalRendererInterface {
     this._gl.bindTexture(this._gl.TEXTURE_2D, this.cross_texture);
     this._gl.drawArrays(this._gl.POINTS, 0, 1);
   }
+
 
   /* DRAW TRIANGLE_STRIP */
 

@@ -175,6 +175,7 @@ class TimingVisualizer implements VisualizerInterface {
 
     for (let graph_info of this.Graphs) {
       this.Renderer.DrawElement(graph_info.ElemId, DrawSpace.LOCAL, graph_info.Color);
+      this.Renderer.DrawIconElement(graph_info.ElemId, DrawSpace.LOCAL, graph_info.Color);
     }
 
     // Draw mouse vertical line
