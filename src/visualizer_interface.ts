@@ -5,7 +5,7 @@ import {Color} from "./colors";
 import InteractionInterface from "./interaction";
 import InternalRendererInterface from "./internal_renderer";
 
-import {PDDataInterface} from "./data_loader";
+import {PDDataInterface} from "./data";
 
 interface VisualizerInterface {
   readonly Graphs: Array<GraphInfoInterface>;

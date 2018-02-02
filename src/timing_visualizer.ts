@@ -12,7 +12,9 @@ import {GraphInfo, GraphInfoInterface} from "./graph_info";
 
 import VisualizerInterface from "./visualizer_interface";
 
-import {PDDataInterface} from "./data_loader";
+import {PDDataInterface, PDEntryInterface} from "./data";
+
+import {INFINITY} from "./helpers";
 
 /**************************************************************************
  * IMPLEMENTATION
@@ -41,11 +43,13 @@ class TimingVisualizer implements VisualizerInterface {
 
   private _Setup(container: HTMLElement,
                  callback: (i: InteractionInterface) => void) {
-    this._graphs = new Array<GraphInfoInterface>();
     this._renderer = new InternalRenderer(container);
     this._interaction = new Interaction(this._renderer, callback);
     this._label_manager = new LabelManager(container, this, this._renderer);
     this._axis_manager = new AxisManager(container, this._renderer);
+
+    this._lines = new Array<GraphInfoInterface>();
+    this._points = new Array<GraphInfoInterface>();
   }
 
   private _InteractionCallback(i: InteractionInterface) : void {
@@ -73,8 +77,6 @@ class TimingVisualizer implements VisualizerInterface {
     return true;
   }
 
-
-
   get Id() : number { return this._id; }
 
   SetGlobalInteractionCallback(callback: (i: VisualizerInterface) => void): void {
@@ -90,7 +92,15 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   get Graphs() : Array<GraphInfoInterface> {
-    return this._graphs;
+    return this._lines;
+  }
+
+  private get Lines() : Array<GraphInfoInterface> {
+    return this._lines;
+  }
+
+  private get Points() : Array<GraphInfoInterface> {
+    return this._points;
   }
 
   Start() : void {
@@ -98,39 +108,119 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   LoadData(data: PDDataInterface) : void {
-    // We calculate the points
+    // Setup the point containers
+    let lines = new Array<number>();
     let points = new Array<number>();
+    let missing = new Array<number>();
 
-    let missed_points = new Array<number>();
-
+    // We calculate the offsets for each capture
     let min_tsbase = Math.min(...data.TsBase);
-    let offset = data.TsBase[0] - min_tsbase;
+    let offsets = data.TsBase.map(function(ts_base: number) {
+      return ts_base - min_tsbase;
+    });
 
     let ybase = 0;
+    let heights = new Array<number>();
+    for (let i = 0; i < data.Names.length; i++) {
+      heights.push(ybase + i * 0.2);
+    }
+
 
     for (let match of data.Matches) {
-      for (let i = 0; i < match.Entries.length - 1; i++) {
+      // We search for the first value we can see.
+      // This variable is used to place a missed packet, which
+      // we are going to mark at the level of the latest packet we've seen.
+      // We have to search for the latest for the case where the first step
+      // is lost
+      let latest_entry : PDEntryInterface;
+      let latest_offset = -1;
+      for (let i = 0; i < match.Entries.length; i++) {
+        let entry = match.Entries[i];
+        if (!entry.Missing) {
+          latest_entry = entry;
+          latest_offset = offsets[i];
+        }
+      }
+      if (latest_offset == -1) {
+        throw "latest entry should never be undefined.";
+      }
 
+      for (let i = 0; i < match.Entries.length - 1; i++) {
+        // We set up the variables
         let from_entry = match.Entries[i];
         let to_entry = match.Entries[i+1];
+        let from_offset = offsets[i];
+        let to_offset = offsets[i+1];
+        let from_height = heights[i];
+        let to_height = heights[i+1];
 
-        let from_offset = data.TsBase[i] - min_tsbase;
-        let to_offset = data.TsBase[i+1] - min_tsbase;
+        if (from_entry.Missing) {
+          // We mark a missing point at it's height
+          missing.push(latest_offset + latest_entry.Value);
+          missing.push(from_height);
+          continue;
+        }
 
+        // We update the latest entry seen
+        latest_entry = from_entry;
+        latest_offset = from_offset;
+
+        if (to_entry.Missing) {
+          // We only put a single point here
+          // The missing point will be added by the previous entry
+          points.push(from_offset + from_entry.Value);
+          points.push(from_height);
+
+          // EXCEPTION: The latest point won't be checked,
+          // so we need to check here to see if the latest point
+          // was missing
+          if (i == match.Entries.length - 1) {
+            missing.push(latest_offset + latest_entry.Value);
+            missing.push(to_height);
+          }
+          continue;
+        }
+
+        // Now we can check the normal case, in which both points
+        // are present
+        // We add the line
+        lines.push(from_offset + from_entry.Value);
+        lines.push(from_height);
+        lines.push(to_offset + to_entry.Value);
+        lines.push(to_height);
+        // We add the points
         points.push(from_offset + from_entry.Value);
-        points.push(ybase + i * 0.2);
-
+        points.push(from_height);
         points.push(to_offset + to_entry.Value);
-        points.push(ybase + (i + 1) * 0.2);
+        points.push(to_height);
       }
     }
 
-    let graph_info = new GraphInfo("Test");
+    console.log(missing);
 
+    // We create the graph info from the points
+    this._CreateLinesGraphInfo("lines", lines, AllColors.Get("yellow"));
+    this._CreatePointsGraphInfo("points", points, AllColors.Get("lightblue"));
+    this._CreatePointsGraphInfo("missing", missing, AllColors.Get("red"));
+  }
+
+  private _CreateLinesGraphInfo(name: string, points: Array<number>,
+                                color: Color) {
+    let graph_info = new GraphInfo(name, color);
     graph_info.RawPoints = points;
     graph_info.GLPrimitive = this.Renderer.GL.LINES;
     this.Renderer.AddGraph(graph_info);
-    this._graphs.push(graph_info);
+    this._lines.push(graph_info);
+  }
+
+  private _CreatePointsGraphInfo(name: string, points: Array<number>,
+                                 color: Color) {
+    let graph_info = new GraphInfo(name, color);
+    graph_info.RawPoints = points;
+    graph_info.GLPrimitive = this.Renderer.GL.POINTS;
+    this.Renderer.AddGraph(graph_info);
+    // this._lines.push(graph_info);
+    this._points.push(graph_info);
   }
 
   SetClosestPoint(point: Vec2) {
@@ -179,9 +269,14 @@ class TimingVisualizer implements VisualizerInterface {
     this.Renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
     this.Renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
 
-    for (let graph_info of this.Graphs) {
-      this.Renderer.DrawElement(graph_info.ElemId, DrawSpace.LOCAL, graph_info.Color);
-      this.Renderer.DrawIconElement(graph_info.ElemId, DrawSpace.LOCAL, graph_info.Color);
+    // We render the lines
+    for (let line_info of this.Lines) {
+      this.Renderer.DrawElement(line_info.ElemId, DrawSpace.LOCAL, line_info.Color);
+    }
+
+    // We render the points
+    for (let point_info of this.Points) {
+      this.Renderer.DrawIconElement(point_info.ElemId, DrawSpace.LOCAL, point_info.Color);
     }
 
     // Draw mouse vertical line
@@ -229,7 +324,8 @@ class TimingVisualizer implements VisualizerInterface {
   _label_manager: LabelManager;
   _axis_manager: AxisManager;
 
-  _graphs: Array<GraphInfoInterface>;
+  _lines: Array<GraphInfoInterface>;
+  _points: Array<GraphInfoInterface>;
 
   private _global_interaction_callback: (i: VisualizerInterface) => void;
 }

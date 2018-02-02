@@ -5,6 +5,7 @@
 interface PDEntryInterface {
   readonly SourceIndex: number;
   readonly Value: number;
+  readonly Missing: boolean;
 }
 
 interface PDMatchInterface {
@@ -38,6 +39,9 @@ class PDEntry implements PDEntryInterface {
 
   get SourceIndex() : number { return this._source_index; }
   get Value() : number { return this._value; }
+  get Missing() : boolean {
+    return this._value < 0;
+  }
 
   private _source_index: number;
   private _value: number;

@@ -8,7 +8,8 @@ import TimingVisualizer from "./timing_visualizer";
 import {ZoomType, UIManagerSingleton} from "./ui_manager";
 import {INFINITY} from "./helpers";
 
-import {PDDataInterface, DataLoader} from "./data_loader";
+import {PDDataInterface} from "./data";
+import {DataLoader} from "./data_loader";
 
 /**************************************************************************
  * INTERFACE

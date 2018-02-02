@@ -12,7 +12,7 @@ import {GraphInfo, GraphInfoInterface} from "./graph_info";
 
 import VisualizerInterface from "./visualizer_interface";
 
-import {PDDataInterface} from "./data_loader";
+import {PDDataInterface} from "./data";
 
 /**************************************************************************
  * IMPLEMENTATION

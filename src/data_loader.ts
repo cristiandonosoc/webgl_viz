@@ -171,6 +171,5 @@ class DataLoader implements DataLoaderInterface {
 }
 
 
-export {PDDataInterface};
 export {DataLoader, DataLoaderInterface}
 export default DataLoaderInterface;
