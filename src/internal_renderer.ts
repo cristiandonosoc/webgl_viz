@@ -451,7 +451,7 @@ class InternalRenderer implements InternalRendererInterface {
     };
     twgl.setUniforms(program_info, uniforms);
     if (elem.gl_primitive == this.GL.LINES) {
-      this.GL.drawArrays(this.GL.LINES, 0, elem.buffer_info.numElements / 2);
+      this.GL.drawArrays(this.GL.LINES, 0, elem.buffer_info.numElements);
     } else {
       twgl.drawBufferInfo(this._gl, elem.buffer_info, elem.gl_primitive);
     }
@@ -472,7 +472,7 @@ class InternalRenderer implements InternalRendererInterface {
     this.GL.activeTexture(this.GL.TEXTURE0);
     this.GL.bindTexture(this.GL.TEXTURE_2D, this.cross_texture);
     // twgl.drawBufferInfo(this.GL, elem.buffer_info, elem.gl_primitive);
-    this.GL.drawArrays(this.GL.POINTS, 0, elem.buffer_info.numElements / 2);
+    this.GL.drawArrays(this.GL.POINTS, 0, elem.buffer_info.numElements );
   }
 
   /* DRAW LINE */

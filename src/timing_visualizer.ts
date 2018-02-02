@@ -107,14 +107,15 @@ class TimingVisualizer implements VisualizerInterface {
     let ybase = 0;
 
     for (let entry of data.Entries) {
-      // We add the first point
-      let xbase = offset + entry.Data[0];
-
       for (let i = 0; i < entry.Data.length - 1; i++) {
-        points.push(offset + entry.Data[i]);
+
+        let offset_from = data.TsBase[i] - min_tsbase;
+        let offset_to = data.TsBase[i+1] - min_tsbase;
+
+        points.push(offset_from + entry.Data[i]);
         points.push(ybase + i * 0.2);
 
-        points.push(offset + entry.Data[i+1]);
+        points.push(offset_to + entry.Data[i+1]);
         points.push(ybase + (i + 1) * 0.2);
       }
     }
