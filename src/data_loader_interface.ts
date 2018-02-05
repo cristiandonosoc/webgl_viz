@@ -12,6 +12,7 @@ import {PDDataInterface} from "./data";
  **************************************************************************/
 
 interface DataLoaderInterface {
+  readonly Name: string;
   ParseFile(file_content: string) : PDDataInterface;
 }
 

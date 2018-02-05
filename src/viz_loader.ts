@@ -28,6 +28,10 @@ import DataLoaderInterface from "./data_loader_interface";
  **************************************************************************/
 
 class VizLoader implements DataLoaderInterface {
+  get Name() : string {
+    return "VizLoader";
+  }
+
   private static ThrowError(line_num: number,
     fmt: string, ...args: any[]) : void {
     console.error("Error parsing in line: %f", line_num);
@@ -51,30 +55,35 @@ class VizLoader implements DataLoaderInterface {
 
 
   private static _ParseTsBase(lines: Array<string>, data: PDData) : void {
-    let found = false;
     for (let line_index = 0;
          line_index < lines.length;
          line_index++) {
       let line = lines[line_index];
       if (line.lastIndexOf("TSBASE", 0) == 0) {
+        console.log(`FOUND TSBASE LINE: \"${line}\"`);
         let line_split = line.split(" ");
 
         for (let i = 1; i < line_split.length; i++) {
-          let res = parseFloat(line_split[i]);
-          if (res == NaN) {
+          let str_res = line_split[i];
+          if (str_res.length == 0) {
+            continue;
+          }
+          let res = parseFloat(str_res);
+          console.log(res);
+          if (isNaN(res)) {
             VizLoader.ThrowError(line_index + 1,
               "Invalid format in TSBASE line: %s", line);
           }
 
           data.TsBase.push(res);
         }
-        found = true;
+
+        console.log("TSBASE: ", data.TsBase);
+        return;
       }
     }
 
-    if (!found) {
-      VizLoader.ThrowError(-1, "Cannot find TSBASE line.");
-    }
+    VizLoader.ThrowError(-1, "Cannot find TSBASE line.");
   }
 
   private static _ParseNames(lines: Array<string>, data: PDData) : void {

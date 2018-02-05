@@ -9,7 +9,9 @@ import {ZoomType, UIManagerSingleton} from "./ui_manager";
 import {INFINITY} from "./helpers";
 
 import {PDDataInterface} from "./data";
-import {VizLoader} from "./viz_loader";
+import DataLoaderInterface from "./data_loader_interface";
+import VizLoader from "./viz_loader";
+import JsonLoader from "./json_loader";
 
 /**************************************************************************
  * INTERFACE
@@ -110,13 +112,26 @@ class PacketDapperViz implements PacketDapperVizInterface {
   }
 
   LoadPDFile(content: string) : boolean {
-    let loader = new VizLoader();
-    let data = loader.ParseFile(content);
-    if (!data.Valid) {
-      console.error("Could not parse file");
-      return false;
+    // We load by priority
+    let loaders = new Array<DataLoaderInterface>();
+    loaders.push(new JsonLoader());
+    loaders.push(new VizLoader());
+
+    for (let loader of loaders) {
+      console.log("Attemping to load with loader: ", loader.Name);
+      let data = loader.ParseFile(content);
+      if (data.Valid) {
+        this._ProcessLoadedData(data);
+        return true;
+      }
+      console.log("Failed to load with loader: ", loader.Name);
     }
 
+    console.error("No valid loader found");
+    return false;
+  }
+
+  private _ProcessLoadedData(data: PDDataInterface) : void {
     this._data = data;
 
     // We add the data to the visualizers
@@ -125,7 +140,6 @@ class PacketDapperViz implements PacketDapperVizInterface {
     }
 
     this.ApplyMaxBounds();
-    return true;
   }
 
   // Applies the graph max bounds

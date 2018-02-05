@@ -54,8 +54,11 @@ class PDMatch implements PDMatchInterface {
   }
 
   get Sender() : boolean { return this._sender; }
+  set Sender(sender : boolean) { this._sender = sender; }
   get InOrder() : boolean { return this._in_order; }
+  set InOrder(in_order : boolean) { this._in_order = in_order; }
   get TcpFlag() : string { return this._tcp_flag; }
+  set TcpFlag(tcp_flag: string) { this._tcp_flag = tcp_flag; }
   get Entries() : Array<PDEntryInterface> {
     return this._entries;
   }
