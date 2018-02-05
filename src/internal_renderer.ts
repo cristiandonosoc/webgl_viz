@@ -68,8 +68,8 @@ interface InternalRendererInterface {
   /* RENDERING INTERFACE */
   Clear(color: Color) : void;
 
-  DrawElement(id: RendererElemId, space: DrawSpace, color: Color) : void;
-  DrawIconElement(id: RendererElemId, space: DrawSpace, color: Color) : void;
+  DrawElement(graph_info: GraphInfoInterface, space: DrawSpace, color: Color) : void;
+  DrawIconElement(graph_info: GraphInfoInterface, space: DrawSpace, color: Color) : void;
 
   DrawLine(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void;
   DrawHorizontalLine(y: number, space: DrawSpace, color: Color) : void;
@@ -81,8 +81,6 @@ interface InternalRendererInterface {
   DrawBox(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void;
 
   DrawIcon(point: Vec2, space: DrawSpace, color: Color) : void;
-
-
 }
 
 /**************************************************************************
@@ -101,6 +99,7 @@ declare let twgl: any;
  **/
 class RendererElem {
   buffer_info: any;
+  offset: number;
   // What GL primitive use to draw this
   gl_primitive: any;
 };
@@ -156,8 +155,6 @@ class InternalRenderer implements InternalRendererInterface {
     this._SetupWebGL();
     this._SetupTextures();
   }
-
-
 
   /*************************************************
    * PUBLIC INTERFACE IMPL
@@ -353,25 +350,25 @@ class InternalRenderer implements InternalRendererInterface {
     }
   }
 
-  DrawElement(elem_id: RendererElemId, space: DrawSpace, color: Color) : void {
-    let elem = this.Elements.Get(elem_id);
+  DrawElement(graph_info: GraphInfoInterface, space: DrawSpace, color: Color) : void {
+    let elem = this.Elements.Get(graph_info.ElemId);
     if (!elem) {
       throw "Cannot find element";
     }
     if (space == DrawSpace.LOCAL) {
-      this._DrawElementLocalSpace(elem, color);
+      this._DrawElementLocalSpace(elem, graph_info);
     } else {
       throw "Unsupported DrawSpace";
     }
   }
 
-  DrawIconElement(elem_id: RendererElemId, space: DrawSpace, color: Color) : void {
-    let elem = this.Elements.Get(elem_id);
+  DrawIconElement(graph_info: GraphInfoInterface, space: DrawSpace, color: Color) : void {
+    let elem = this.Elements.Get(graph_info.ElemId);
     if (!elem) {
       throw "Cannot find element";
     }
     if (space == DrawSpace.LOCAL) {
-      this._DrawIconElementLocalSpace(elem, color);
+      this._DrawIconElementLocalSpace(elem, graph_info);
     } else {
       throw "Unsupported DrawSpace";
     }
@@ -440,14 +437,15 @@ class InternalRenderer implements InternalRendererInterface {
 
   /* DRAW GRAPH */
 
-  private _DrawElementLocalSpace(elem: RendererElem, color: Color) : void {
+  private _DrawElementLocalSpace(elem: RendererElem,
+                                 graph_info: GraphInfoInterface) : void {
     let program_info = this.ProgramInfos.local;
     this._gl.useProgram(program_info.program);
     twgl.setBuffersAndAttributes(this._gl, program_info, elem.buffer_info);
     let uniforms = {
       u_offset: this.Offset.AsArray(),
       u_scale: this.Scale.AsArray(),
-      u_color: color.AsArray(),
+      u_color: graph_info.Color.AsArray(),
     };
     twgl.setUniforms(program_info, uniforms);
     if (elem.gl_primitive == this.GL.LINES) {
@@ -457,14 +455,15 @@ class InternalRenderer implements InternalRendererInterface {
     }
   }
 
-  private _DrawIconElementLocalSpace(elem: RendererElem, color: Color) : void {
+  private _DrawIconElementLocalSpace(elem: RendererElem,
+                                     graph_info: GraphInfoInterface) : void {
     let program_info = this.ProgramInfos.local_ps;
     this.GL.useProgram(program_info.program);
     twgl.setBuffersAndAttributes(this.GL, program_info, elem.buffer_info);
     let uniforms = {
       u_offset: this.Offset.AsArray(),
       u_scale: this.Scale.AsArray(),
-      u_color: color.AsArray(),
+      u_color: graph_info.Color.AsArray(),
       u_point_size: 5,
       u_sampler: 0
     };

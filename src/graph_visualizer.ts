@@ -196,7 +196,7 @@ class GraphVisualizer implements VisualizerInterface {
     this.Renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
 
     for (let graph_info of this.Graphs) {
-      this.Renderer.DrawElement(graph_info.ElemId, DrawSpace.LOCAL, graph_info.Color);
+      this.Renderer.DrawElement(graph_info, DrawSpace.LOCAL, graph_info.Color);
     }
 
     // Draw mouse vertical line

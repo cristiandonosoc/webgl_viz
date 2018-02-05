@@ -273,12 +273,12 @@ class TimingVisualizer implements VisualizerInterface {
 
     // We render the lines
     for (let line_info of this.Lines) {
-      this.Renderer.DrawElement(line_info.ElemId, DrawSpace.LOCAL, line_info.Color);
+      this.Renderer.DrawElement(line_info, DrawSpace.LOCAL, line_info.Color);
     }
 
     // We render the points
     for (let point_info of this.Points) {
-      this.Renderer.DrawIconElement(point_info.ElemId, DrawSpace.LOCAL, point_info.Color);
+      this.Renderer.DrawIconElement(point_info, DrawSpace.LOCAL, point_info.Color);
     }
 
     // Draw mouse vertical line

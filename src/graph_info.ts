@@ -17,6 +17,7 @@ interface GraphInfoInterface {
 
   ElemId: RendererElemId;
   Color: Color;
+  Offset: Vec2;
 }
 
 /**************************************************************************
@@ -34,6 +35,7 @@ class GraphInfo implements GraphInfoInterface{
     this._raw_points = Array<number>();
     this._points = Array<Vec2>();
     this._bounds = Bounds.FromPoints(-1, 1, -1, 1);
+    this._offset = Vec2.Zero;
 
     if (color) {
       this._color = color;
@@ -53,29 +55,15 @@ class GraphInfo implements GraphInfoInterface{
   get Color() : Color { return this._color; }
   get Bounds() : Bounds { return this._bounds; }
   get GLPrimitive() : any { return this._gl_primitive; }
+  get Offset() : Vec2 { return this._offset; }
 
-  set ElemId(elem_id: RendererElemId) {
-    this._elem_id = elem_id;
-  }
-  set Color(color: Color) {
-    this._color = color;
-  }
-
-  set RawPoints(points: Array<number>) {
-    this._raw_points = points;
-  }
-
-  set Points(points: Array<Vec2>) {
-    this._points = points;
-  }
-
-  set Bounds(bounds: Bounds) {
-    this._bounds = bounds;
-  }
-
-  set GLPrimitive(p) {
-    this._gl_primitive = p;
-  }
+  set ElemId(elem_id: RendererElemId) { this._elem_id = elem_id; }
+  set Color(color: Color) { this._color = color; }
+  set RawPoints(points: Array<number>) { this._raw_points = points; }
+  set Points(points: Array<Vec2>) { this._points = points; }
+  set Bounds(bounds: Bounds) { this._bounds = bounds; }
+  set GLPrimitive(p) { this._gl_primitive = p; }
+  set Offset(offset: Vec2) { this._offset = offset; }
 
   /*******************************************************
    * PRIVATE METHODS
@@ -93,6 +81,7 @@ class GraphInfo implements GraphInfoInterface{
   private _color: Color;
   private _bounds: Bounds;
   private _gl_primitive: any;
+  private _offset: Vec2;
 }
 
 /**************************************************************************
