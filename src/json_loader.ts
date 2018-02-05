@@ -20,6 +20,18 @@ class JsonLoader implements DataLoaderInterface {
     return "JsonLoader";
   }
 
+  private static _GetElementByKey(json: any,
+                                  key: string,
+                                  will_throw : boolean = true) : any {
+    let elem = json[key];
+    if (will_throw && elem == undefined) {
+      console.error("ELEM: ", json);
+      throw `Undefined key ${key} in json element`;
+    }
+
+    return elem;
+  }
+
   ParseFile(content: string) : PDDataInterface {
     // We parse the data
     let json;
@@ -43,12 +55,7 @@ class JsonLoader implements DataLoaderInterface {
 
   private static _LoadTsBase(json: any, data: PDData) : boolean {
     let key = "tsbases";
-    if (!(key in json)) {
-      console.error("Loaded file doesn't have \"tsbases\" key!");
-      return false;
-    }
-
-    let tsbases = json[key];
+    let tsbases = JsonLoader._GetElementByKey(json, key);
     for (let tsbase of tsbases) {
       data.TsBase.push(tsbase);
     }
@@ -78,23 +85,17 @@ class JsonLoader implements DataLoaderInterface {
   }
 
   private static _LoadMatches(json: any, data: PDData) : boolean {
-    let key = "matches";
-    if (!(key in json)) {
-      console.error("Loaded file doesn't have \"entries\" key!");
-      return false;
-    }
-
-    let matches = json[key];
+    let matches = JsonLoader._GetElementByKey(json, "matches");
     for (let loaded_match of matches) {
       let match = new PDMatch();
-      match.Sender = <boolean> loaded_match["sender"];
-      match.InOrder = <boolean> loaded_match["in_order"];
-      match.TcpFlag = <string> loaded_match["tcp_flag"];
+      match.Sender = JsonLoader._GetElementByKey(loaded_match, "sender");
+      match.InOrder = JsonLoader._GetElementByKey(loaded_match, "in_order");
+      match.TcpFlag = JsonLoader._GetElementByKey(loaded_match, "tcp_flag");
 
-      let loaded_entries = loaded_match["entries"];
+      let loaded_entries = JsonLoader._GetElementByKey(loaded_match, "entries");
       for (let loaded_entry of loaded_entries) {
-        let index = loaded_entry["libpcap_index"];
-        let value = loaded_entry["value"];
+        let index = JsonLoader._GetElementByKey(loaded_entry, "libpcap_index");
+        let value = JsonLoader._GetElementByKey(loaded_entry, "value");
         let entry = new PDEntry(index, value);
 
         match.Entries.push(entry);

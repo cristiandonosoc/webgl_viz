@@ -133,6 +133,7 @@ class PacketDapperViz implements PacketDapperVizInterface {
 
   private _ProcessLoadedData(data: PDDataInterface) : void {
     this._data = data;
+    console.log(data);
 
     // We add the data to the visualizers
     for (let viz of this._visualizers) {

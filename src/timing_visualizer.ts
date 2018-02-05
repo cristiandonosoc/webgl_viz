@@ -196,7 +196,9 @@ class TimingVisualizer implements VisualizerInterface {
       }
     }
 
-    console.log(missing);
+    console.debug("LINES: ", lines);
+    console.debug("POINTS: ", points);
+    console.debug("MISSING: ", missing);
 
     // We create the graph info from the points
     this._CreateLinesGraphInfo("lines", lines, AllColors.Get("yellow"));
