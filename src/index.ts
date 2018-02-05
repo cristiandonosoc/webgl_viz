@@ -37,9 +37,9 @@ document.getElementById("control-file").addEventListener("change", (event: any) 
   let reader = new FileReader();
   reader.addEventListener("loadend", (event: any) => {
     console.log("Loaded file");
-    manager.LoadPDFile(reader.result);
-    console.log("Processed dap file");
-    manager.Start();
+    if (manager.LoadPDFile(reader.result)) {
+      manager.Start();
+    }
     // requestAnimationFrame(ProcessFrame);
   });
   reader.readAsText(event.target.files[0]);

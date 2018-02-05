@@ -1,8 +1,10 @@
 /**
- * DataLoader
- * ----------
+ * VizLoader
+ * ---------
  *
  * Class in charge of parsing and loading the data from Packet Dapper.
+ * This loader loads the text file format compatible with the
+ * LabView Visualizer
  **/
 
 /**
@@ -19,20 +21,13 @@
 import {PDEntry} from "./data";
 import {PDMatch} from "./data";
 import {PDData, PDDataInterface} from "./data";
-
-/**************************************************************************
- * INTERFACE
- **************************************************************************/
-
-interface DataLoaderInterface {
-  ParseFile(file_content: string) : PDDataInterface;
-}
+import DataLoaderInterface from "./data_loader_interface";
 
 /**************************************************************************
  * IMPLEMENTATION
  **************************************************************************/
 
-class DataLoader implements DataLoaderInterface {
+class VizLoader implements DataLoaderInterface {
   private static ThrowError(line_num: number,
     fmt: string, ...args: any[]) : void {
     console.error("Error parsing in line: %f", line_num);
@@ -46,9 +41,9 @@ class DataLoader implements DataLoaderInterface {
     let lines = file_content.split("\n");
     console.info("Read %d lines", lines.length);
 
-    DataLoader._ParseTsBase(lines, data);
-    DataLoader._ParseNames(lines, data);
-    DataLoader._ParseEntries(lines, data);
+    VizLoader._ParseTsBase(lines, data);
+    VizLoader._ParseNames(lines, data);
+    VizLoader._ParseEntries(lines, data);
 
     data.Valid = true;
     return data;
@@ -67,7 +62,7 @@ class DataLoader implements DataLoaderInterface {
         for (let i = 1; i < line_split.length; i++) {
           let res = parseFloat(line_split[i]);
           if (res == NaN) {
-            DataLoader.ThrowError(line_index + 1,
+            VizLoader.ThrowError(line_index + 1,
               "Invalid format in TSBASE line: %s", line);
           }
 
@@ -78,7 +73,7 @@ class DataLoader implements DataLoaderInterface {
     }
 
     if (!found) {
-      DataLoader.ThrowError(-1, "Cannot find TSBASE line.");
+      VizLoader.ThrowError(-1, "Cannot find TSBASE line.");
     }
   }
 
@@ -92,7 +87,7 @@ class DataLoader implements DataLoaderInterface {
       if (line.lastIndexOf("NAMES", 0) == 0) {
         let split = line.split(" ");
         if (split.length != data.TsBase.length + 1) {
-          DataLoader.ThrowError(line_index + 1,
+          VizLoader.ThrowError(line_index + 1,
                                 "Wrong amount of names specified: %s", line);
         }
 
@@ -137,13 +132,13 @@ class DataLoader implements DataLoaderInterface {
       let time_strings = split.slice(3, split.length);
 
       if (time_strings.length != data.TsBase.length) {
-        DataLoader.ThrowError(line_index + 1,
+        VizLoader.ThrowError(line_index + 1,
                               "Entry doesn't have same amount of times as TSBASE: %s",
                               line);
       }
 
       // We create the entry
-      let match = DataLoader._CreateMatch(time_strings, line_index, line);
+      let match = VizLoader._CreateMatch(time_strings, line_index, line);
       data.Matches.push(match);
     }
   }
@@ -158,7 +153,7 @@ class DataLoader implements DataLoaderInterface {
     time_strings.forEach(function(str: string, i: number) : void {
       let value = parseFloat(str);
       if (value == NaN) {
-        DataLoader.ThrowError(line_index + 1,
+        VizLoader.ThrowError(line_index + 1,
                               "Cannot parse time in line: %s", line);
       }
 
@@ -171,5 +166,5 @@ class DataLoader implements DataLoaderInterface {
 }
 
 
-export {DataLoader, DataLoaderInterface}
-export default DataLoaderInterface;
+export {VizLoader}
+export default VizLoader;

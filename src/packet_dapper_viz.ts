@@ -9,7 +9,7 @@ import {ZoomType, UIManagerSingleton} from "./ui_manager";
 import {INFINITY} from "./helpers";
 
 import {PDDataInterface} from "./data";
-import {DataLoader} from "./data_loader";
+import {VizLoader} from "./viz_loader";
 
 /**************************************************************************
  * INTERFACE
@@ -22,6 +22,8 @@ interface PacketDapperVizInterface {
   FrameLoop() : void;   /* Update + Draw */
   // Update() : void;
   // Draw() : void;
+
+  LoadPDFile(content: string) : boolean;
 
   SetClosestPoint(point: Vec2) : void;
   // Resets the zoom to the containing bounds
@@ -107,9 +109,15 @@ class PacketDapperViz implements PacketDapperVizInterface {
     return this._state.bounds;
   }
 
-  LoadPDFile(content: string) : void {
-    let loader = new DataLoader();
-    this._data = loader.ParseFile(content);
+  LoadPDFile(content: string) : boolean {
+    let loader = new VizLoader();
+    let data = loader.ParseFile(content);
+    if (!data.Valid) {
+      console.error("Could not parse file");
+      return false;
+    }
+
+    this._data = data;
 
     // We add the data to the visualizers
     for (let viz of this._visualizers) {
@@ -117,6 +125,7 @@ class PacketDapperViz implements PacketDapperVizInterface {
     }
 
     this.ApplyMaxBounds();
+    return true;
   }
 
   // Applies the graph max bounds
@@ -127,10 +136,14 @@ class PacketDapperViz implements PacketDapperVizInterface {
   }
 
   FrameLoop() : void {
+    if (!this.Running) {
+      return;
+    }
+
     this.Update();
     // TODO(donosoc): Do it so that we only draw when needed, making components
     //                "dirty" the view.
-    //                Right now we are always re-rendering (~60 FPS)
+    //                Right now we are always re-rendering
     this.Draw();
   }
 
