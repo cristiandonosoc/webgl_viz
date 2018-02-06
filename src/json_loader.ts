@@ -45,8 +45,10 @@ class JsonLoader implements DataLoaderInterface {
 
     let data = new PDData();
 
-    if (!JsonLoader._LoadTsBase(json, data)) { return data; }
-    if (!JsonLoader._LoadNames(json, data)) { return data; }
+    // We load the data
+    if (!JsonLoader._LoadTsBase(json, data))  { return data; }
+    if (!JsonLoader._LoadNames(json, data))   { return data; }
+    if (!JsonLoader._LoadOffsets(json, data)) { return data; }
     if (!JsonLoader._LoadMatches(json, data)) { return data; }
 
     data.Valid = true;
@@ -66,7 +68,7 @@ class JsonLoader implements DataLoaderInterface {
   private static _LoadNames(json: any, data: PDData) : boolean {
     let key = "names";
     if (!(key in json)) {
-      console.warn("Loaded file doesn't have \"names\" key");
+      console.warn("Loaded file doesn't have \"names\" key. Creating placeholder names.");
 
       for (let i = 0; i < data.TsBase.length; i++) {
         let name = `Pcap ${i}`;
@@ -77,8 +79,34 @@ class JsonLoader implements DataLoaderInterface {
     }
 
     let names = json[key];
+    if (names.length != data.TsBase.length) {
+      throw `Names length (${names.length}) != tsbases length (${data.TsBase.length})`;
+    }
     for (let name of names) {
       data.Names.push(names);
+    }
+
+    return true;
+  }
+
+  private static _LoadOffsets(json: any, data: PDData) : boolean {
+    let key = "offsets";
+    if (!(key in json)) {
+      console.warn("Loaded file doesn't have \"offsets\" key. Adding zeroes.");
+
+      for (let i = 0; i < data.TsBase.length; i++) {
+        data.Offsets.push(0);
+      }
+      return true;
+    }
+
+    let offsets = <Array<number>> json[key];
+    if (offsets.length != data.TsBase.length) {
+      throw `Offset length (${offsets.length}) != tsbases length (${data.TsBase.length})`;
+    }
+
+    for (let offset of offsets) {
+      data.Offsets.push(offset);
     }
 
     return true;
@@ -93,6 +121,9 @@ class JsonLoader implements DataLoaderInterface {
       match.TcpFlag = JsonLoader._GetElementByKey(loaded_match, "tcp_flag");
 
       let loaded_entries = JsonLoader._GetElementByKey(loaded_match, "entries");
+      if (loaded_entries.length != data.TsBase.length) {
+        throw `Entry with different length than tsbase: ${loaded_entries.length} vs ${data.TsBase.length}`;
+      }
       for (let loaded_entry of loaded_entries) {
         let index = JsonLoader._GetElementByKey(loaded_entry, "libpcap_index");
         let value = JsonLoader._GetElementByKey(loaded_entry, "value");

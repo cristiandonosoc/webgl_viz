@@ -19,10 +19,11 @@ interface PDDataInterface {
   readonly Valid: boolean;
   readonly Count: number;
   readonly TsBase: Array<number>;
-  readonly Offsets: Array<number>;
   readonly Names: Array<string>;
-
   readonly Matches: Array<PDMatchInterface>;
+  Dirty: boolean;
+
+  Offsets: Array<number>;
 }
 
 
@@ -78,6 +79,7 @@ class PDData implements PDDataInterface {
     this._offsets = new Array<number>();
     this._matches = new Array<PDMatchInterface>();
     this._names = new Array<string>();
+    this._dirty = false;
     this._valid = false;
   }
 
@@ -86,17 +88,19 @@ class PDData implements PDDataInterface {
    *******************************************************/
 
   get Valid() : boolean { return this._valid; }
-  set Valid(valid: boolean) { this._valid = valid; }
-
   get Count() : number { return this._matches.length; }
   get TsBase() : Array<number> { return this._ts_base; }
   get Offsets() : Array<number> { return this._offsets; }
-
-  get Matches() : Array<PDMatchInterface> {
-    return this._matches;
-  }
-
+  get Matches() : Array<PDMatchInterface> { return this._matches; }
   get Names() : Array<string> { return this._names; }
+  get Dirty() : boolean { return this._dirty; }
+
+  set Valid(valid: boolean) { this._valid = valid; }
+  set Offsets(offsets: Array<number>) {
+    this._offsets = offsets;
+    this.Dirty = true;
+  }
+  set Dirty(dirty: boolean) { this._dirty = dirty; }
 
   /*******************************************************
    * PRIVATE DATA
@@ -107,6 +111,7 @@ class PDData implements PDDataInterface {
   private _ts_base: Array<number>;
   private _offsets: Array<number>;
   private _names: Array<string>;
+  private _dirty: boolean;
 }
 
 export {PDEntry, PDEntryInterface};

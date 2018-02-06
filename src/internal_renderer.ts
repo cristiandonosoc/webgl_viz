@@ -386,12 +386,18 @@ class InternalRenderer implements InternalRendererInterface {
     p.pixel = twgl.createProgramInfo(this._gl, [
       AllShaders.GetVertexShader("pixel"),
       AllShaders.GetFragmentShader("simple")]);
+    p.graph = twgl.createProgramInfo(this.GL, [
+      AllShaders.GetVertexShader("graph"),
+      AllShaders.GetFragmentShader("simple")]);
 
     p.local_ps = twgl.createProgramInfo(this._gl, [
       AllShaders.GetVertexShader("direct"),
       AllShaders.GetFragmentShader("point_sprite")]);
     p.pixel_ps = twgl.createProgramInfo(this._gl, [
       AllShaders.GetVertexShader("pixel"),
+      AllShaders.GetFragmentShader("point_sprite")]);
+    p.graph_ps = twgl.createProgramInfo(this._gl, [
+      AllShaders.GetVertexShader("graph"),
       AllShaders.GetFragmentShader("point_sprite")]);
     this._program_infos = p;
 
@@ -439,14 +445,16 @@ class InternalRenderer implements InternalRendererInterface {
 
   private _DrawElementLocalSpace(elem: RendererElem,
                                  graph_info: GraphInfoInterface) : void {
-    let program_info = this.ProgramInfos.local;
+    let program_info = this.ProgramInfos.graph;
     this._gl.useProgram(program_info.program);
     twgl.setBuffersAndAttributes(this._gl, program_info, elem.buffer_info);
     let uniforms = {
       u_offset: this.Offset.AsArray(),
       u_scale: this.Scale.AsArray(),
       u_color: graph_info.Color.AsArray(),
+      u_graph_offset: graph_info.Offset.AsArray(),
     };
+
     twgl.setUniforms(program_info, uniforms);
     if (elem.gl_primitive == this.GL.LINES) {
       this.GL.drawArrays(this.GL.LINES, 0, elem.buffer_info.numElements);
@@ -457,13 +465,14 @@ class InternalRenderer implements InternalRendererInterface {
 
   private _DrawIconElementLocalSpace(elem: RendererElem,
                                      graph_info: GraphInfoInterface) : void {
-    let program_info = this.ProgramInfos.local_ps;
+    let program_info = this.ProgramInfos.graph_ps;
     this.GL.useProgram(program_info.program);
     twgl.setBuffersAndAttributes(this.GL, program_info, elem.buffer_info);
     let uniforms = {
       u_offset: this.Offset.AsArray(),
       u_scale: this.Scale.AsArray(),
       u_color: graph_info.Color.AsArray(),
+      u_graph_offset: graph_info.Offset.AsArray(),
       u_point_size: 5,
       u_sampler: 0
     };

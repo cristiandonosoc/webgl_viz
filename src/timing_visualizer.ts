@@ -239,6 +239,10 @@ class TimingVisualizer implements VisualizerInterface {
     this.AxisManager.Update();
   }
 
+  UpdateDirtyData(data: PDDataInterface) : void {
+
+  }
+
   Draw() : void {
 
     let background_color = AllColors.Get("black");

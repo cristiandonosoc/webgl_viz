@@ -19,13 +19,15 @@ import JsonLoader from "./json_loader";
 
 interface PacketDapperVizInterface {
   /* ACTIONS */
-  LoadPDFile(content: string) : void;
   Start() : void;
   FrameLoop() : void;   /* Update + Draw */
   // Update() : void;
   // Draw() : void;
 
   LoadPDFile(content: string) : boolean;
+
+  // Data Interface
+  readonly Data: PDDataInterface;
 
   SetClosestPoint(point: Vec2) : void;
   // Resets the zoom to the containing bounds
@@ -99,6 +101,8 @@ class PacketDapperViz implements PacketDapperVizInterface {
     }
   }
 
+  get Data() : PDDataInterface { return this._data; }
+
   get Colors() : any {
     return this._state.colors;
   }
@@ -141,6 +145,8 @@ class PacketDapperViz implements PacketDapperVizInterface {
     }
 
     this.ApplyMaxBounds();
+
+    UIManagerSingleton.SetupData(data);
   }
 
   // Applies the graph max bounds
@@ -167,10 +173,20 @@ class PacketDapperViz implements PacketDapperVizInterface {
    *******************************************/
 
   private Update() : void {
+    if (this.Data.Dirty) {
+      this._UpdateDirtyData();
+      this.Data.Dirty = false;
+    }
     UIManagerSingleton.Update();
 
     for (let viz of this._visualizers) {
       viz.Update();
+    }
+  }
+
+  private _UpdateDirtyData() : void {
+    for (let viz of this._visualizers) {
+      viz.UpdateDirtyData(this.Data);
     }
   }
 

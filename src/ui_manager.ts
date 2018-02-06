@@ -7,6 +7,7 @@
 import {Bounds, Vec2} from "./vectors";
 
 import KeyboardSingleton from "./keyboard";
+import {PDDataInterface} from "./data";
 
 /*******************************************************
  * INTERFACE
@@ -22,10 +23,10 @@ enum ZoomType {
 interface UIManagerInterface {
   Zoom: ZoomType;
 
-
   /* ACTIONS */
   Update() : void;
   Draw() : void;
+  SetupData(data: PDDataInterface) : void;
 }
 
 /*******************************************************
@@ -36,6 +37,52 @@ class UIManager implements UIManagerInterface {
   /*******************************************************
    * PUBLIC INTERFACE
    *******************************************************/
+
+  get Data() : PDDataInterface {
+    return this._data;
+
+  }
+
+  SetupData(data: PDDataInterface) : void {
+    this._data = data;
+    let container = <HTMLElement> document.getElementById("graph-offsets");
+
+    for (let i = 0; i < data.TsBase.length; i++) {
+      let name = data.Names[i];
+      let offset = data.Offsets[i];
+
+      let label = <HTMLLabelElement> document.createElement("label");
+      label.innerText = name;
+      container.appendChild(label);
+
+      let input = <HTMLInputElement> document.createElement("input");
+      input.value = `${offset}`;
+
+      let ctx = this;
+      input.addEventListener("change", function() {
+        ctx._RecreateOffsets();
+      });
+      container.appendChild(input);
+      this._offset_inputs.push(input);
+    }
+  }
+
+  private _RecreateOffsets() : void {
+    console.log("RECREATING OFFSETS");
+    let offsets = new Array<number>();
+    for (let input of this._offset_inputs) {
+      let offset = parseFloat(input.value);
+      if (isNaN(offset)) {
+        console.error(`Cannot parse offset to number: ${offset}`);
+        return;
+      }
+      offsets.push(offset);
+    }
+
+    // We update the offset
+    this.Data.Offsets = offsets;
+    this.Data.Dirty = true;
+  }
 
   get Zoom() : ZoomType {
     if (this.VerticalZoom) { return ZoomType.VERTICAL; }
@@ -48,8 +95,11 @@ class UIManager implements UIManagerInterface {
     this._UpdateLabel(this._ctrl_label, KeyboardSingleton.CtrlPressed);
     this._UpdateLabel(this._alt_label, KeyboardSingleton.AltPressed);
     this._UpdateLabel(this._shift_label, KeyboardSingleton.ShiftPressed);
-  }
 
+    if (this.Data) {
+
+    }
+  }
 
   Draw() : void {
     this.DrawStats();
@@ -62,6 +112,7 @@ class UIManager implements UIManagerInterface {
   constructor() {
     // this._renderer = renderer;
     // this._interaction = interaction;
+    this._offset_inputs = new Array<HTMLInputElement>();
 
     this._offset_x_box = <HTMLInputElement> document.getElementById("offset-x");
     this._offset_y_box = <HTMLInputElement> document.getElementById("offset-y");
@@ -192,6 +243,9 @@ class UIManager implements UIManagerInterface {
   private _ctrl_label: HTMLElement;
   private _alt_label: HTMLElement;
   private _shift_label: HTMLElement;
+
+  private _data: PDDataInterface;
+  private _offset_inputs: Array<HTMLInputElement>;
 }
 
 /*************************************************

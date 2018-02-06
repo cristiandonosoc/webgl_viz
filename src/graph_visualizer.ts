@@ -160,7 +160,20 @@ class GraphVisualizer implements VisualizerInterface {
     this.Renderer.ResizeCanvas();
     this.LabelManager.Update();
     this.AxisManager.Update();
+  }
 
+  UpdateDirtyData(data: PDDataInterface) : void {
+    // We check for a change in the offsets
+    for (let i = 0; i < data.Offsets.length - 1; i++) {
+      let from_offset = data.Offsets[i];
+      let to_offset = data.Offsets[i+1];
+
+      let graph_info = this.Graphs[i];
+
+      graph_info.Offset = new Vec2(from_offset, to_offset);
+    }
+
+    console.log(this.Graphs);
   }
 
   Draw() : void {

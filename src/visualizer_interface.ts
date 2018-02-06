@@ -14,6 +14,7 @@ interface VisualizerInterface {
 
   LoadData(data: PDDataInterface) : void;
 
+  UpdateDirtyData(data: PDDataInterface) : void;
   Update() : void;
   Draw() : void;
 
@@ -21,6 +22,7 @@ interface VisualizerInterface {
   GetColor(key: string) : Color;
   SetColor(key: string, color: Color) : boolean;
 
+  // REACTION TO EVENTS
   SetGlobalInteractionCallback(callback: (i: VisualizerInterface) => void) : void;
   ReactToOtherVisualizer(v: VisualizerInterface) : void;
 
