@@ -102,12 +102,16 @@ class GraphVisualizer implements VisualizerInterface {
 
     // We create the raw points for each graph
     for (let match of data.Matches) {
+
+      let base_offset = data.TsBase[0] - min_tsbase;
+      let xbase = base_offset + match.Entries[0].Value;
       for (let i = 0; i < match.Entries.length - 1; i++) {
         let from_entry = match.Entries[i];
         let to_entry = match.Entries[i+1];
 
-        let offset = data.TsBase[i] - min_tsbase;
-        let x = offset + from_entry.Value;
+        // let offset = data.TsBase[i] - min_tsbase;
+        // let x = offset + from_entry.Value;
+        let x = xbase;
         let y = to_entry.Value - from_entry.Value;
 
         this._graphs[i].RawPoints.push(x, y);
@@ -164,27 +168,47 @@ class GraphVisualizer implements VisualizerInterface {
 
   UpdateDirtyData(data: PDDataInterface) : void {
     // We check for a change in the offsets
+    let base_offset = data.Offsets[0];
     for (let i = 0; i < data.Offsets.length - 1; i++) {
       let from_offset = data.Offsets[i];
       let to_offset = data.Offsets[i+1];
+      let offset_diff = to_offset - from_offset;
 
       let graph_info = this.Graphs[i];
-
-      graph_info.Offset = new Vec2(from_offset, to_offset);
+      graph_info.Offset = new Vec2(base_offset, offset_diff);
     }
 
     console.log(this.Graphs);
   }
 
   Draw() : void {
-
     let background_color = AllColors.Get("black");
-    let drag_color = AllColors.Get("lightblue");
+    this.Renderer.Clear(background_color);
 
-
-    this.Renderer.Clear(AllColors.Get("black"));
+    this._DrawInteraction();
     this.LabelManager.Draw();
 
+    // Draw x/y Axis
+    this.AxisManager.Draw();
+
+    this.Renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
+    this.Renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
+
+    for (let graph_info of this.Graphs) {
+      this.Renderer.DrawElement(graph_info, DrawSpace.LOCAL, graph_info.Color);
+    }
+
+    let canvas_pos = this.Interaction.CurrentMousePos.canvas;
+    this.Renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
+                                   AllColors.Get("orange"));
+
+    if (this._closest_point) {
+      this.Renderer.DrawIcon(this._closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));
+    }
+  }
+
+  private _DrawInteraction() : void {
+    let drag_color = AllColors.Get("lightblue");
     if (this.Interaction.ZoomDragging) {
       let zoom = UIManagerSingleton.Zoom;
       if (zoom == ZoomType.VERTICAL) {
@@ -201,28 +225,6 @@ class GraphVisualizer implements VisualizerInterface {
         this.Renderer.DrawBox(p1, p2, DrawSpace.PIXEL, drag_color);
       }
     }
-
-    // Draw x/y Axis
-    this.AxisManager.Draw();
-
-    this.Renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
-    this.Renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
-
-    for (let graph_info of this.Graphs) {
-      this.Renderer.DrawElement(graph_info, DrawSpace.LOCAL, graph_info.Color);
-    }
-
-    // Draw mouse vertical line
-    // this.DrawLinePixelSpace([10, 10], [200, 200]);
-    let canvas_pos = this.Interaction.CurrentMousePos.canvas;
-    this.Renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
-                                   AllColors.Get("orange"));
-
-    if (this._closest_point) {
-      this.Renderer.DrawIcon(this._closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));
-    }
-
-
   }
 
   private _SearchForClosestPoint(pos: Vec2) : Vec2 {
