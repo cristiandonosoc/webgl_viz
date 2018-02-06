@@ -60,7 +60,6 @@ interface InternalRendererInterface {
   readonly GL: WebGL2RenderingContext;
 
   /* MANAGING INTERFACE */
-  // AddGraph(points: number[]) : RendererElemId;
   AddGraph(graph_info: GraphInfoInterface) : void;
   ResizeCanvas() : void;
   ApplyMaxBounds() : void;
@@ -228,7 +227,10 @@ class InternalRenderer implements InternalRendererInterface {
   AddGraph(graph_info: GraphInfoInterface) : void {
     // We set the WebGL points
     let arrays = {
-      a_position_coord: graph_info.RawPoints,
+      a_position_coord: {
+        numComponents: 2,
+        data: graph_info.RawPoints,
+      },
     };
 
     // We create the renderer elem
@@ -403,13 +405,13 @@ class InternalRenderer implements InternalRendererInterface {
 
     // We create the overlay buffers
     let arrays = {
-      a_position_coord: Array<number>(100)
+      a_position_coord: {
+        numComponents: 2,
+        data: Array<number>(100),
+      }
     };
-    // this.pixel_buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays);
-    // this.local_buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays);
-    // this.ps_buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays);
 
-    this.buffer_info = twgl.createBufferInfoFromArrays(this._gl, arrays);
+    this.buffer_info = twgl.createBufferInfoFromArrays(this.GL, arrays);
   }
 
   private _SetupTextures() {
@@ -447,7 +449,7 @@ class InternalRenderer implements InternalRendererInterface {
                                  graph_info: GraphInfoInterface) : void {
     let program_info = this.ProgramInfos.graph;
     this._gl.useProgram(program_info.program);
-    twgl.setBuffersAndAttributes(this._gl, program_info, elem.buffer_info);
+    twgl.setBuffersAndAttributes(this.GL, program_info, elem.buffer_info);
     let uniforms = {
       u_offset: this.Offset.AsArray(),
       u_scale: this.Scale.AsArray(),
