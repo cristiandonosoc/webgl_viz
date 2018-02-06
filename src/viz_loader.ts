@@ -47,6 +47,7 @@ class VizLoader implements DataLoaderInterface {
 
     VizLoader._ParseTsBase(lines, data);
     VizLoader._ParseNames(lines, data);
+    VizLoader._ParseOffsets(lines, data);
     VizLoader._ParseEntries(lines, data);
 
     data.Valid = true;
@@ -69,7 +70,6 @@ class VizLoader implements DataLoaderInterface {
             continue;
           }
           let res = parseFloat(str_res);
-          console.log(res);
           if (isNaN(res)) {
             VizLoader.ThrowError(line_index + 1,
               "Invalid format in TSBASE line: %s", line);
@@ -87,7 +87,6 @@ class VizLoader implements DataLoaderInterface {
   }
 
   private static _ParseNames(lines: Array<string>, data: PDData) : void {
-    let found = false;
     for (let line_index = 0;
          line_index < lines.length;
          line_index++) {
@@ -104,17 +103,51 @@ class VizLoader implements DataLoaderInterface {
           data.Names.push(split[i]);
         }
 
-        found = true;
+        return;
+
       }
     }
 
-    if (!found) {
-      for (let i = 0; i < data.TsBase.length; i++) {
-        let name = `Graph ${i}`;
-        data.Names.push(name);
-      }
+    console.warn("Could not find NAMES line. Creating default graph names");
+    for (let i = 0; i < data.TsBase.length; i++) {
+      let name = `Graph ${i}`;
+      data.Names.push(name);
     }
   }
+
+  private static _ParseOffsets(lines: Array<string>,  data: PDData) : void {
+    for (let line_index = 0;
+         line_index < lines.length;
+         line_index++) {
+      let line = lines[line_index];
+
+      if (line.lastIndexOf("OFFST", 0) == 0) {
+        console.log(`FOUND OFFST LINE: \"${line}\"`);
+        let line_split = line.split(" ");
+        for (let i = 1; i < line_split.length; i++) {
+          let str_res = line_split[i];
+          if (str_res.length == 0) {
+            continue;
+          }
+          let res = parseFloat(str_res);
+          if (isNaN(res)) {
+            VizLoader.ThrowError(line_index + 1,
+              "Invalid format in OFFST line: %s", line);
+          }
+
+          data.Offsets.push(res);
+        }
+
+        return;
+      }
+    }
+
+    console.warn("Could not find OFFST line. Creating zeroes");
+    for (let i = 0; i < data.TsBase.length; i++) {
+      data.Offsets.push(0);
+    }
+  }
+
 
   private static _ParseEntries(lines: Array<string>, data: PDData) : void {
     for (let line_index = 0;
