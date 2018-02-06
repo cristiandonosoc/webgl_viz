@@ -1,6 +1,6 @@
 import {Bounds, Vec2} from "./vectors";
 
-let INFINITY = 9007199254740991;
+let INFINITY = 999999999;
 
 function GetCanvasChildByTag(el: HTMLElement, tag: string, value: string) : HTMLCanvasElement {
   let children = el.getElementsByTagName("canvas");

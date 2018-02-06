@@ -14,7 +14,7 @@ import GraphInfoInterface from "./graph_info";
 import {Color} from "./colors";
 import {INFINITY, CreateMaxBounds, GetCanvasChildByClass} from "./helpers";
 import {RendererCalculateBounds} from "./transforms";
-import AllShaders from "./shaders";
+import {VertexShaders, FragmentShaders, AllShaders} from "./shaders";
 
 /**************************************************************************
  * INTERFACES
@@ -98,7 +98,6 @@ declare let twgl: any;
  **/
 class RendererElem {
   buffer_info: any;
-  offset: number;
   // What GL primitive use to draw this
   gl_primitive: any;
 };
@@ -383,24 +382,24 @@ class InternalRenderer implements InternalRendererInterface {
   private _SetupWebGL() {
     let p = <any>{};
     p.local = twgl.createProgramInfo(this._gl, [
-      AllShaders.GetVertexShader("direct"),
-      AllShaders.GetFragmentShader("simple")]);
+      AllShaders.GetVertexShader(VertexShaders.DIRECT),
+      AllShaders.GetFragmentShader(FragmentShaders.SIMPLE)]);
     p.pixel = twgl.createProgramInfo(this._gl, [
-      AllShaders.GetVertexShader("pixel"),
-      AllShaders.GetFragmentShader("simple")]);
+      AllShaders.GetVertexShader(VertexShaders.PIXEL),
+      AllShaders.GetFragmentShader(FragmentShaders.SIMPLE)]);
     p.graph = twgl.createProgramInfo(this.GL, [
-      AllShaders.GetVertexShader("graph"),
-      AllShaders.GetFragmentShader("simple")]);
+      AllShaders.GetVertexShader(VertexShaders.GRAPH),
+      AllShaders.GetFragmentShader(FragmentShaders.SIMPLE)]);
 
     p.local_ps = twgl.createProgramInfo(this._gl, [
-      AllShaders.GetVertexShader("direct"),
-      AllShaders.GetFragmentShader("point_sprite")]);
+      AllShaders.GetVertexShader(VertexShaders.DIRECT),
+      AllShaders.GetFragmentShader(FragmentShaders.POINT_SPRITE)]);
     p.pixel_ps = twgl.createProgramInfo(this._gl, [
-      AllShaders.GetVertexShader("pixel"),
-      AllShaders.GetFragmentShader("point_sprite")]);
+      AllShaders.GetVertexShader(VertexShaders.PIXEL),
+      AllShaders.GetFragmentShader(FragmentShaders.POINT_SPRITE)]);
     p.graph_ps = twgl.createProgramInfo(this._gl, [
-      AllShaders.GetVertexShader("graph"),
-      AllShaders.GetFragmentShader("point_sprite")]);
+      AllShaders.GetVertexShader(VertexShaders.GRAPH),
+      AllShaders.GetFragmentShader(FragmentShaders.POINT_SPRITE)]);
     this._program_infos = p;
 
     // We create the overlay buffers

@@ -109,40 +109,65 @@ void main() {
 }
 `;
 
+enum VertexShaders {
+  DIRECT,
+  PIXEL,
+  GRAPH,
+  TIMING,
+};
+
+enum FragmentShaders {
+  SIMPLE,
+  POINT_SPRITE,
+}
+
 
 class ShaderRegistry {
   shaders: any;
   constructor() {
     this.shaders = {
-      vertex: {
-        direct: direct_vs,
-        graph: graph_vs,
-        pixel: pixel_vs,
-      },
-      fragment: {
-        simple: simple_fs,
-        point_sprite: point_sprite_fs,
-      }
+      vertex: {},
+      fragment: {}
     };
+
+    // Add Vertex Shaders
+    this.shaders.vertex[VertexShaders.DIRECT] = direct_vs;
+    this.shaders.vertex[VertexShaders.PIXEL] = pixel_vs;
+    this.shaders.vertex[VertexShaders.GRAPH] = graph_vs;
+
+    // Add Fragment Shaders
+    this.shaders.fragment[FragmentShaders.SIMPLE] = simple_fs;
+    this.shaders.fragment[FragmentShaders.POINT_SPRITE] = point_sprite_fs;
   }
 
-  private GetShader(type: string, shader_name: string) {
-    var shader = this.shaders[type][shader_name];
+  GetVertexShader(shader_id: VertexShaders) : string {
+    var shader : string = this.shaders.vertex[shader_id];
     if (shader) {
       shader = shader.trim();
+    } else {
+      console.error("Could not find vertex shader: ",  shader_id);
+      throw "ERROR IN SHADER LOOKUP";
     }
     return shader;
   }
 
-  GetVertexShader(shader_name: string) {
-    return this.GetShader("vertex", shader_name);
-  }
-
-  GetFragmentShader(shader_name: string) {
-    return this.GetShader("fragment", shader_name);
+  GetFragmentShader(shader_id: FragmentShaders) : string {
+    var shader : string = this.shaders.fragment[shader_id];
+    if (shader) {
+      shader = shader.trim();
+    } else {
+      console.error("Could not find fragment shader: ",  shader_id);
+      throw "ERROR IN SHADER LOOKUP";
+    }
+    return shader;
   }
 };
 
 
+// We create the singleton
 var AllShaders = new ShaderRegistry();
+console.log(AllShaders);
+
+export {VertexShaders, FragmentShaders};
+export {AllShaders};
 export default AllShaders;

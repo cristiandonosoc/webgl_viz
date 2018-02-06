@@ -252,6 +252,7 @@ class TimingVisualizer implements VisualizerInterface {
     this.Renderer.Clear(AllColors.Get("black"));
     this.LabelManager.Draw();
 
+    // TODO(donosoc): Un-duplicate this code (from other visualizers)
     if (this.Interaction.ZoomDragging) {
       let zoom = UIManagerSingleton.Zoom;
       if (zoom == ZoomType.VERTICAL) {
