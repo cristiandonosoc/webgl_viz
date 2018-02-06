@@ -170,6 +170,10 @@ class InternalRenderer implements InternalRendererInterface {
     return this._program_infos;
   }
 
+  private get GLPrograms() : { [K:string]: any } {
+    return this._gl_programs;
+  }
+
   get Canvas() : HTMLCanvasElement {
     return this._gl.canvas;
   }
@@ -380,6 +384,8 @@ class InternalRenderer implements InternalRendererInterface {
    **************************************************************************/
 
   private _SetupWebGL() {
+    this._gl_programs = {};
+
     let p = <any>{};
     p.local = twgl.createProgramInfo(this._gl, [
       AllShaders.GetVertexShader(VertexShaders.DIRECT),
@@ -402,6 +408,14 @@ class InternalRenderer implements InternalRendererInterface {
       AllShaders.GetFragmentShader(FragmentShaders.POINT_SPRITE)]);
     this._program_infos = p;
 
+    // We add the program to the gl program registries
+    this._AddGLProgram(VertexShaders.DIRECT, FragmentShaders.SIMPLE);
+    this._AddGLProgram(VertexShaders.DIRECT, FragmentShaders.POINT_SPRITE);
+    this._AddGLProgram(VertexShaders.PIXEL, FragmentShaders.SIMPLE);
+    this._AddGLProgram(VertexShaders.PIXEL, FragmentShaders.POINT_SPRITE);
+    this._AddGLProgram(VertexShaders.GRAPH, FragmentShaders.SIMPLE);
+    this._AddGLProgram(VertexShaders.GRAPH, FragmentShaders.POINT_SPRITE);
+
     // We create the overlay buffers
     let arrays = {
       a_position_coord: {
@@ -412,6 +426,23 @@ class InternalRenderer implements InternalRendererInterface {
 
     this.buffer_info = twgl.createBufferInfoFromArrays(this.GL, arrays);
   }
+
+  // TODO(donosoc): This is compiling shaders more times than
+  //                needed. Explore the shader API to see if we
+  //                can cache some results
+  private _AddGLProgram(vs: VertexShaders, fs: FragmentShaders) : void {
+    let program = twgl.createProgramInfo(this.GL,
+        [AllShaders.GetVertexShader(vs),
+         AllShaders.GetFragmentShader(fs)]);
+    let key = InternalRenderer._GetGLProgramKey(vs, fs);
+    this.GLPrograms[key] = program;
+  }
+
+  private static _GetGLProgramKey(vs: VertexShaders,
+                                  fs: FragmentShaders) : string {
+    return `${vs}_${fs}`;
+  }
+
 
   private _SetupTextures() {
     // We ge the element
@@ -626,6 +657,8 @@ class InternalRenderer implements InternalRendererInterface {
     local_ps: any,
     pixel_ps: any,
   };
+
+  private _gl_programs: { [K:string]: any }
 
   private _elems: RendererElemRegistry;
 
