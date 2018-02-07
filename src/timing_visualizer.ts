@@ -51,6 +51,8 @@ class TimingVisualizer implements VisualizerInterface {
     this._axis_manager = new AxisManager(container, this._renderer);
 
     this._lines = new Array<GraphInfoInterface>();
+    this._missing_lines = new Array<GraphInfoInterface>();
+
     this._points = new Array<GraphInfoInterface>();
     this._missing_points = new Array<GraphInfoInterface>();
   }
@@ -102,6 +104,10 @@ class TimingVisualizer implements VisualizerInterface {
     return this._lines;
   }
 
+  private get MissingLines() : Array<GraphInfoInterface> {
+    return this._missing_lines;
+  }
+
   private get Points() : Array<GraphInfoInterface> {
     return this._points;
   }
@@ -117,8 +123,9 @@ class TimingVisualizer implements VisualizerInterface {
   LoadData(data: PDDataInterface) : void {
     // Setup the point containers
     let line_lists = new Array<Array<number>>();
+    let missing_line_lists = new Array<Array<number>>();
     let point_lists = new Array<Array<number>>();
-    let missing_lists = new Array<Array<number>>();
+    let missing_point_lists = new Array<Array<number>>();
 
     // We calculate the offsets for each capture
     let min_tsbase = Math.min(...data.TsBase);
@@ -136,11 +143,11 @@ class TimingVisualizer implements VisualizerInterface {
 
     for (let i = 0; i < data.TsBase.length - 1; i++) {
       line_lists.push(new Array<number>());
+      missing_line_lists.push(new Array<number>());
       point_lists.push(new Array<number>());
-      missing_lists.push(new Array<number>());
+      missing_point_lists.push(new Array<number>());
     }
 
-    debugger;
     for (let match of data.Matches) {
       // We search for the first value we can see.
       // This variable is used to place a missed packet, which
@@ -154,6 +161,7 @@ class TimingVisualizer implements VisualizerInterface {
         if (!entry.Missing) {
           latest_entry = entry;
           latest_offset = offsets[i];
+          break;
         }
       }
       if (latest_offset == -1) {
@@ -163,8 +171,9 @@ class TimingVisualizer implements VisualizerInterface {
       for (let i = 0; i < match.Entries.length - 1; i++) {
         // We set up the lists references
         let line_list = line_lists[i];
+        let missing_line_list = missing_line_lists[i];
         let point_list = point_lists[i];
-        let missing_list = missing_lists[i];
+        let missing_point_list = missing_point_lists[i];
 
         // Setup entry variables references
         let from_entry = match.Entries[i];
@@ -174,32 +183,52 @@ class TimingVisualizer implements VisualizerInterface {
         let from_height = heights[i];
         let to_height = heights[i+1];
 
-        if (from_entry.Missing) {
-          // We mark a missing point at it's height
-          missing_list.push(latest_offset + latest_entry.Value);
-          missing_list.push(from_height);
-          continue;
+        if (!from_entry.Missing) {
+          // We update the latest entry seen
+          latest_entry = from_entry;
+          latest_offset = from_offset;
         }
 
-        // We update the latest entry seen
-        latest_entry = from_entry;
-        latest_offset = from_offset;
+        let from_x = from_offset + from_entry.Value;
+        let to_x = to_offset + to_entry.Value;
+        let latest_x = latest_offset + latest_entry.Value;
 
+        // We only mark the from
         if (to_entry.Missing) {
-          // We only put a single point here
-          // The missing point will be added by the previous entry
-          point_list.push(from_offset + from_entry.Value);
-          point_list.push(from_height);
+          // We mark a missing point (at the latest time we've seen)
+          missing_point_list.push(latest_x, to_height);
 
-          // EXCEPTION: The latest point won't be checked,
-          // so we need to check here to see if the latest point
-          // was missing
-          if (i == match.Entries.length - 1) {
-            missing_list.push(latest_offset + latest_entry.Value);
-            missing_list.push(to_height);
+          // We add the top line
+          missing_line_list.push(latest_x, from_height);
+          missing_line_list.push(latest_x, to_height);
+
+          // We add the normal case
+          if (!from_entry.Missing) {
+            point_list.push(from_x, from_height);
           }
           continue;
         }
+
+        if (from_entry.Missing) {
+          // This case is already covered by the to check
+          if (i > 0) {
+            continue;
+          }
+
+          // Special case for the bottom case
+          missing_point_list.push(latest_offset + latest_entry.Value);
+          missing_point_list.push(from_height);
+
+          // We add the line if the later case is not missing
+          if (!to_entry.Missing) {
+            missing_line_list.push(latest_offset + latest_entry.Value);
+            missing_line_list.push(from_height);
+            missing_line_list.push(latest_offset + latest_entry.Value);
+            missing_line_list.push(to_height);
+          }
+          continue;
+        }
+
 
         // Now we can check the normal case, in which both points
         // are present
@@ -217,19 +246,24 @@ class TimingVisualizer implements VisualizerInterface {
     }
 
     console.debug("LINES: ", line_lists);
+    console.debug("MISSING LINES: ", missing_line_lists);
     console.debug("POINTS: ", point_lists);
-    console.debug("MISSING: ", missing_lists);
+    console.debug("MISSING: ", missing_point_lists);
 
     // We create the graph info from the points
-    this._CreateLinesGraphInfo("lines", line_lists, AllColors.Get("yellow"));
+    this._CreateLinesGraphInfo(this.Lines, "lines", line_lists, AllColors.Get("yellow"));
+    this._CreateLinesGraphInfo(this.MissingLines, "missing_lines",
+                               missing_line_lists, AllColors.Get("red"));
+
     this._CreatePointsGraphInfo(this.Points, "points",
                                 point_lists, AllColors.Get("lightblue"));
     this._CreatePointsGraphInfo(this.MissingPoints, "missing",
-                                missing_lists, AllColors.Get("red"));
+                                missing_point_lists, AllColors.Get("red"));
     this._UpdateOffsets(data);
   }
 
-  private _CreateLinesGraphInfo(name: string,
+  private _CreateLinesGraphInfo(list: Array<GraphInfoInterface>,
+                                name: string,
                                 line_lists: Array<Array<number>>,
                                 color: Color) {
     for (let line_list of line_lists) {
@@ -239,7 +273,7 @@ class TimingVisualizer implements VisualizerInterface {
       graph_info.VertexShader = VertexShaders.TIMING;
       graph_info.FragmentShader = FragmentShaders.SIMPLE;
       this.Renderer.AddGraph(graph_info);
-      this._lines.push(graph_info);
+      list.push(graph_info);
     }
   }
 
@@ -266,6 +300,10 @@ class TimingVisualizer implements VisualizerInterface {
 
       this.Lines[i].Context.u_vertex_offsets = [from_offset, to_offset];
       this.Lines[i].Context.u_offset_count = 2;
+      this.MissingLines[i].Context.u_vertex_offsets = [from_offset, to_offset];
+      this.MissingLines[i].Context.u_offset_count = 2;
+
+
       this.Points[i].Context.u_vertex_offsets = [from_offset, to_offset];
       this.Points[i].Context.u_offset_count = 2;
       this.MissingPoints[i].Context.u_vertex_offsets = [from_offset, to_offset];
@@ -329,6 +367,10 @@ class TimingVisualizer implements VisualizerInterface {
       this.Renderer.DrawElement(line_info, DrawSpace.LOCAL, line_info.Color);
     }
 
+    for (let line_info of this.MissingLines) {
+      this.Renderer.DrawElement(line_info, DrawSpace.LOCAL, line_info.Color);
+    }
+
     // We render the points
     for (let point_info of this.Points) {
       this.Renderer.DrawIconElement(point_info, DrawSpace.LOCAL, point_info.Color);
@@ -386,6 +428,7 @@ class TimingVisualizer implements VisualizerInterface {
   _lines: Array<GraphInfoInterface>;
   _points: Array<GraphInfoInterface>;
   _missing_points: Array<GraphInfoInterface>;
+  _missing_lines: Array<GraphInfoInterface>;
 
   private _global_interaction_callback: (i: VisualizerInterface) => void;
 }
