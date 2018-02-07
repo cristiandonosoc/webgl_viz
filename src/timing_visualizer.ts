@@ -52,6 +52,7 @@ class TimingVisualizer implements VisualizerInterface {
 
     this._lines = new Array<GraphInfoInterface>();
     this._points = new Array<GraphInfoInterface>();
+    this._missing_points = new Array<GraphInfoInterface>();
   }
 
   private _InteractionCallback(i: InteractionInterface) : void {
@@ -105,15 +106,19 @@ class TimingVisualizer implements VisualizerInterface {
     return this._points;
   }
 
+  private get MissingPoints() : Array<GraphInfoInterface> {
+    return this._missing_points;
+  }
+
   Start() : void {
     this.Interaction.Start();
   }
 
   LoadData(data: PDDataInterface) : void {
     // Setup the point containers
-    let lines = new Array<number>();
-    let points = new Array<number>();
-    let missing = new Array<number>();
+    let line_lists = new Array<Array<number>>();
+    let point_lists = new Array<Array<number>>();
+    let missing_lists = new Array<Array<number>>();
 
     // We calculate the offsets for each capture
     let min_tsbase = Math.min(...data.TsBase);
@@ -121,12 +126,16 @@ class TimingVisualizer implements VisualizerInterface {
       return ts_base - min_tsbase;
     });
 
+    // Initialize elements
     let ybase = 0;
     let heights = new Array<number>();
     for (let i = 0; i < data.Names.length; i++) {
       heights.push(ybase + i * 0.2);
-    }
 
+      line_lists.push(new Array<number>());
+      point_lists.push(new Array<number>());
+      missing_lists.push(new Array<number>());
+    }
 
     for (let match of data.Matches) {
       // We search for the first value we can see.
@@ -148,7 +157,12 @@ class TimingVisualizer implements VisualizerInterface {
       }
 
       for (let i = 0; i < match.Entries.length - 1; i++) {
-        // We set up the variables
+        // We set up the lists references
+        let line_list = line_lists[i];
+        let point_list = point_lists[i];
+        let missing_list = missing_lists[i];
+
+        // Setup entry variables references
         let from_entry = match.Entries[i];
         let to_entry = match.Entries[i+1];
         let from_offset = offsets[i];
@@ -158,8 +172,8 @@ class TimingVisualizer implements VisualizerInterface {
 
         if (from_entry.Missing) {
           // We mark a missing point at it's height
-          missing.push(latest_offset + latest_entry.Value);
-          missing.push(from_height);
+          missing_list.push(latest_offset + latest_entry.Value);
+          missing_list.push(from_height);
           continue;
         }
 
@@ -170,15 +184,15 @@ class TimingVisualizer implements VisualizerInterface {
         if (to_entry.Missing) {
           // We only put a single point here
           // The missing point will be added by the previous entry
-          points.push(from_offset + from_entry.Value);
-          points.push(from_height);
+          // point_list.push(from_offset + from_entry.Value);
+          // point_list.push(from_height);
 
           // EXCEPTION: The latest point won't be checked,
           // so we need to check here to see if the latest point
           // was missing
           if (i == match.Entries.length - 1) {
-            missing.push(latest_offset + latest_entry.Value);
-            missing.push(to_height);
+            missing_list.push(latest_offset + latest_entry.Value);
+            missing_list.push(to_height);
           }
           continue;
         }
@@ -186,97 +200,73 @@ class TimingVisualizer implements VisualizerInterface {
         // Now we can check the normal case, in which both points
         // are present
         // We add the line
-        lines.push(from_offset + from_entry.Value);
-        lines.push(from_height);
-        lines.push(to_offset + to_entry.Value);
-        lines.push(to_height);
+        line_list.push(from_offset + from_entry.Value);
+        line_list.push(from_height);
+        line_list.push(to_offset + to_entry.Value);
+        line_list.push(to_height);
         // We add the points
-        points.push(from_offset + from_entry.Value);
-        points.push(from_height);
-        points.push(to_offset + to_entry.Value);
-        points.push(to_height);
+        point_list.push(from_offset + from_entry.Value);
+        point_list.push(from_height);
+        point_list.push(to_offset + to_entry.Value);
+        point_list.push(to_height);
       }
     }
 
-    console.debug("LINES: ", lines);
-    console.debug("POINTS: ", points);
-    console.debug("MISSING: ", missing);
+    console.debug("LINES: ", line_lists);
+    console.debug("POINTS: ", point_lists);
+    console.debug("MISSING: ", missing_lists);
 
     // We create the graph info from the points
-    this._CreateLinesGraphInfo("lines", lines, AllColors.Get("yellow"));
-    this._CreatePointsGraphInfo("points", points, AllColors.Get("lightblue"));
-    this._CreatePointsGraphInfo("missing", missing, AllColors.Get("red"));
+    this._CreateLinesGraphInfo("lines", line_lists, AllColors.Get("yellow"));
+    this._CreatePointsGraphInfo(this.Points, "points",
+                                point_lists, AllColors.Get("lightblue"));
+    this._CreatePointsGraphInfo(this.MissingPoints, "missing",
+                                missing_lists, AllColors.Get("red"));
     this._UpdateOffsets(data);
-    console.log(this.Lines);
-    console.log(this.Points);
   }
 
-  private _CreateLinesGraphInfo(name: string, points: Array<number>,
+  private _CreateLinesGraphInfo(name: string,
+                                line_lists: Array<Array<number>>,
                                 color: Color) {
-    let graph_info = new GraphInfo(name, color);
-    graph_info.RawPoints = points;
-    graph_info.GLPrimitive = this.Renderer.GL.LINES;
-    graph_info.VertexShader = VertexShaders.TIMING;
-    graph_info.FragmentShader = FragmentShaders.SIMPLE;
-    this.Renderer.AddGraph(graph_info);
-    this._lines.push(graph_info);
+    for (let line_list of line_lists) {
+      let graph_info = new GraphInfo(name, color);
+      graph_info.RawPoints = line_list;
+      graph_info.GLPrimitive = this.Renderer.GL.LINES;
+      graph_info.VertexShader = VertexShaders.TIMING;
+      graph_info.FragmentShader = FragmentShaders.SIMPLE;
+      this.Renderer.AddGraph(graph_info);
+      this._lines.push(graph_info);
+    }
   }
 
-  private _CreatePointsGraphInfo(name: string, points: Array<number>,
+  private _CreatePointsGraphInfo(list: Array<GraphInfoInterface>,
+                                 name: string,
+                                 point_lists: Array<Array<number>>,
                                  color: Color) {
-    let graph_info = new GraphInfo(name, color);
-    graph_info.RawPoints = points;
-    graph_info.GLPrimitive = this.Renderer.GL.POINTS;
-    graph_info.VertexShader = VertexShaders.TIMING;
-    graph_info.FragmentShader = FragmentShaders.POINT_SPRITE;
-    this.Renderer.AddGraph(graph_info);
-    // this._lines.push(graph_info);
-    this._points.push(graph_info);
+    for (let point_list of point_lists) {
+      let graph_info = new GraphInfo(name, color);
+      graph_info.RawPoints = point_list;
+      graph_info.GLPrimitive = this.Renderer.GL.POINTS;
+      graph_info.VertexShader = VertexShaders.TIMING;
+      graph_info.FragmentShader = FragmentShaders.POINT_SPRITE;
+      this.Renderer.AddGraph(graph_info);
+      // this._lines.push(graph_info);
+      list.push(graph_info);
+    }
   }
 
   private _UpdateOffsets(data: PDDataInterface) : void {
-
-    let offsets = new Array<number>();
-
     for (let i = 0; i < data.Offsets.length - 1; i++) {
       let from_offset = data.Offsets[i];
       let to_offset = data.Offsets[i+1];
-      offsets.push(from_offset, to_offset);
 
-      // // First case
-      // if (i == 0) {
-      //   offsets.push(from_offset);
-      //   offsets.push(to_offset);
-      //   continue;
-      // }
-
-      // // Last case
-      // if (i == data.Offsets.length - 1) {
-      //   offsets.push(0);
-
-
-      // }
-
+      this.Lines[i].Context.u_vertex_offsets = [from_offset, to_offset];
+      this.Lines[i].Context.u_offset_count = 2;
+      this.Points[i].Context.u_vertex_offsets = [from_offset, to_offset];
+      this.Points[i].Context.u_offset_count = 2;
+      this.MissingPoints[i].Context.u_vertex_offsets = [from_offset, to_offset];
+      this.MissingPoints[i].Context.u_offset_count = 2;
     }
-
-    console.log("OFFSETS: ", offsets);
-    for (let graph_info of this.Lines) {
-      graph_info.Context.u_vertex_offsets = offsets;
-      graph_info.Context.u_offset_count = offsets.length;
-    }
-    for (let graph_info of this.Points) {
-      graph_info.Context.u_vertex_offsets = offsets;
-      graph_info.Context.u_offset_count = offsets.length;
-    }
-
-    // // We can pass the offset directly
-    // let key = "a_offset_coord"
-    // for (let graph_info of this.Lines) {
-    //   this.Renderer.ModifyGraph(graph_info, key, data.Offsets);
-    // }
-    // for (let graph_info of this.Points) {
-    //   this.Renderer.ModifyGraph(graph_info, key, data.Offsets);
-    // }
   }
 
   SetClosestPoint(point: Vec2) {
@@ -387,6 +377,7 @@ class TimingVisualizer implements VisualizerInterface {
 
   _lines: Array<GraphInfoInterface>;
   _points: Array<GraphInfoInterface>;
+  _missing_points: Array<GraphInfoInterface>;
 
   private _global_interaction_callback: (i: VisualizerInterface) => void;
 }
