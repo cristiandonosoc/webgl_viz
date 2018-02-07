@@ -110,6 +110,7 @@ void main() {
 `;
 
 enum VertexShaders {
+  NONE,
   DIRECT,
   PIXEL,
   GRAPH,
@@ -117,6 +118,7 @@ enum VertexShaders {
 };
 
 enum FragmentShaders {
+  NONE,
   SIMPLE,
   POINT_SPRITE,
 }

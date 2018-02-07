@@ -1,6 +1,7 @@
 import {Bounds, Vec2} from "./vectors";
 import {RendererElemId} from "./internal_renderer";
 import {AllColors, Color} from "./colors";
+import {VertexShaders, FragmentShaders} from "./shaders";
 
 /**************************************************************************
  * INTERFACE
@@ -14,10 +15,14 @@ interface GraphInfoInterface {
   // Use InternalRenderer.GL to get the primitive enum */
   // ie: InternalRenderer.GL.LINES
   readonly GLPrimitive: any;
+  readonly VertexShader: VertexShaders;
+  readonly FragmentShader: FragmentShaders;
 
+  // Modifyable
   ElemId: RendererElemId;
   Color: Color;
   Offset: Vec2;
+  GLProgram: any;   // Holds a reference to the internal GL program
 }
 
 /**************************************************************************
@@ -56,6 +61,9 @@ class GraphInfo implements GraphInfoInterface{
   get Bounds() : Bounds { return this._bounds; }
   get GLPrimitive() : any { return this._gl_primitive; }
   get Offset() : Vec2 { return this._offset; }
+  get VertexShader() : VertexShaders { return this._vertex_shader; }
+  get FragmentShader() : FragmentShaders { return this._fragment_shader; }
+  get GLProgram() { return this._gl_program; }
 
   set ElemId(elem_id: RendererElemId) { this._elem_id = elem_id; }
   set Color(color: Color) { this._color = color; }
@@ -64,6 +72,9 @@ class GraphInfo implements GraphInfoInterface{
   set Bounds(bounds: Bounds) { this._bounds = bounds; }
   set GLPrimitive(p) { this._gl_primitive = p; }
   set Offset(offset: Vec2) { this._offset = offset; }
+  set VertexShader(vs: VertexShaders) { this._vertex_shader = vs; }
+  set FragmentShaders(fs: FragmentShaders) { this._fragment_shader = fs; }
+  set GLProgram(program) { this._gl_program = program; }
 
   /*******************************************************
    * PRIVATE METHODS
@@ -82,6 +93,11 @@ class GraphInfo implements GraphInfoInterface{
   private _bounds: Bounds;
   private _gl_primitive: any;
   private _offset: Vec2;
+
+  private _vertex_shader: VertexShaders;
+  private _fragment_shader: FragmentShaders;
+
+  private _gl_program: any;
 }
 
 /**************************************************************************
