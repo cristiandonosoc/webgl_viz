@@ -21,8 +21,8 @@ interface GraphInfoInterface {
   // Modifyable
   ElemId: RendererElemId;
   Color: Color;
-  Offset: Vec2;
   GLProgram: any;   // Holds a reference to the internal GL program
+  Context: {[K:string]:any}
 }
 
 /**************************************************************************
@@ -41,6 +41,7 @@ class GraphInfo implements GraphInfoInterface{
     this._points = Array<Vec2>();
     this._bounds = Bounds.FromPoints(-1, 1, -1, 1);
     this._offset = Vec2.Zero;
+    this._context = {};
 
     if (color) {
       this._color = color;
@@ -64,6 +65,7 @@ class GraphInfo implements GraphInfoInterface{
   get VertexShader() : VertexShaders { return this._vertex_shader; }
   get FragmentShader() : FragmentShaders { return this._fragment_shader; }
   get GLProgram() { return this._gl_program; }
+  get Context() { return this._context; }
 
   set ElemId(elem_id: RendererElemId) { this._elem_id = elem_id; }
   set Color(color: Color) { this._color = color; }
@@ -75,6 +77,7 @@ class GraphInfo implements GraphInfoInterface{
   set VertexShader(vs: VertexShaders) { this._vertex_shader = vs; }
   set FragmentShader(fs: FragmentShaders) { this._fragment_shader = fs; }
   set GLProgram(program) { this._gl_program = program; }
+  set Context(context: {[K:string]:any}) { this._context = context; }
 
   /*******************************************************
    * PRIVATE METHODS
@@ -98,6 +101,8 @@ class GraphInfo implements GraphInfoInterface{
   private _fragment_shader: FragmentShaders;
 
   private _gl_program: any;
+
+  private _context: {[K:string]:any}
 }
 
 /**************************************************************************

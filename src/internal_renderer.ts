@@ -355,7 +355,7 @@ class InternalRenderer implements InternalRendererInterface {
     }
   }
 
-  DrawElement(graph_info: GraphInfoInterface, space: DrawSpace, color: Color) : void {
+  DrawElement(graph_info: GraphInfoInterface, space: DrawSpace) : void {
     let elem = this.Elements.Get(graph_info.ElemId);
     if (!elem) {
       throw "Cannot find element";
@@ -476,14 +476,17 @@ class InternalRenderer implements InternalRendererInterface {
                                  graph_info: GraphInfoInterface) : void {
     let program_info = this._ObtainGLProgram(graph_info);
     // let program_info = this.ProgramInfos.graph;
-    this._gl.useProgram(program_info.program);
+    this.GL.useProgram(program_info.program);
     twgl.setBuffersAndAttributes(this.GL, program_info, elem.buffer_info);
-    let uniforms = {
+    let uniforms : {[K:string]:any} = {
       u_offset: this.Offset.AsArray(),
       u_scale: this.Scale.AsArray(),
       u_color: graph_info.Color.AsArray(),
-      u_graph_offset: graph_info.Offset.AsArray(),
     };
+    // We add the context
+    for (let c in graph_info.Context) {
+      uniforms[c] = graph_info.Context[c];
+    }
 
     twgl.setUniforms(program_info, uniforms);
     if (elem.gl_primitive == this.GL.LINES) {
@@ -499,14 +502,18 @@ class InternalRenderer implements InternalRendererInterface {
     let program_info = this._ObtainGLProgram(graph_info);
     this.GL.useProgram(program_info.program);
     twgl.setBuffersAndAttributes(this.GL, program_info, elem.buffer_info);
-    let uniforms = {
+    let uniforms : {[K:string]:any} = {
       u_offset: this.Offset.AsArray(),
       u_scale: this.Scale.AsArray(),
       u_color: graph_info.Color.AsArray(),
-      u_graph_offset: graph_info.Offset.AsArray(),
       u_point_size: 5,
       u_sampler: 0
     };
+    // We add the context
+    for (let c in graph_info.Context) {
+      uniforms[c] = graph_info.Context[c];
+    }
+
     twgl.setUniforms(program_info, uniforms);
     this.GL.activeTexture(this.GL.TEXTURE0);
     this.GL.bindTexture(this.GL.TEXTURE_2D, this.cross_texture);
@@ -630,7 +637,8 @@ class InternalRenderer implements InternalRendererInterface {
     // Second triangle
     v_points.push(points[3].x);
     v_points.push(points[3].y);
-    twgl.setAttribInfoBufferFromArray(this._gl, this.buffer_info.attribs.a_position_coord, v_points);
+    twgl.setAttribInfoBufferFromArray(this._gl,
+      this.buffer_info.attribs.a_position_coord, v_points);
 
     let uniforms = {
       u_resolution: [this._gl.canvas.width, this._gl.canvas.height],

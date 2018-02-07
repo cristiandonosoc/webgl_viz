@@ -122,6 +122,7 @@ class GraphVisualizer implements VisualizerInterface {
 
     // Now we can just post-process the points and
     // pass them on to the renderer
+    this._UpdateOffsets(data);
     for (let graph_info of this._graphs) {
       GraphVisualizer._ProcessGraphInfo(graph_info);
       this.Renderer.AddGraph(graph_info);
@@ -154,6 +155,21 @@ class GraphVisualizer implements VisualizerInterface {
     graph_info.FragmentShader = FragmentShaders.SIMPLE;
   }
 
+  private _UpdateOffsets(data: PDDataInterface) : void {
+    // We check for a change in the offsets
+    let base_offset = data.Offsets[0];
+    for (let i = 0; i < data.Offsets.length - 1; i++) {
+      let from_offset = data.Offsets[i];
+      let to_offset = data.Offsets[i+1];
+      let offset_diff = to_offset - from_offset;
+
+      let graph_info = this.Graphs[i];
+      graph_info.Context = {
+        u_graph_offset: [base_offset, offset_diff]
+      };
+    }
+  }
+
   SetClosestPoint(point: Vec2) {
     throw new Error("NOT IMPLEMENTED");
   }
@@ -173,18 +189,7 @@ class GraphVisualizer implements VisualizerInterface {
   }
 
   UpdateDirtyData(data: PDDataInterface) : void {
-    // We check for a change in the offsets
-    let base_offset = data.Offsets[0];
-    for (let i = 0; i < data.Offsets.length - 1; i++) {
-      let from_offset = data.Offsets[i];
-      let to_offset = data.Offsets[i+1];
-      let offset_diff = to_offset - from_offset;
-
-      let graph_info = this.Graphs[i];
-      graph_info.Offset = new Vec2(base_offset, offset_diff);
-    }
-
-    console.log(this.Graphs);
+    this._UpdateOffsets(data);
   }
 
   Draw() : void {
