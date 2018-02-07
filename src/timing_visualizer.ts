@@ -132,11 +132,15 @@ class TimingVisualizer implements VisualizerInterface {
     for (let i = 0; i < data.Names.length; i++) {
       heights.push(ybase + i * 0.2);
 
+    }
+
+    for (let i = 0; i < data.TsBase.length - 1; i++) {
       line_lists.push(new Array<number>());
       point_lists.push(new Array<number>());
       missing_lists.push(new Array<number>());
     }
 
+    debugger;
     for (let match of data.Matches) {
       // We search for the first value we can see.
       // This variable is used to place a missed packet, which
@@ -184,8 +188,8 @@ class TimingVisualizer implements VisualizerInterface {
         if (to_entry.Missing) {
           // We only put a single point here
           // The missing point will be added by the previous entry
-          // point_list.push(from_offset + from_entry.Value);
-          // point_list.push(from_height);
+          point_list.push(from_offset + from_entry.Value);
+          point_list.push(from_height);
 
           // EXCEPTION: The latest point won't be checked,
           // so we need to check here to see if the latest point
@@ -327,6 +331,10 @@ class TimingVisualizer implements VisualizerInterface {
 
     // We render the points
     for (let point_info of this.Points) {
+      this.Renderer.DrawIconElement(point_info, DrawSpace.LOCAL, point_info.Color);
+    }
+
+    for (let point_info of this.MissingPoints) {
       this.Renderer.DrawIconElement(point_info, DrawSpace.LOCAL, point_info.Color);
     }
 
