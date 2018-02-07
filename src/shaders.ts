@@ -142,7 +142,7 @@ class ShaderRegistry {
     this.shaders.fragment[FragmentShaders.POINT_SPRITE] = point_sprite_fs;
   }
 
-  GetVertexShader(shader_id: VertexShaders) : string {
+  GetVSSource(shader_id: VertexShaders) : string {
     var shader : string = this.shaders.vertex[shader_id];
     if (shader) {
       shader = shader.trim();
@@ -153,7 +153,7 @@ class ShaderRegistry {
     return shader;
   }
 
-  GetFragmentShader(shader_id: FragmentShaders) : string {
+  GetFSSource(shader_id: FragmentShaders) : string {
     var shader : string = this.shaders.fragment[shader_id];
     if (shader) {
       shader = shader.trim();

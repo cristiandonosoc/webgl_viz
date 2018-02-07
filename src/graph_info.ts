@@ -15,8 +15,8 @@ interface GraphInfoInterface {
   // Use InternalRenderer.GL to get the primitive enum */
   // ie: InternalRenderer.GL.LINES
   readonly GLPrimitive: any;
-  readonly VertexShader: VertexShaders;
-  readonly FragmentShader: FragmentShaders;
+  VertexShader: VertexShaders;
+  FragmentShader: FragmentShaders;
 
   // Modifyable
   ElemId: RendererElemId;
@@ -73,7 +73,7 @@ class GraphInfo implements GraphInfoInterface{
   set GLPrimitive(p) { this._gl_primitive = p; }
   set Offset(offset: Vec2) { this._offset = offset; }
   set VertexShader(vs: VertexShaders) { this._vertex_shader = vs; }
-  set FragmentShaders(fs: FragmentShaders) { this._fragment_shader = fs; }
+  set FragmentShader(fs: FragmentShaders) { this._fragment_shader = fs; }
   set GLProgram(program) { this._gl_program = program; }
 
   /*******************************************************

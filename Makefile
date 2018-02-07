@@ -1,5 +1,5 @@
 all:
-	webpack
+	webpack || ./webpack
 
 clean:
 	rm -r output/

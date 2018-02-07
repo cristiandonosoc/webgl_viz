@@ -166,12 +166,12 @@ class InternalRenderer implements InternalRendererInterface {
     return this._gl;
   }
 
-  private get ProgramInfos() : any {
-    return this._program_infos;
-  }
-
   private get GLPrograms() : { [K:string]: any } {
     return this._gl_programs;
+  }
+
+  private get ProgramInfoCache() : { [K:string]: any } {
+    return this._program_info_cache;
   }
 
   get Canvas() : HTMLCanvasElement {
@@ -385,36 +385,16 @@ class InternalRenderer implements InternalRendererInterface {
 
   private _SetupWebGL() {
     this._gl_programs = {};
-
-    let p = <any>{};
-    p.local = twgl.createProgramInfo(this._gl, [
-      AllShaders.GetVertexShader(VertexShaders.DIRECT),
-      AllShaders.GetFragmentShader(FragmentShaders.SIMPLE)]);
-    p.pixel = twgl.createProgramInfo(this._gl, [
-      AllShaders.GetVertexShader(VertexShaders.PIXEL),
-      AllShaders.GetFragmentShader(FragmentShaders.SIMPLE)]);
-    p.graph = twgl.createProgramInfo(this.GL, [
-      AllShaders.GetVertexShader(VertexShaders.GRAPH),
-      AllShaders.GetFragmentShader(FragmentShaders.SIMPLE)]);
-
-    p.local_ps = twgl.createProgramInfo(this._gl, [
-      AllShaders.GetVertexShader(VertexShaders.DIRECT),
-      AllShaders.GetFragmentShader(FragmentShaders.POINT_SPRITE)]);
-    p.pixel_ps = twgl.createProgramInfo(this._gl, [
-      AllShaders.GetVertexShader(VertexShaders.PIXEL),
-      AllShaders.GetFragmentShader(FragmentShaders.POINT_SPRITE)]);
-    p.graph_ps = twgl.createProgramInfo(this._gl, [
-      AllShaders.GetVertexShader(VertexShaders.GRAPH),
-      AllShaders.GetFragmentShader(FragmentShaders.POINT_SPRITE)]);
-    this._program_infos = p;
-
+    this._program_info_cache = {};
     // We add the program to the gl program registries
-    this._AddGLProgram(VertexShaders.DIRECT, FragmentShaders.SIMPLE);
-    this._AddGLProgram(VertexShaders.DIRECT, FragmentShaders.POINT_SPRITE);
-    this._AddGLProgram(VertexShaders.PIXEL, FragmentShaders.SIMPLE);
-    this._AddGLProgram(VertexShaders.PIXEL, FragmentShaders.POINT_SPRITE);
-    this._AddGLProgram(VertexShaders.GRAPH, FragmentShaders.SIMPLE);
-    this._AddGLProgram(VertexShaders.GRAPH, FragmentShaders.POINT_SPRITE);
+    this.ProgramInfoCache.direct_simple = this._AddGLProgram(VertexShaders.DIRECT,
+                                                         FragmentShaders.SIMPLE);
+    this.ProgramInfoCache.direct_ps = this._AddGLProgram(VertexShaders.DIRECT,
+                                                     FragmentShaders.POINT_SPRITE);
+    this.ProgramInfoCache.pixel_simple = this._AddGLProgram(VertexShaders.PIXEL,
+                                                        FragmentShaders.SIMPLE);
+    this.ProgramInfoCache.pixel_ps = this._AddGLProgram(VertexShaders.PIXEL,
+                                                    FragmentShaders.POINT_SPRITE);
 
     // We create the overlay buffers
     let arrays = {
@@ -427,20 +407,23 @@ class InternalRenderer implements InternalRendererInterface {
     this.buffer_info = twgl.createBufferInfoFromArrays(this.GL, arrays);
   }
 
-  // TODO(donosoc): This is compiling shaders more times than
-  //                needed. Explore the shader API to see if we
-  //                can cache some results
-  private _AddGLProgram(vs: VertexShaders, fs: FragmentShaders) : void {
-    let program = twgl.createProgramInfo(this.GL,
-        [AllShaders.GetVertexShader(vs),
-         AllShaders.GetFragmentShader(fs)]);
-    let key = InternalRenderer._GetGLProgramKey(vs, fs);
-    this.GLPrograms[key] = program;
-  }
-
   private static _GetGLProgramKey(vs: VertexShaders,
                                   fs: FragmentShaders) : string {
     return `${vs}_${fs}`;
+  }
+
+
+
+  // TODO(donosoc): This is compiling shaders more times than
+  //                needed. Explore the shader API to see if we
+  //                can cache some results
+  private _AddGLProgram(vs: VertexShaders, fs: FragmentShaders) {
+    let program = twgl.createProgramInfo(this.GL,
+        [AllShaders.GetVSSource(vs),
+         AllShaders.GetFSSource(fs)]);
+    let key = InternalRenderer._GetGLProgramKey(vs, fs);
+    this.GLPrograms[key] = program;
+    return program;
   }
 
 
@@ -475,9 +458,24 @@ class InternalRenderer implements InternalRendererInterface {
 
   /* DRAW GRAPH */
 
+  private _ObtainGLProgram(graph_info: GraphInfoInterface) {
+    // This key is being generated on every draw call
+    // TODO(donosoc): Cache it in the graph info
+    let vs = graph_info.VertexShader;
+    let fs = graph_info.FragmentShader;
+    let key = InternalRenderer._GetGLProgramKey(vs, fs);
+    let program = this.GLPrograms[key];
+    if (program == undefined) {
+      console.log("Compiling new GL program: ", VertexShaders[vs], FragmentShaders[fs]);
+      program = this._AddGLProgram(vs, fs);
+    }
+    return program;
+  }
+
   private _DrawElementLocalSpace(elem: RendererElem,
                                  graph_info: GraphInfoInterface) : void {
-    let program_info = this.ProgramInfos.graph;
+    let program_info = this._ObtainGLProgram(graph_info);
+    // let program_info = this.ProgramInfos.graph;
     this._gl.useProgram(program_info.program);
     twgl.setBuffersAndAttributes(this.GL, program_info, elem.buffer_info);
     let uniforms = {
@@ -497,7 +495,8 @@ class InternalRenderer implements InternalRendererInterface {
 
   private _DrawIconElementLocalSpace(elem: RendererElem,
                                      graph_info: GraphInfoInterface) : void {
-    let program_info = this.ProgramInfos.graph_ps;
+    // let program_info = this.ProgramInfos.graph_ps;
+    let program_info = this._ObtainGLProgram(graph_info);
     this.GL.useProgram(program_info.program);
     twgl.setBuffersAndAttributes(this.GL, program_info, elem.buffer_info);
     let uniforms = {
@@ -518,8 +517,9 @@ class InternalRenderer implements InternalRendererInterface {
   /* DRAW LINE */
 
   private _DrawLinePixelSpace(p1: Vec2, p2: Vec2, color: Color) : void {
-    this._gl.useProgram(this.ProgramInfos.pixel.program);
-    twgl.setBuffersAndAttributes(this._gl, this.ProgramInfos.pixel, this.buffer_info);
+    let program_info = this.ProgramInfoCache.pixel_simple;
+    this._gl.useProgram(program_info.program);
+    twgl.setBuffersAndAttributes(this._gl, program_info, this.buffer_info);
 
     let new_pos = [p1.x, p1.y, p2.x, p2.y];
     twgl.setAttribInfoBufferFromArray(this._gl, this.buffer_info.attribs.a_position_coord, new_pos);
@@ -528,16 +528,17 @@ class InternalRenderer implements InternalRendererInterface {
       u_resolution: [this._gl.canvas.width, this._gl.canvas.height],
       u_color: color.AsArray(),
     };
-    twgl.setUniforms(this.ProgramInfos.pixel, uniforms);
+    twgl.setUniforms(program_info, uniforms);
 
     // We draw
     this._gl.drawArrays(this._gl.LINES, 0, 2);
   }
 
   private _DrawLineLocalSpace(p1: Vec2, p2: Vec2, color: Color) : void {
-    this._gl.useProgram(this.ProgramInfos.local.program);
+    let program_info = this.ProgramInfoCache.direct_simple;
+    this._gl.useProgram(program_info.program);
     twgl.setBuffersAndAttributes(this._gl,
-                                 this.ProgramInfos.local,
+                                 program_info,
                                  this.buffer_info);
     let new_pos = [p1.x, p1.y, p2.x, p2.y];
     twgl.setAttribInfoBufferFromArray(this._gl,
@@ -548,7 +549,7 @@ class InternalRenderer implements InternalRendererInterface {
       u_scale: this._state.scale.AsArray(),
       u_color: color.AsArray(),
     };
-    twgl.setUniforms(this.ProgramInfos.local, uniforms);
+    twgl.setUniforms(program_info, uniforms);
     this._gl.drawArrays(this._gl.LINES, 0, 2);
   }
 
@@ -559,10 +560,11 @@ class InternalRenderer implements InternalRendererInterface {
       return;
     }
 
+    let program_info = this.ProgramInfoCache.pixel_ps;
     this._gl.enable(this._gl.BLEND);
-    this._gl.useProgram(this.ProgramInfos.pixel_ps.program);
+    this._gl.useProgram(program_info.program);
     twgl.setBuffersAndAttributes(this._gl,
-                                 this.ProgramInfos.pixel_ps,
+                                 program_info,
                                  this.buffer_info);
     twgl.setAttribInfoBufferFromArray(this._gl,
       this.buffer_info.attribs.a_position_coord, point.AsArray());
@@ -573,7 +575,7 @@ class InternalRenderer implements InternalRendererInterface {
       u_point_size: 10,
       u_sampler: 0
     };
-    twgl.setUniforms(this.ProgramInfos.pixel_ps, uniforms);
+    twgl.setUniforms(program_info, uniforms);
     this._gl.activeTexture(this._gl.TEXTURE0);
     this._gl.bindTexture(this._gl.TEXTURE_2D, this.cross_texture);
     this._gl.drawArrays(this._gl.POINTS, 0, 1);
@@ -583,10 +585,11 @@ class InternalRenderer implements InternalRendererInterface {
     if (!this.cross_texture) {
       return;
     }
+    let program_info = this.ProgramInfoCache.direct_ps;
     this._gl.enable(this._gl.BLEND);
-    this._gl.useProgram(this.ProgramInfos.local_ps.program);
+    this._gl.useProgram(program_info.program);
     twgl.setBuffersAndAttributes(this._gl,
-                                 this.ProgramInfos.local_ps,
+                                 program_info,
                                  this.buffer_info);
     // We update the point
     twgl.setAttribInfoBufferFromArray(this._gl,
@@ -599,7 +602,7 @@ class InternalRenderer implements InternalRendererInterface {
       u_point_size: 10,
       u_sampler: 0
     };
-    twgl.setUniforms(this.ProgramInfos.local_ps, uniforms);
+    twgl.setUniforms(program_info, uniforms);
     this._gl.activeTexture(this._gl.TEXTURE0);
     this._gl.bindTexture(this._gl.TEXTURE_2D, this.cross_texture);
     this._gl.drawArrays(this._gl.POINTS, 0, 1);
@@ -609,9 +612,10 @@ class InternalRenderer implements InternalRendererInterface {
   /* DRAW TRIANGLE_STRIP */
 
   private _DrawTriangleStripPixelSpace(points: Vec2[], color: Color) {
-    this._gl.useProgram(this.ProgramInfos.pixel.program);
+    let program_info = this.ProgramInfoCache.pixel_simple;
+    this._gl.useProgram(program_info.program);
 
-    twgl.setBuffersAndAttributes(this._gl, this.ProgramInfos.pixel, this.buffer_info);
+    twgl.setBuffersAndAttributes(this._gl, program_info, this.buffer_info);
     // this._gl.frontFace(this._gl.CCW);
 
     // TODO(donosoc): Use indexes and not hardcoded indexing :(
@@ -632,7 +636,7 @@ class InternalRenderer implements InternalRendererInterface {
       u_resolution: [this._gl.canvas.width, this._gl.canvas.height],
       u_color: color.AsArray(),
     }
-    twgl.setUniforms(this.ProgramInfos.pixel, uniforms);
+    twgl.setUniforms(program_info, uniforms);
     this._gl.drawArrays(this._gl.TRIANGLE_STRIP, 0, v_points.length / 2);
   }
 
@@ -649,16 +653,8 @@ class InternalRenderer implements InternalRendererInterface {
     scale: Vec2,
   };
 
-  private _program_infos: {
-    // "Normal" programs
-    local: any,
-    pixel: any,
-    // Point Sprite programs
-    local_ps: any,
-    pixel_ps: any,
-  };
-
   private _gl_programs: { [K:string]: any }
+  private _program_info_cache: { [K:string]: any }
 
   private _elems: RendererElemRegistry;
 

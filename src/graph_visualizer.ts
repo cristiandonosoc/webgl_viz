@@ -12,6 +12,8 @@ import {GraphInfo, GraphInfoInterface} from "./graph_info";
 
 import VisualizerInterface from "./visualizer_interface";
 
+import {VertexShaders, FragmentShaders} from "./shaders";
+
 import {PDDataInterface} from "./data";
 
 /**************************************************************************
@@ -146,6 +148,10 @@ class GraphVisualizer implements VisualizerInterface {
     // We set the points
     graph_info.Points = arr;
     graph_info.Bounds = Bounds.FromPoints(min.x, max.x, min.y, max.y);
+
+    // We add the shaders
+    graph_info.VertexShader = VertexShaders.GRAPH;
+    graph_info.FragmentShader = FragmentShaders.SIMPLE;
   }
 
   SetClosestPoint(point: Vec2) {
