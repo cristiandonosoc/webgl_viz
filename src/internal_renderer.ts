@@ -529,7 +529,8 @@ class InternalRenderer implements InternalRendererInterface {
     twgl.setBuffersAndAttributes(this._gl, program_info, this.buffer_info);
 
     let new_pos = [p1.x, p1.y, p2.x, p2.y];
-    twgl.setAttribInfoBufferFromArray(this._gl, this.buffer_info.attribs.a_position_coord, new_pos);
+    twgl.setAttribInfoBufferFromArray(this._gl,
+      this.buffer_info.attribs.a_position_coord, new_pos);
 
     let uniforms = {
       u_resolution: [this._gl.canvas.width, this._gl.canvas.height],

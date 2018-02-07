@@ -164,9 +164,7 @@ class GraphVisualizer implements VisualizerInterface {
       let offset_diff = to_offset - from_offset;
 
       let graph_info = this.Graphs[i];
-      graph_info.Context = {
-        u_graph_offset: [base_offset, offset_diff]
-      };
+      graph_info.Context.u_graph_offset = [base_offset, offset_diff]
     }
   }
 

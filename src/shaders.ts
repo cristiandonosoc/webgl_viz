@@ -22,28 +22,6 @@ void main() {
 }
 `;
 
-let graph_vs = `
-#version 300 es
-
-in vec4 a_position_coord;
-
-uniform vec2 u_offset;
-uniform vec2 u_graph_offset;
-uniform vec2 u_scale;
-uniform float u_point_size;
-
-void main() {
-  // Scale the position
-  vec4 offsetted = a_position_coord + vec4(u_graph_offset.xy, 0, 0);
-  vec4 scaled = offsetted * vec4(u_scale.xy, 1, 1);
-  // We add the offset to the position
-  // gl_Position = a_position_coord + vec4(u_offset.xy, 0, 0);
-  // gl_Position = a_position_coord + vec4(u_offset.xy, 0, 0) + vec4(u_scale.xy, 0, 0);
-  gl_Position = scaled + vec4(u_offset.xy, 0, 0);
-  gl_PointSize = u_point_size;
-}
-`;
-
 let pixel_vs = `
 #version 300 es
 
@@ -68,6 +46,49 @@ void main() {
   gl_PointSize = u_point_size;
 }
 `;
+
+let graph_vs = `
+#version 300 es
+
+in vec4 a_position_coord;
+
+uniform vec2 u_offset;
+uniform vec2 u_scale;
+uniform float u_point_size;
+
+uniform vec2 u_graph_offset;
+
+void main() {
+  // Offset
+  vec4 offsetted = a_position_coord + vec4(u_graph_offset.xy, 0, 0);
+  // Scale the position
+  vec4 scaled = offsetted * vec4(u_scale.xy, 1, 1);
+  // We add the offset to the position
+  gl_Position = scaled + vec4(u_offset.xy, 0, 0);
+  gl_PointSize = u_point_size;
+}
+`;
+
+let timing_vs = `
+#version 300 es
+
+in vec4 a_position_coord;
+
+uniform vec2 u_offset;
+uniform vec2 u_scale;
+uniform float u_point_size;
+
+void main() {
+  // Scale the position
+  vec4 offsetted = a_position_coord;
+  // Scale the position
+  vec4 scaled = offsetted * vec4(u_scale.xy, 1, 1);
+  // We add the offset to the position
+  gl_Position = scaled + vec4(u_offset.xy, 0, 0);
+  gl_PointSize = u_point_size;
+}
+`;
+
 
 /********************************************
  * FRAGMENT SHADERS
@@ -136,6 +157,7 @@ class ShaderRegistry {
     this.shaders.vertex[VertexShaders.DIRECT] = direct_vs;
     this.shaders.vertex[VertexShaders.PIXEL] = pixel_vs;
     this.shaders.vertex[VertexShaders.GRAPH] = graph_vs;
+    this.shaders.vertex[VertexShaders.TIMING] = timing_vs;
 
     // Add Fragment Shaders
     this.shaders.fragment[FragmentShaders.SIMPLE] = simple_fs;

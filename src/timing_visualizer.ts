@@ -206,6 +206,7 @@ class TimingVisualizer implements VisualizerInterface {
     this._CreateLinesGraphInfo("lines", lines, AllColors.Get("yellow"));
     this._CreatePointsGraphInfo("points", points, AllColors.Get("lightblue"));
     this._CreatePointsGraphInfo("missing", missing, AllColors.Get("red"));
+    this._UpdateOffsets(data);
   }
 
   private _CreateLinesGraphInfo(name: string, points: Array<number>,
@@ -213,7 +214,7 @@ class TimingVisualizer implements VisualizerInterface {
     let graph_info = new GraphInfo(name, color);
     graph_info.RawPoints = points;
     graph_info.GLPrimitive = this.Renderer.GL.LINES;
-    graph_info.VertexShader = VertexShaders.GRAPH;
+    graph_info.VertexShader = VertexShaders.TIMING;
     graph_info.FragmentShader = FragmentShaders.SIMPLE;
     this.Renderer.AddGraph(graph_info);
     this._lines.push(graph_info);
@@ -224,11 +225,22 @@ class TimingVisualizer implements VisualizerInterface {
     let graph_info = new GraphInfo(name, color);
     graph_info.RawPoints = points;
     graph_info.GLPrimitive = this.Renderer.GL.POINTS;
-    graph_info.VertexShader = VertexShaders.GRAPH;
+    graph_info.VertexShader = VertexShaders.TIMING;
     graph_info.FragmentShader = FragmentShaders.POINT_SPRITE;
     this.Renderer.AddGraph(graph_info);
     // this._lines.push(graph_info);
     this._points.push(graph_info);
+  }
+
+  private _UpdateOffsets(data: PDDataInterface) : void {
+    // // We can pass the offset directly
+    // let key = "a_offset_coord"
+    // for (let graph_info of this.Lines) {
+    //   this.Renderer.ModifyGraph(graph_info, key, data.Offsets);
+    // }
+    // for (let graph_info of this.Points) {
+    //   this.Renderer.ModifyGraph(graph_info, key, data.Offsets);
+    // }
   }
 
   SetClosestPoint(point: Vec2) {
@@ -246,7 +258,7 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   UpdateDirtyData(data: PDDataInterface) : void {
-
+    this._UpdateOffsets(data);
   }
 
   Draw() : void {
