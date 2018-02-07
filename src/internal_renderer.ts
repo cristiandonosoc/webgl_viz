@@ -487,6 +487,9 @@ class InternalRenderer implements InternalRendererInterface {
     for (let c in graph_info.Context) {
       uniforms[c] = graph_info.Context[c];
     }
+    if (graph_info.VertexShader == VertexShaders.TIMING) {
+      // debugger;
+    }
 
     twgl.setUniforms(program_info, uniforms);
     if (elem.gl_primitive == this.GL.LINES) {
@@ -512,6 +515,10 @@ class InternalRenderer implements InternalRendererInterface {
     // We add the context
     for (let c in graph_info.Context) {
       uniforms[c] = graph_info.Context[c];
+    }
+
+    if (graph_info.VertexShader == VertexShaders.TIMING) {
+      // debugger;
     }
 
     twgl.setUniforms(program_info, uniforms);

@@ -207,6 +207,8 @@ class TimingVisualizer implements VisualizerInterface {
     this._CreatePointsGraphInfo("points", points, AllColors.Get("lightblue"));
     this._CreatePointsGraphInfo("missing", missing, AllColors.Get("red"));
     this._UpdateOffsets(data);
+    console.log(this.Lines);
+    console.log(this.Points);
   }
 
   private _CreateLinesGraphInfo(name: string, points: Array<number>,
@@ -233,6 +235,40 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   private _UpdateOffsets(data: PDDataInterface) : void {
+
+    let offsets = new Array<number>();
+
+    for (let i = 0; i < data.Offsets.length - 1; i++) {
+      let from_offset = data.Offsets[i];
+      let to_offset = data.Offsets[i+1];
+      offsets.push(from_offset, to_offset);
+
+      // // First case
+      // if (i == 0) {
+      //   offsets.push(from_offset);
+      //   offsets.push(to_offset);
+      //   continue;
+      // }
+
+      // // Last case
+      // if (i == data.Offsets.length - 1) {
+      //   offsets.push(0);
+
+
+      // }
+
+    }
+
+    console.log("OFFSETS: ", offsets);
+    for (let graph_info of this.Lines) {
+      graph_info.Context.u_vertex_offsets = offsets;
+      graph_info.Context.u_offset_count = offsets.length;
+    }
+    for (let graph_info of this.Points) {
+      graph_info.Context.u_vertex_offsets = offsets;
+      graph_info.Context.u_offset_count = offsets.length;
+    }
+
     // // We can pass the offset directly
     // let key = "a_offset_coord"
     // for (let graph_info of this.Lines) {

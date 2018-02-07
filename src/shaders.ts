@@ -74,13 +74,27 @@ let timing_vs = `
 
 in vec4 a_position_coord;
 
+const int OFFSET_COUNT = 32;
+
 uniform vec2 u_offset;
 uniform vec2 u_scale;
 uniform float u_point_size;
 
+uniform float u_vertex_offsets[OFFSET_COUNT];
+uniform int u_offset_count;
+
 void main() {
-  // Scale the position
-  vec4 offsetted = a_position_coord;
+  // We get the offset count for this point
+  int t = gl_VertexID / u_offset_count;
+  int index = gl_VertexID - (u_offset_count * t);
+  // We need to wrap in the minor offset buffer
+  // if (index >= u_offset_count) {
+  //   index -= u_offset_count;
+  // }
+
+  // Offset the position
+  vec4 offsetted = a_position_coord + vec4(u_vertex_offsets[index], 0, 0, 0);
+
   // Scale the position
   vec4 scaled = offsetted * vec4(u_scale.xy, 1, 1);
   // We add the offset to the position
