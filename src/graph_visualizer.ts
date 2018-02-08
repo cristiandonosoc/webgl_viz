@@ -14,7 +14,7 @@ import VisualizerInterface from "./visualizer_interface";
 
 import {VertexShaders, FragmentShaders} from "./shaders";
 
-import {PDDataInterface} from "./data";
+import {PDDataInterface, PDMatchInterface} from "./data";
 
 /**************************************************************************
  * IMPLEMENTATION
@@ -43,6 +43,7 @@ class GraphVisualizer implements VisualizerInterface {
   private _Setup(container: HTMLElement,
                  callback: (i: InteractionInterface) => void) {
     this._graphs = new Array<GraphInfoInterface>();
+    this._missing_points = new Array<GraphInfoInterface>();
     this._renderer = new InternalRenderer(container);
     this._interaction = new Interaction(this._renderer, callback);
     this._label_manager = new LabelManager(container, this, this._renderer);
@@ -89,11 +90,28 @@ class GraphVisualizer implements VisualizerInterface {
     return this._graphs;
   }
 
+  get MissingPoints() : Array<GraphInfoInterface> {
+    return this._missing_points;
+  }
+
   Start() : void {
     this.Interaction.Start();
   }
 
+  private _GetLatestEntry(match: PDMatchInterface, start: number) {
+    for (let i = start; i < match.Entries.length; i++) {
+      let entry = match.Entries[i];
+      if (!entry.Missing) {
+        return { entry: entry, index: i }
+      }
+    }
+    return undefined;
+  }
+
   LoadData(data: PDDataInterface) : void {
+    // We create the missing points
+    let missing_points = new Array<number>();
+
     // We create the entries
     for (let i = 0; i < data.Names.length - 1; i++) {
       let name = `${data.Names[i]} -> ${data.Names[i+1]}`;
@@ -103,8 +121,9 @@ class GraphVisualizer implements VisualizerInterface {
       graph_info.FragmentShader = FragmentShaders.SIMPLE;
       graph_info.GLPrimitive = this.Renderer.GL.LINE_STRIP;
       graph_info.Context.u_point_size = 1;
-      this._graphs.push(graph_info);
+      this.Graphs.push(graph_info);
     }
+
 
     let min_tsbase = Math.min(...data.TsBase);
 
@@ -112,29 +131,54 @@ class GraphVisualizer implements VisualizerInterface {
     for (let match of data.Matches) {
 
       let base_offset = data.TsBase[0] - min_tsbase;
-      let xbase = base_offset + match.Entries[0].Value;
+
+      let res = this._GetLatestEntry(match, 0);
+      if (!res) {
+        throw "There should be an entry in a match";
+      }
+      let xbase = base_offset + res.entry.Value;
+
       for (let i = 0; i < match.Entries.length - 1; i++) {
         let from_entry = match.Entries[i];
         let to_entry = match.Entries[i+1];
 
-        // let offset = data.TsBase[i] - min_tsbase;
-        // let x = offset + from_entry.Value;
-        let x = xbase;
-        let y = to_entry.Value - from_entry.Value;
+        let points = this.Graphs[i].RawPoints;
 
-        this._graphs[i].RawPoints.push(x, y);
+        if (from_entry.Missing || to_entry.Missing) {
+          // We extend the previous point
+          let y = points.length > 2 ? points[points.length - 1] : 0;
+          points.push(xbase, y);
+          missing_points.push(xbase, y);
+          continue;
+        }
+
+        let y = to_entry.Value - from_entry.Value;
+        points.push(xbase, y);
       }
     }
+
+    // We create the missing point GraphInfo
+    let graph_info = new GraphInfo("Missing", AllColors.Get("red"));
+    graph_info.VertexShader = VertexShaders.DIRECT;
+    graph_info.FragmentShader = FragmentShaders.POINT_SPRITE;
+    graph_info.GLPrimitive = this.Renderer.GL.POINTS;
+    graph_info.Context.u_point_size = 5;
+    graph_info.RawPoints = missing_points;
+    this.MissingPoints.push(graph_info);
 
     // Now we can just post-process the points and
     // pass them on to the renderer
     this._UpdateOffsets(data);
-    for (let graph_info of this._graphs) {
+    for (let graph_info of this.Graphs) {
       GraphVisualizer._ProcessGraphInfo(graph_info);
       this.Renderer.AddGraph(graph_info);
     }
+    for (let point_info of this.MissingPoints) {
+      this.Renderer.AddGraph(point_info);
+    }
 
-    console.log(this.Graphs);
+    console.log("GRAPHS: ", this.Graphs);
+    console.log("MISSING POINTS: ", this.MissingPoints);
   }
 
   RemoveData() : void {
@@ -212,8 +256,14 @@ class GraphVisualizer implements VisualizerInterface {
     this.Renderer.DrawHorizontalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
     this.Renderer.DrawVerticalLine(0, DrawSpace.LOCAL, AllColors.Get("yellow"));
 
+    // We draw the lines
     for (let graph_info of this.Graphs) {
       this.Renderer.DrawElement(graph_info, DrawSpace.LOCAL, graph_info.Color);
+    }
+
+    // We draw the missing points
+    for (let point_info of this.MissingPoints) {
+      this.Renderer.DrawIconElement(point_info, DrawSpace.LOCAL, point_info.Color);
     }
 
     let canvas_pos = this.Interaction.CurrentMousePos.canvas;
@@ -330,6 +380,7 @@ class GraphVisualizer implements VisualizerInterface {
   private _axis_manager: AxisManager;
 
   private _graphs: Array<GraphInfoInterface>;
+  private _missing_points: Array<GraphInfoInterface>;
 
   private _global_interaction_callback: (i: VisualizerInterface) => void;
 }
