@@ -365,10 +365,10 @@ class InternalRenderer implements InternalRendererInterface {
   }
 
   DrawElement(graph_info: GraphInfoInterface, space: DrawSpace) : void {
-    // let elem = this.Elements.Get(graph_info.ElemId);
-    // if (!elem) {
-    //   throw "Cannot find element";
-    // }
+    // Don't draw empty elements
+    if (graph_info.RawPoints.length == 0) {
+      return;
+    }
     if (space == DrawSpace.LOCAL) {
       this._DrawElementLocalSpace(graph_info);
     } else {
@@ -377,10 +377,10 @@ class InternalRenderer implements InternalRendererInterface {
   }
 
   DrawIconElement(graph_info: GraphInfoInterface, space: DrawSpace, color: Color) : void {
-    // let elem = this.Elements.Get(graph_info.ElemId);
-    // if (!elem) {
-    //   throw "Cannot find element";
-    // }
+    // Don't draw empty elements
+    if (graph_info.RawPoints.length == 0) {
+      return;
+    }
     if (space == DrawSpace.LOCAL) {
       this._DrawIconElementLocalSpace(graph_info);
     } else {

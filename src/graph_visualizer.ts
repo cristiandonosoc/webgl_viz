@@ -109,9 +109,6 @@ class GraphVisualizer implements VisualizerInterface {
   }
 
   LoadData(data: PDDataInterface) : void {
-    // We create the missing points
-    let missing_points = new Array<number>();
-
     // We create the entries
     for (let i = 0; i < data.Names.length - 1; i++) {
       let name = `${data.Names[i]} -> ${data.Names[i+1]}`;
@@ -122,6 +119,15 @@ class GraphVisualizer implements VisualizerInterface {
       graph_info.GLPrimitive = this.Renderer.GL.LINE_STRIP;
       graph_info.Context.u_point_size = 1;
       this.Graphs.push(graph_info);
+
+      // We add the missing point
+        // We create the missing point GraphInfo
+      let mpi = new GraphInfo("Missing", AllColors.Get("red"));
+      mpi.VertexShader = VertexShaders.GRAPH;
+      mpi.FragmentShader = FragmentShaders.POINT_SPRITE;
+      mpi.GLPrimitive = this.Renderer.GL.POINTS;
+      mpi.Context.u_point_size = 7;
+      this.MissingPoints.push(mpi);
     }
 
 
@@ -143,6 +149,7 @@ class GraphVisualizer implements VisualizerInterface {
         let to_entry = match.Entries[i+1];
 
         let points = this.Graphs[i].RawPoints;
+        let missing_points = this.MissingPoints[i].RawPoints;
 
         if (from_entry.Missing || to_entry.Missing) {
           // We extend the previous point
@@ -156,15 +163,6 @@ class GraphVisualizer implements VisualizerInterface {
         points.push(xbase, y);
       }
     }
-
-    // We create the missing point GraphInfo
-    let graph_info = new GraphInfo("Missing", AllColors.Get("red"));
-    graph_info.VertexShader = VertexShaders.DIRECT;
-    graph_info.FragmentShader = FragmentShaders.POINT_SPRITE;
-    graph_info.GLPrimitive = this.Renderer.GL.POINTS;
-    graph_info.Context.u_point_size = 5;
-    graph_info.RawPoints = missing_points;
-    this.MissingPoints.push(graph_info);
 
     // Now we can just post-process the points and
     // pass them on to the renderer
@@ -218,6 +216,8 @@ class GraphVisualizer implements VisualizerInterface {
 
       let graph_info = this.Graphs[i];
       graph_info.Context.u_graph_offset = [base_offset, offset_diff]
+      let mpi = this.MissingPoints[i];
+      mpi.Context.u_graph_offset = [base_offset, offset_diff]
     }
   }
 
