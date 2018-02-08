@@ -129,6 +129,10 @@ class GraphVisualizer implements VisualizerInterface {
     }
   }
 
+  RemoveData() : void {
+    throw "Not Implemented";
+  }
+
   static _ProcessGraphInfo(graph_info: GraphInfoInterface) : void {
     let arr = new Array<Vec2>(graph_info.RawPoints.length / 2);
     let min = new Vec2(+INFINITY, +INFINITY);

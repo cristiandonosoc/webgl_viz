@@ -54,7 +54,7 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   private _ResetRendererData() : void {
-    this._DeleteRendererData();
+    this.RemoveData();
 
     this._lines = new Array<GraphInfoInterface>();
     this._missing_lines = new Array<GraphInfoInterface>();
@@ -126,7 +126,7 @@ class TimingVisualizer implements VisualizerInterface {
     this.Interaction.Start();
   }
 
-  private _DeleteRendererData() : void {
+  RemoveData() : void {
     let elems = [this.Lines,
                  this.MissingLines,
                  this.Points,

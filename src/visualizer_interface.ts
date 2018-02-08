@@ -14,6 +14,8 @@ interface VisualizerInterface {
 
   LoadData(data: PDDataInterface) : void;
 
+  RemoveData() : void;
+
   UpdateDirtyData(data: PDDataInterface) : void;
   Update() : void;
   Draw() : void;
