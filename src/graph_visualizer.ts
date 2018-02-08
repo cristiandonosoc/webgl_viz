@@ -97,7 +97,12 @@ class GraphVisualizer implements VisualizerInterface {
     // We create the entries
     for (let i = 0; i < data.Names.length - 1; i++) {
       let name = `${data.Names[i]} -> ${data.Names[i+1]}`;
-      this._graphs.push(new GraphInfo(name, AllColors.GetDefaultColor(i)));
+      let graph_info = new GraphInfo(name, AllColors.GetDefaultColor(i));
+      // We add the shaders
+      graph_info.VertexShader = VertexShaders.GRAPH;
+      graph_info.FragmentShader = FragmentShaders.SIMPLE;
+      graph_info.GLPrimitive = this.Renderer.GL.LINES;
+      this._graphs.push(graph_info);
     }
 
     let min_tsbase = Math.min(...data.TsBase);
@@ -127,6 +132,8 @@ class GraphVisualizer implements VisualizerInterface {
       GraphVisualizer._ProcessGraphInfo(graph_info);
       this.Renderer.AddGraph(graph_info);
     }
+
+    console.log(this.Graphs);
   }
 
   RemoveData() : void {
@@ -154,9 +161,6 @@ class GraphVisualizer implements VisualizerInterface {
     graph_info.Points = arr;
     graph_info.Bounds = Bounds.FromPoints(min.x, max.x, min.y, max.y);
 
-    // We add the shaders
-    graph_info.VertexShader = VertexShaders.GRAPH;
-    graph_info.FragmentShader = FragmentShaders.SIMPLE;
   }
 
   private _UpdateOffsets(data: PDDataInterface) : void {

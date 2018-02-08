@@ -335,7 +335,8 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   UpdateDirtyData(data: PDDataInterface) : void {
-    this._UpdateOffsets(data);
+    return;
+    // this._UpdateOffsets(data);
   }
 
   Draw() : void {
