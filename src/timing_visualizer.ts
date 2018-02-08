@@ -142,11 +142,10 @@ class TimingVisualizer implements VisualizerInterface {
 
   LoadData(data: PDDataInterface) : void {
 
-    // Setup the point containers
-    let line_lists = new Array<Array<number>>();
-    let missing_line_lists = new Array<Array<number>>();
-    let point_lists = new Array<Array<number>>();
-    let missing_point_lists = new Array<Array<number>>();
+    let lines = new Array<number>();
+    let missing_lines = new Array<number>();
+    let points = new Array<number>();
+    let missing_points = new Array<number>();
 
     // We calculate the offsets for each capture
     let min_tsbase = Math.min(...data.TsBase);
@@ -162,48 +161,8 @@ class TimingVisualizer implements VisualizerInterface {
 
     }
 
-    for (let i = 0; i < data.TsBase.length - 1; i++) {
-      line_lists.push(new Array<number>());
-      missing_line_lists.push(new Array<number>());
-      point_lists.push(new Array<number>());
-      missing_point_lists.push(new Array<number>());
-    }
-
-
-
     for (let match of data.Matches) {
-      // We search for the first value we can see.
-      // This variable is used to place a missed packet, which
-      // we are going to mark at the level of the latest packet we've seen.
-      // We have to search for the latest for the case where the first step
-      // is lost
-
-      // We search for the first value we can see.
-      // This variable is used to place a missed packet, which
-      // we are going to mark at the level of the latest packet we've seen.
-      // We have to search for the latest for the case where the first step
-      // is lost
-      let latest_entry : PDEntryInterface;
-      let latest_offset = -1;
-      for (let i = 0; i < match.Entries.length; i++) {
-        let entry = match.Entries[i];
-        if (!entry.Missing) {
-          latest_entry = entry;
-          latest_offset = offsets[i];
-          break;
-        }
-      }
-      if (latest_offset == -1) {
-        throw "latest entry should never be undefined.";
-      }
-
       for (let i = 0; i < match.Entries.length - 1; i++) {
-        // We set up the lists references
-        let line_list = line_lists[i];
-        let missing_line_list = missing_line_lists[i];
-        let point_list = point_lists[i];
-        let missing_point_list = missing_point_lists[i];
-
         // Setup entry variables references
         let from_entry = match.Entries[i];
         let to_entry = match.Entries[i+1];
@@ -212,133 +171,98 @@ class TimingVisualizer implements VisualizerInterface {
         let from_height = heights[i];
         let to_height = heights[i+1];
 
-
-//         // If the first packet is missing
-//         if (from_entry.Missing) {
-//           if (i != 0) {
-//             throw "Missing from should be accounted for!";
-//           }
-
-//           // We mark the packet lost at the height of the latest
-//           // packet seen
-//           let res = this._GetLatestEntry(match, 1);
-//           if (!res) {
-//             console.error(match);
-//             throw "Match doesn't have any match";
-//           }
-
-//           // We add the missing points and lines
-//           let x = offsets[res.index] + res.entry.Value;
-//           for (let j = 0; j < res.index; j++) {
-//             missing_point_lists[j].push(x, heights[j]);
-//             missing_line_lists[j].push(x, heights[j]);
-//             missing_line_lists[j].push(x, heights[j+1]);
-//           }
-
-//           // We update the loop to the correct index
-//           i = res.index;
-//           continue;
-//         }
-
-//         // We have a from packet, we see if there is a to
-//         if (to_entry.Missing) {
-//           // Get the following entry
-//           let res = this._GetLatestEntry(match, i + 1);
-//           if (res) {
-//             // We mark a line between those
-//             missing_list_lists[i]
-//           }
-//         }
-
-
-
-
-
-
-
-
-
-
-
-        if (!from_entry.Missing) {
-          // We update the latest entry seen
-          latest_entry = from_entry;
-          latest_offset = from_offset;
-        }
-
         let from_x = from_offset + from_entry.Value;
         let to_x = to_offset + to_entry.Value;
-        let latest_x = latest_offset + latest_entry.Value;
 
-        // We only mark the from
-        if (to_entry.Missing) {
-          // We mark a missing point (at the latest time we've seen)
-          missing_point_list.push(latest_x, to_height);
-
-          // We add the top line
-          missing_line_list.push(latest_x, from_height);
-          missing_line_list.push(latest_x, to_height);
-
-          // We add the normal case
-          if (!from_entry.Missing) {
-            point_list.push(from_x, from_height);
+        // If the first packet is missing
+        if (from_entry.Missing) {
+          if (i != 0) {
+            throw "Missing from should be accounted for!";
           }
+
+          // We mark the packet lost at the height of the latest
+          // packet seen
+          let res = this._GetLatestEntry(match, 1);
+          if (!res) {
+            console.error(match);
+            throw "Match doesn't have any match";
+          }
+
+          // We add the missing points and lines
+          let x = offsets[res.index] + res.entry.Value;
+          for (let j = 0; j < res.index; j++) {
+            missing_points.push(x, heights[j]);
+            missing_lines.push(x, heights[j]);
+            missing_lines.push(x, heights[j+1]);
+          }
+
+          // We update the loop to the correct index
+          i = res.index - 1;  // Going to be updated by the for loop
           continue;
         }
 
-        if (from_entry.Missing) {
-          // This case is already covered by the to check
-          if (i > 0) {
+        // We have a from packet, we see if there is a to
+        if (to_entry.Missing) {
+          points.push(from_x, from_height);
+
+          // Get the following entry
+          let res = this._GetLatestEntry(match, i + 1);
+          if (res) {
+            // We mark a line between those
+            let res_x = offsets[res.index] + res.entry.Value;
+            missing_lines.push(from_x, from_height);
+            missing_lines.push(res_x, heights[res.index]);
+
+            // We found the last entry of the list
+            let x = offsets[res.index] + res.entry.Value;
+            if (res.index == match.Entries.length - 1) {
+              points.push(x, heights[res.index]);
+            }
+
+            // We update the loop to the correct index
+            i = res.index - 1;  // Going to be updated by the for loop
             continue;
           }
 
-          // Special case for the bottom case
-          missing_point_list.push(latest_offset + latest_entry.Value);
-          missing_point_list.push(from_height);
-
-          // We add the line if the later case is not missing
-          if (!to_entry.Missing) {
-            missing_line_list.push(latest_offset + latest_entry.Value);
-            missing_line_list.push(from_height);
-            missing_line_list.push(latest_offset + latest_entry.Value);
-            missing_line_list.push(to_height);
-          }
-          continue;
+          // If we don't find and index,
+          // we mark the packet lost until the end
+          missing_lines.push(from_x, from_height);
+          missing_lines.push(from_x, heights[heights.length-1]);
+          missing_points.push(from_x, heights[heights.length-1]);
+          break;
         }
-
 
         // Now we can check the normal case, in which both points
         // are present
         // We add the line
-        line_list.push(from_offset + from_entry.Value);
-        line_list.push(from_height);
-        line_list.push(to_offset + to_entry.Value);
-        line_list.push(to_height);
+        lines.push(from_offset + from_entry.Value);
+        lines.push(from_height);
+        lines.push(to_offset + to_entry.Value);
+        lines.push(to_height);
         // We add the points
-        point_list.push(from_offset + from_entry.Value);
-        point_list.push(from_height);
-        point_list.push(to_offset + to_entry.Value);
-        point_list.push(to_height);
+        points.push(from_offset + from_entry.Value);
+        points.push(from_height);
+        points.push(to_offset + to_entry.Value);
+        points.push(to_height);
       }
     }
 
-    console.debug("LINES: ", line_lists);
-    console.debug("MISSING LINES: ", missing_line_lists);
-    console.debug("POINTS: ", point_lists);
-    console.debug("MISSING: ", missing_point_lists);
-
+    console.debug("LINES: ", lines);
+    console.debug("MISSING LINES: ", missing_lines);
+    console.debug("POINTS: ", points);
+    console.debug("MISSING: ", missing_points);
 
     this._ResetRendererData();
 
     // We create the graph info from the points
-    this._CreateLinesGraphInfo(this.Lines, "lines", line_lists, AllColors.Get("yellow"));
+    this._CreateLinesGraphInfo(this.Lines, "lines", lines, AllColors.Get("yellow"));
     this._CreateLinesGraphInfo(this.MissingLines, "missing_lines",
-                               missing_line_lists, AllColors.Get("red"));
+                               missing_lines, AllColors.Get("red"));
 
     this._CreatePointsGraphInfo(this.Points, "points",
-                                point_lists, AllColors.Get("lightblue"));
+                                points, AllColors.Get("lightblue"));
     this._CreatePointsGraphInfo(this.MissingPoints, "missing",
-                                missing_point_lists, AllColors.Get("red"));
+                                missing_points, AllColors.Get("red"));
     this._UpdateOffsets(data);
   }
 
@@ -354,51 +278,48 @@ class TimingVisualizer implements VisualizerInterface {
 
   private _CreateLinesGraphInfo(list: Array<GraphInfoInterface>,
                                 name: string,
-                                line_lists: Array<Array<number>>,
+                                points: Array<number>,
                                 color: Color) {
-    for (let line_list of line_lists) {
-      let graph_info = new GraphInfo(name, color);
-      graph_info.RawPoints = line_list;
-      graph_info.GLPrimitive = this.Renderer.GL.LINES;
-      graph_info.VertexShader = VertexShaders.TIMING;
-      graph_info.FragmentShader = FragmentShaders.SIMPLE;
-      this.Renderer.AddGraph(graph_info);
-      list.push(graph_info);
-    }
+    let graph_info = new GraphInfo(name, color);
+    graph_info.RawPoints = points;
+    graph_info.GLPrimitive = this.Renderer.GL.LINES;
+    graph_info.VertexShader = VertexShaders.TIMING;
+    graph_info.FragmentShader = FragmentShaders.SIMPLE;
+    this.Renderer.AddGraph(graph_info);
+    list.push(graph_info);
   }
 
   private _CreatePointsGraphInfo(list: Array<GraphInfoInterface>,
                                  name: string,
-                                 point_lists: Array<Array<number>>,
+                                 points: Array<number>,
                                  color: Color) {
-    for (let point_list of point_lists) {
-      let graph_info = new GraphInfo(name, color);
-      graph_info.RawPoints = point_list;
-      graph_info.GLPrimitive = this.Renderer.GL.POINTS;
-      graph_info.VertexShader = VertexShaders.TIMING;
-      graph_info.FragmentShader = FragmentShaders.POINT_SPRITE;
-      this.Renderer.AddGraph(graph_info);
-      // this._lines.push(graph_info);
-      list.push(graph_info);
-    }
+    let graph_info = new GraphInfo(name, color);
+    graph_info.RawPoints = points;
+    graph_info.GLPrimitive = this.Renderer.GL.POINTS;
+    graph_info.VertexShader = VertexShaders.TIMING;
+    graph_info.FragmentShader = FragmentShaders.POINT_SPRITE;
+    this.Renderer.AddGraph(graph_info);
+    // this._lines.push(graph_info);
+    list.push(graph_info);
   }
 
   private _UpdateOffsets(data: PDDataInterface) : void {
-    for (let i = 0; i < data.Offsets.length - 1; i++) {
-      let from_offset = data.Offsets[i];
-      let to_offset = data.Offsets[i+1];
+    return;
+    // for (let i = 0; i < data.Offsets.length - 1; i++) {
+    //   let from_offset = data.Offsets[i];
+    //   let to_offset = data.Offsets[i+1];
 
-      this.Lines[i].Context.u_vertex_offsets = [from_offset, to_offset];
-      this.Lines[i].Context.u_offset_count = 2;
-      this.MissingLines[i].Context.u_vertex_offsets = [from_offset, to_offset];
-      this.MissingLines[i].Context.u_offset_count = 2;
+    //   this.Lines[i].Context.u_vertex_offsets = [from_offset, to_offset];
+    //   this.Lines[i].Context.u_offset_count = 2;
+    //   this.MissingLines[i].Context.u_vertex_offsets = [from_offset, to_offset];
+    //   this.MissingLines[i].Context.u_offset_count = 2;
 
 
-      this.Points[i].Context.u_vertex_offsets = [from_offset, to_offset];
-      this.Points[i].Context.u_offset_count = 2;
-      this.MissingPoints[i].Context.u_vertex_offsets = [from_offset, to_offset];
-      this.MissingPoints[i].Context.u_offset_count = 2;
-    }
+    //   this.Points[i].Context.u_vertex_offsets = [from_offset, to_offset];
+    //   this.Points[i].Context.u_offset_count = 2;
+    //   this.MissingPoints[i].Context.u_vertex_offsets = [from_offset, to_offset];
+    //   this.MissingPoints[i].Context.u_offset_count = 2;
+    // }
   }
 
   SetClosestPoint(point: Vec2) {
