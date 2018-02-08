@@ -50,6 +50,12 @@ class TimingVisualizer implements VisualizerInterface {
     this._label_manager = new LabelManager(container, this, this._renderer);
     this._axis_manager = new AxisManager(container, this._renderer);
 
+    this._ResetRendererData();
+  }
+
+  private _ResetRendererData() : void {
+    this._DeleteRendererData();
+
     this._lines = new Array<GraphInfoInterface>();
     this._missing_lines = new Array<GraphInfoInterface>();
 
@@ -120,9 +126,21 @@ class TimingVisualizer implements VisualizerInterface {
     this.Interaction.Start();
   }
 
+  private _DeleteRendererData() : void {
+    let elems = [this.Lines,
+                 this.MissingLines,
+                 this.Points,
+                 this.MissingPoints];
+    for (let elem of elems) {
+      if (elem) {
+        for (let g of elem) {
+          this.Renderer.RemoveGraph(g);
+        }
+      }
+    }
+  }
+
   LoadData(data: PDDataInterface) : void {
-
-
 
     // Setup the point containers
     let line_lists = new Array<Array<number>>();
@@ -308,6 +326,9 @@ class TimingVisualizer implements VisualizerInterface {
     console.debug("MISSING LINES: ", missing_line_lists);
     console.debug("POINTS: ", point_lists);
     console.debug("MISSING: ", missing_point_lists);
+
+
+    this._ResetRendererData();
 
     // We create the graph info from the points
     this._CreateLinesGraphInfo(this.Lines, "lines", line_lists, AllColors.Get("yellow"));

@@ -61,6 +61,8 @@ interface InternalRendererInterface {
 
   /* MANAGING INTERFACE */
   AddGraph(graph_info: GraphInfoInterface) : void;
+  RemoveGraph(graph_info: GraphInfoInterface) : void;
+
   ResizeCanvas() : void;
   ApplyMaxBounds() : void;
 
