@@ -141,7 +141,6 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   LoadData(data: PDDataInterface) : void {
-
     let lines = new Array<number>();
     let missing_lines = new Array<number>();
     let points = new Array<number>();
@@ -149,16 +148,16 @@ class TimingVisualizer implements VisualizerInterface {
 
     // We calculate the offsets for each capture
     let min_tsbase = Math.min(...data.TsBase);
-    let offsets = data.TsBase.map(function(ts_base: number) {
+    let base_offsets = data.TsBase.map(function(ts_base: number) {
       return ts_base - min_tsbase;
     });
+    let offsets = data.Offsets;
 
     // Initialize elements
     let ybase = 0;
     let heights = new Array<number>();
     for (let i = 0; i < data.Names.length; i++) {
       heights.push(ybase + i * 0.2);
-
     }
 
     for (let match of data.Matches) {
@@ -166,8 +165,8 @@ class TimingVisualizer implements VisualizerInterface {
         // Setup entry variables references
         let from_entry = match.Entries[i];
         let to_entry = match.Entries[i+1];
-        let from_offset = offsets[i];
-        let to_offset = offsets[i+1];
+        let from_offset = base_offsets[i] + offsets[i];
+        let to_offset = base_offsets[i+1] + offsets[i+1];
         let from_height = heights[i];
         let to_height = heights[i+1];
 
@@ -189,7 +188,7 @@ class TimingVisualizer implements VisualizerInterface {
           }
 
           // We add the missing points and lines
-          let x = offsets[res.index] + res.entry.Value;
+          let x = base_offsets[res.index] + offsets[res.index] + res.entry.Value;
           for (let j = 0; j < res.index; j++) {
             missing_points.push(x, heights[j]);
             missing_lines.push(x, heights[j]);
@@ -209,14 +208,13 @@ class TimingVisualizer implements VisualizerInterface {
           let res = this._GetLatestEntry(match, i + 1);
           if (res) {
             // We mark a line between those
-            let res_x = offsets[res.index] + res.entry.Value;
+            let res_x = base_offsets[res.index] + offsets[res.index] + res.entry.Value;
             missing_lines.push(from_x, from_height);
             missing_lines.push(res_x, heights[res.index]);
 
             // We found the last entry of the list
-            let x = offsets[res.index] + res.entry.Value;
             if (res.index == match.Entries.length - 1) {
-              points.push(x, heights[res.index]);
+              points.push(res_x, heights[res.index]);
             }
 
             // We update the loop to the correct index
@@ -263,7 +261,6 @@ class TimingVisualizer implements VisualizerInterface {
                                 points, AllColors.Get("lightblue"));
     this._CreatePointsGraphInfo(this.MissingPoints, "missing",
                                 missing_points, AllColors.Get("red"));
-    this._UpdateOffsets(data);
   }
 
   private _GetLatestEntry(match: PDMatchInterface, start: number) {
@@ -304,6 +301,7 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   private _UpdateOffsets(data: PDDataInterface) : void {
+    this.LoadData(data);
     return;
     // for (let i = 0; i < data.Offsets.length - 1; i++) {
     //   let from_offset = data.Offsets[i];

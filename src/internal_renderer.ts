@@ -260,7 +260,7 @@ class InternalRenderer implements InternalRendererInterface {
 
   RemoveGraph(graph_info: GraphInfoInterface) : void {
     // TODO(donosoc): Extend to more attributes
-    this.GL.deleteBuffer(graph_info.BufferInfo.attribs.a_position_coord);
+    this.GL.deleteBuffer(graph_info.BufferInfo.attribs.a_position_coord.buffer);
   }
 
   ResizeCanvas() : void {
