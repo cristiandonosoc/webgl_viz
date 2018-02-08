@@ -19,10 +19,11 @@ interface GraphInfoInterface {
   FragmentShader: FragmentShaders;
 
   // Modifyable
-  ElemId: RendererElemId;
+  // ElemId: RendererElemId;
   Color: Color;
-  GLProgram: any;   // Holds a reference to the internal GL program
   Context: {[K:string]:any}
+
+  BufferInfo: any;
 }
 
 /**************************************************************************
@@ -55,7 +56,6 @@ class GraphInfo implements GraphInfoInterface{
    *******************************************************/
 
   get Name() : string { return this._name; }
-  get ElemId() : RendererElemId { return this._elem_id; }
   get RawPoints() : Array<number> { return this._raw_points; }
   get Points() : Array<Vec2> { return this._points; }
   get Color() : Color { return this._color; }
@@ -64,10 +64,11 @@ class GraphInfo implements GraphInfoInterface{
   get Offset() : Vec2 { return this._offset; }
   get VertexShader() : VertexShaders { return this._vertex_shader; }
   get FragmentShader() : FragmentShaders { return this._fragment_shader; }
-  get GLProgram() { return this._gl_program; }
+  // get GLProgram() { return this._gl_program; }
   get Context() { return this._context; }
+  get BufferInfo() { return this._buffer_info; }
 
-  set ElemId(elem_id: RendererElemId) { this._elem_id = elem_id; }
+  // set ElemId(elem_id: RendererElemId) { this._elem_id = elem_id; }
   set Color(color: Color) { this._color = color; }
   set RawPoints(points: Array<number>) { this._raw_points = points; }
   set Points(points: Array<Vec2>) { this._points = points; }
@@ -76,8 +77,9 @@ class GraphInfo implements GraphInfoInterface{
   set Offset(offset: Vec2) { this._offset = offset; }
   set VertexShader(vs: VertexShaders) { this._vertex_shader = vs; }
   set FragmentShader(fs: FragmentShaders) { this._fragment_shader = fs; }
-  set GLProgram(program) { this._gl_program = program; }
+  // set GLProgram(program) { this._gl_program = program; }
   set Context(context: {[K:string]:any}) { this._context = context; }
+  set BufferInfo(buffer_info) { this._buffer_info = buffer_info; }
 
   /*******************************************************
    * PRIVATE METHODS
@@ -89,7 +91,7 @@ class GraphInfo implements GraphInfoInterface{
    *******************************************************/
 
   private _name: string;
-  private _elem_id: RendererElemId;
+  // private _elem_id: RendererElemId;
   private _raw_points: Array<number>;
   private _points: Array<Vec2>;
   private _color: Color;
@@ -100,9 +102,10 @@ class GraphInfo implements GraphInfoInterface{
   private _vertex_shader: VertexShaders;
   private _fragment_shader: FragmentShaders;
 
-  private _gl_program: any;
+  // private _gl_program: any;
 
   private _context: {[K:string]:any}
+  private _buffer_info: any;
 }
 
 /**************************************************************************

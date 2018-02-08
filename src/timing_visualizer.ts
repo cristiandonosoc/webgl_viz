@@ -12,7 +12,7 @@ import {GraphInfo, GraphInfoInterface} from "./graph_info";
 
 import VisualizerInterface from "./visualizer_interface";
 
-import {PDDataInterface, PDEntryInterface} from "./data";
+import {PDDataInterface, PDMatchInterface, PDEntryInterface} from "./data";
 
 import {INFINITY} from "./helpers";
 
@@ -121,6 +121,9 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   LoadData(data: PDDataInterface) : void {
+
+
+
     // Setup the point containers
     let line_lists = new Array<Array<number>>();
     let missing_line_lists = new Array<Array<number>>();
@@ -148,7 +151,15 @@ class TimingVisualizer implements VisualizerInterface {
       missing_point_lists.push(new Array<number>());
     }
 
+
+
     for (let match of data.Matches) {
+      // We search for the first value we can see.
+      // This variable is used to place a missed packet, which
+      // we are going to mark at the level of the latest packet we've seen.
+      // We have to search for the latest for the case where the first step
+      // is lost
+
       // We search for the first value we can see.
       // This variable is used to place a missed packet, which
       // we are going to mark at the level of the latest packet we've seen.
@@ -182,6 +193,54 @@ class TimingVisualizer implements VisualizerInterface {
         let to_offset = offsets[i+1];
         let from_height = heights[i];
         let to_height = heights[i+1];
+
+
+//         // If the first packet is missing
+//         if (from_entry.Missing) {
+//           if (i != 0) {
+//             throw "Missing from should be accounted for!";
+//           }
+
+//           // We mark the packet lost at the height of the latest
+//           // packet seen
+//           let res = this._GetLatestEntry(match, 1);
+//           if (!res) {
+//             console.error(match);
+//             throw "Match doesn't have any match";
+//           }
+
+//           // We add the missing points and lines
+//           let x = offsets[res.index] + res.entry.Value;
+//           for (let j = 0; j < res.index; j++) {
+//             missing_point_lists[j].push(x, heights[j]);
+//             missing_line_lists[j].push(x, heights[j]);
+//             missing_line_lists[j].push(x, heights[j+1]);
+//           }
+
+//           // We update the loop to the correct index
+//           i = res.index;
+//           continue;
+//         }
+
+//         // We have a from packet, we see if there is a to
+//         if (to_entry.Missing) {
+//           // Get the following entry
+//           let res = this._GetLatestEntry(match, i + 1);
+//           if (res) {
+//             // We mark a line between those
+//             missing_list_lists[i]
+//           }
+//         }
+
+
+
+
+
+
+
+
+
+
 
         if (!from_entry.Missing) {
           // We update the latest entry seen
@@ -260,6 +319,16 @@ class TimingVisualizer implements VisualizerInterface {
     this._CreatePointsGraphInfo(this.MissingPoints, "missing",
                                 missing_point_lists, AllColors.Get("red"));
     this._UpdateOffsets(data);
+  }
+
+  private _GetLatestEntry(match: PDMatchInterface, start: number) {
+    for (let i = start; i < match.Entries.length; i++) {
+      let entry = match.Entries[i];
+      if (!entry.Missing) {
+        return { entry: entry, index: i }
+      }
+    }
+    return undefined;
   }
 
   private _CreateLinesGraphInfo(list: Array<GraphInfoInterface>,

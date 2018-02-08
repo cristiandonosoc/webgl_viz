@@ -236,22 +236,29 @@ class InternalRenderer implements InternalRendererInterface {
       },
     };
 
-    // We create the renderer elem
-    let elem = new RendererElem();
-    elem.buffer_info = twgl.createBufferInfoFromArrays(this.GL, arrays);
-    if (graph_info.GLPrimitive != undefined) {
-      elem.gl_primitive = graph_info.GLPrimitive;
-    } else {
-      elem.gl_primitive = this.GL.LINE_STRIP;
-    }
+    graph_info.BufferInfo = twgl.createBufferInfoFromArrays(this.GL, arrays);
 
-    // Register the element
-    let elem_id = this.Elements.Register(elem);
-    graph_info.ElemId = elem_id;
+    // // We create the renderer elem
+    // let elem = new RendererElem();
+    // elem.buffer_info = twgl.createBufferInfoFromArrays(this.GL, arrays);
+    // if (graph_info.GLPrimitive != undefined) {
+    //   elem.gl_primitive = graph_info.GLPrimitive;
+    // } else {
+    //   elem.gl_primitive = this.GL.LINE_STRIP;
+    // }
+
+    // // Register the element
+    // let elem_id = this.Elements.Register(elem);
+    // graph_info.ElemId = elem_id;
 
     // Update the bounds
 
     this._state.max_bounds = CreateMaxBounds(this.MaxBounds, graph_info.Bounds);
+  }
+
+  RemoveGraph(graph_info: GraphInfoInterface) : void {
+    // TODO(donosoc): Extend to more attributes
+    this.GL.deleteBuffer(graph_info.BufferInfo.attribs.a_position_coord);
   }
 
   ResizeCanvas() : void {
@@ -356,24 +363,24 @@ class InternalRenderer implements InternalRendererInterface {
   }
 
   DrawElement(graph_info: GraphInfoInterface, space: DrawSpace) : void {
-    let elem = this.Elements.Get(graph_info.ElemId);
-    if (!elem) {
-      throw "Cannot find element";
-    }
+    // let elem = this.Elements.Get(graph_info.ElemId);
+    // if (!elem) {
+    //   throw "Cannot find element";
+    // }
     if (space == DrawSpace.LOCAL) {
-      this._DrawElementLocalSpace(elem, graph_info);
+      this._DrawElementLocalSpace(graph_info);
     } else {
       throw "Unsupported DrawSpace";
     }
   }
 
   DrawIconElement(graph_info: GraphInfoInterface, space: DrawSpace, color: Color) : void {
-    let elem = this.Elements.Get(graph_info.ElemId);
-    if (!elem) {
-      throw "Cannot find element";
-    }
+    // let elem = this.Elements.Get(graph_info.ElemId);
+    // if (!elem) {
+    //   throw "Cannot find element";
+    // }
     if (space == DrawSpace.LOCAL) {
-      this._DrawIconElementLocalSpace(elem, graph_info);
+      this._DrawIconElementLocalSpace(graph_info);
     } else {
       throw "Unsupported DrawSpace";
     }
@@ -472,12 +479,11 @@ class InternalRenderer implements InternalRendererInterface {
     return program;
   }
 
-  private _DrawElementLocalSpace(elem: RendererElem,
-                                 graph_info: GraphInfoInterface) : void {
+  private _DrawElementLocalSpace(graph_info: GraphInfoInterface) : void {
     let program_info = this._ObtainGLProgram(graph_info);
     // let program_info = this.ProgramInfos.graph;
     this.GL.useProgram(program_info.program);
-    twgl.setBuffersAndAttributes(this.GL, program_info, elem.buffer_info);
+    twgl.setBuffersAndAttributes(this.GL, program_info, graph_info.BufferInfo);
     let uniforms : {[K:string]:any} = {
       u_offset: this.Offset.AsArray(),
       u_scale: this.Scale.AsArray(),
@@ -492,19 +498,18 @@ class InternalRenderer implements InternalRendererInterface {
     }
 
     twgl.setUniforms(program_info, uniforms);
-    if (elem.gl_primitive == this.GL.LINES) {
-      this.GL.drawArrays(this.GL.LINES, 0, elem.buffer_info.numElements);
+    if (graph_info.GLPrimitive == this.GL.LINES) {
+      this.GL.drawArrays(this.GL.LINES, 0, graph_info.BufferInfo.numElements);
     } else {
-      twgl.drawBufferInfo(this._gl, elem.buffer_info, elem.gl_primitive);
+      twgl.drawBufferInfo(this._gl, graph_info.BufferInfo, graph_info.GLPrimitive);
     }
   }
 
-  private _DrawIconElementLocalSpace(elem: RendererElem,
-                                     graph_info: GraphInfoInterface) : void {
+  private _DrawIconElementLocalSpace(graph_info: GraphInfoInterface) : void {
     // let program_info = this.ProgramInfos.graph_ps;
     let program_info = this._ObtainGLProgram(graph_info);
     this.GL.useProgram(program_info.program);
-    twgl.setBuffersAndAttributes(this.GL, program_info, elem.buffer_info);
+    twgl.setBuffersAndAttributes(this.GL, program_info, graph_info.BufferInfo);
     let uniforms : {[K:string]:any} = {
       u_offset: this.Offset.AsArray(),
       u_scale: this.Scale.AsArray(),
@@ -525,7 +530,7 @@ class InternalRenderer implements InternalRendererInterface {
     this.GL.activeTexture(this.GL.TEXTURE0);
     this.GL.bindTexture(this.GL.TEXTURE_2D, this.cross_texture);
     // twgl.drawBufferInfo(this.GL, elem.buffer_info, elem.gl_primitive);
-    this.GL.drawArrays(this.GL.POINTS, 0, elem.buffer_info.numElements );
+    this.GL.drawArrays(this.GL.POINTS, 0, graph_info.BufferInfo.numElements );
   }
 
   /* DRAW LINE */
