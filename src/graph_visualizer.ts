@@ -101,7 +101,8 @@ class GraphVisualizer implements VisualizerInterface {
       // We add the shaders
       graph_info.VertexShader = VertexShaders.GRAPH;
       graph_info.FragmentShader = FragmentShaders.SIMPLE;
-      graph_info.GLPrimitive = this.Renderer.GL.LINES;
+      graph_info.GLPrimitive = this.Renderer.GL.LINE_STRIP;
+      graph_info.Context.u_point_size = 1;
       this._graphs.push(graph_info);
     }
 

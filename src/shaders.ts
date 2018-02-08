@@ -87,11 +87,6 @@ void main() {
   // We get the offset count for this point
   int t = gl_VertexID / u_offset_count;
   int index = gl_VertexID - (u_offset_count * t);
-  // We need to wrap in the minor offset buffer
-  // if (index >= u_offset_count) {
-  //   index -= u_offset_count;
-  // }
-
   // Offset the position
   vec4 offsetted = a_position_coord + vec4(u_vertex_offsets[index], 0, 0, 0);
 
@@ -110,7 +105,7 @@ void main() {
 
 let simple_fs = `
 #version 300 es
-precision mediump float;
+precision highp float;
 
 // Uniforms
 uniform vec4 u_color;
@@ -125,7 +120,7 @@ void main() {
 
 let point_sprite_fs = `
 #version 300 es
-precision mediump float;
+precision highp float;
 
 // Uniforms
 uniform sampler2D u_sampler;
