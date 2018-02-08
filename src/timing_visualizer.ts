@@ -217,6 +217,13 @@ class TimingVisualizer implements VisualizerInterface {
               points.push(res_x, heights[res.index]);
             }
 
+            // We mark the points in between
+            let dist = (res_x - from_x) / (res.index - i);
+            for (let j = i + 1; j < res.index; j++) {
+              let mx = from_x + dist * (j - i);
+              missing_points.push(mx, heights[j]);
+            }
+
             // We update the loop to the correct index
             i = res.index - 1;  // Going to be updated by the for loop
             continue;
@@ -227,6 +234,13 @@ class TimingVisualizer implements VisualizerInterface {
           missing_lines.push(from_x, from_height);
           missing_lines.push(from_x, heights[heights.length-1]);
           missing_points.push(from_x, heights[heights.length-1]);
+
+          // We mark the points in between
+          for (let j = i + 1; j < heights.length; j++) {
+            missing_points.push(from_x, heights[j]);
+          }
+
+
           break;
         }
 
@@ -300,26 +314,6 @@ class TimingVisualizer implements VisualizerInterface {
     list.push(graph_info);
   }
 
-  private _UpdateOffsets(data: PDDataInterface) : void {
-    this.LoadData(data);
-    return;
-    // for (let i = 0; i < data.Offsets.length - 1; i++) {
-    //   let from_offset = data.Offsets[i];
-    //   let to_offset = data.Offsets[i+1];
-
-    //   this.Lines[i].Context.u_vertex_offsets = [from_offset, to_offset];
-    //   this.Lines[i].Context.u_offset_count = 2;
-    //   this.MissingLines[i].Context.u_vertex_offsets = [from_offset, to_offset];
-    //   this.MissingLines[i].Context.u_offset_count = 2;
-
-
-    //   this.Points[i].Context.u_vertex_offsets = [from_offset, to_offset];
-    //   this.Points[i].Context.u_offset_count = 2;
-    //   this.MissingPoints[i].Context.u_vertex_offsets = [from_offset, to_offset];
-    //   this.MissingPoints[i].Context.u_offset_count = 2;
-    // }
-  }
-
   SetClosestPoint(point: Vec2) {
     throw new Error("NOT IMPLEMENTED");
   }
@@ -335,8 +329,9 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   UpdateDirtyData(data: PDDataInterface) : void {
+    // We recreate the data
+    this.LoadData(data);
     return;
-    // this._UpdateOffsets(data);
   }
 
   Draw() : void {
