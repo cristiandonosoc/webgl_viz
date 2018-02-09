@@ -7,6 +7,12 @@ import InternalRendererInterface from "./internal_renderer";
 
 import {PDDataInterface} from "./data";
 
+interface VisualizerCallbackData {
+  Owner: VisualizerInterface;
+  Event: InteractionEvents;
+  EntryIndex: number;
+}
+
 interface VisualizerInterface {
   readonly Graphs: Array<GraphInfoInterface>;
 
@@ -25,11 +31,9 @@ interface VisualizerInterface {
   SetColor(key: string, color: Color) : boolean;
 
   // REACTION TO EVENTS
-  SetGlobalInteractionCallback(
-    callback: (i: VisualizerInterface, e: InteractionEvents) => void) : void;
-  ReactToOtherVisualizer(v: VisualizerInterface, e: InteractionEvents) : void;
+  SetGlobalInteractionCallback(callback: (data: VisualizerCallbackData) => void) : void;
+  ReactToOtherVisualizer(data: VisualizerCallbackData) : void;
 
-  SetClosestPoint(point: Vec2) : void;
   ApplyMaxBounds() : void;
 
   // GETTERS
@@ -38,5 +42,6 @@ interface VisualizerInterface {
   readonly Renderer: InternalRendererInterface;
 }
 
+export {VisualizerCallbackData};
 export {VisualizerInterface};
 export default VisualizerInterface;

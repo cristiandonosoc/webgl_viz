@@ -10,7 +10,7 @@ import {AllColors, Color} from "./colors";
 
 import {GraphInfo, GraphInfoInterface} from "./graph_info";
 
-import VisualizerInterface from "./visualizer_interface";
+import {VisualizerCallbackData, VisualizerInterface} from "./visualizer_interface";
 
 import {PDDataInterface, PDMatchInterface, PDEntryInterface} from "./data";
 
@@ -28,19 +28,13 @@ class TimingVisualizer implements VisualizerInterface {
    * CONSTRUCTOR
    *******************************************************/
 
-  constructor(container: HTMLElement,
-              viz_callback?: (i:VisualizerInterface, e: InteractionEvents) => void) {
+  constructor(container: HTMLElement) {
     this._id = IdManager.GetVisualizerId();
 
     let ctx = this;
     this._Setup(container, function(i: InteractionInterface, e: InteractionEvents) {
       ctx._InteractionCallback(i, e);
     });
-
-
-    if (viz_callback) {
-      this.SetGlobalInteractionCallback(viz_callback);
-    }
   }
 
   private _Setup(container: HTMLElement,
@@ -66,7 +60,11 @@ class TimingVisualizer implements VisualizerInterface {
   private _InteractionCallback(i: InteractionInterface, e: InteractionEvents) : void {
     // We see if we have to call the program
     if (this._global_interaction_callback) {
-      this._global_interaction_callback(this, e);
+      // We don't care about the entry index
+      this._global_interaction_callback({
+        Owner: this,
+        Event: e,
+        EntryIndex: 0});
     }
 
     return;
@@ -90,16 +88,16 @@ class TimingVisualizer implements VisualizerInterface {
 
   get Id() : number { return this._id; }
 
-  SetGlobalInteractionCallback(callback: (i: VisualizerInterface, e: InteractionEvents) => void): void {
+  SetGlobalInteractionCallback(callback: (d: VisualizerCallbackData) => void): void {
     this._global_interaction_callback = callback;
   }
 
-  ReactToOtherVisualizer(v: VisualizerInterface, e: InteractionEvents) : void {
-    if (e == InteractionEvents.MOVE) {
+  ReactToOtherVisualizer(data: VisualizerCallbackData) : void {
+    if (data.Event  == InteractionEvents.MOVE) {
       return;
     }
     // We only care on obtaining the horizontal zoom
-    let new_bounds = v.Renderer.Bounds.Copy();
+    let new_bounds = data.Owner.Renderer.Bounds.Copy();
     new_bounds.y = this.Renderer.Bounds.y;
 
     this.Renderer.Bounds = new_bounds;
@@ -438,7 +436,7 @@ class TimingVisualizer implements VisualizerInterface {
   _missing_points: Array<GraphInfoInterface>;
   _missing_lines: Array<GraphInfoInterface>;
 
-  private _global_interaction_callback: (i: VisualizerInterface, e: InteractionEvents) => void;
+  private _global_interaction_callback: (d: VisualizerCallbackData) => void;
 }
 
 /**************************************************************************

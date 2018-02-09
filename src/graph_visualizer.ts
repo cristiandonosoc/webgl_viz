@@ -10,7 +10,7 @@ import {AllColors, Color} from "./colors";
 
 import {GraphInfo, GraphInfoInterface} from "./graph_info";
 
-import VisualizerInterface from "./visualizer_interface";
+import {VisualizerCallbackData, VisualizerInterface} from "./visualizer_interface";
 
 import {VertexShaders, FragmentShaders} from "./shaders";
 
@@ -26,8 +26,7 @@ class GraphVisualizer implements VisualizerInterface {
    * CONSTRUCTOR
    *******************************************************/
 
-  constructor(container: HTMLElement,
-              viz_callback?: (i:VisualizerInterface, e: InteractionEvents) => void) {
+  constructor(container: HTMLElement) {
     this._id = IdManager.GetVisualizerId();
     let ctx = this;
     function int_callback(i: InteractionInterface, e: InteractionEvents) : void {
@@ -35,9 +34,6 @@ class GraphVisualizer implements VisualizerInterface {
     }
 
     this._Setup(container, int_callback);
-    if (viz_callback) {
-      this.SetGlobalInteractionCallback(viz_callback);
-    }
   }
 
   private _Setup(container: HTMLElement,
@@ -57,7 +53,11 @@ class GraphVisualizer implements VisualizerInterface {
 
     // We see if we have to call the program
     if (this._global_interaction_callback) {
-      this._global_interaction_callback(this, e);
+      this._global_interaction_callback({
+        Owner: this,
+        Event: e,
+        EntryIndex: this.ClosestIndex
+      });
     }
 
     return;
@@ -80,13 +80,13 @@ class GraphVisualizer implements VisualizerInterface {
 
   get Id() : number { return this._id; }
 
-  ReactToOtherVisualizer(v: VisualizerInterface, e: InteractionEvents) : void {
-    if (e == InteractionEvents.MOVE) {
+  ReactToOtherVisualizer(data: VisualizerCallbackData) : void {
+    if (data.Event == InteractionEvents.MOVE) {
       return;
     }
 
     // We only care on obtaining the horizontal zoom
-    let new_bounds = v.Renderer.Bounds.Copy();
+    let new_bounds = data.Owner.Renderer.Bounds.Copy();
     new_bounds.y = this.Renderer.Bounds.y;
 
     this.Renderer.Bounds = new_bounds;
@@ -102,6 +102,10 @@ class GraphVisualizer implements VisualizerInterface {
 
   get ClosestPoints() : Array<Vec2> {
     return this._closest_points;
+  }
+
+  get ClosestIndex() : number {
+    return this._closest_index;
   }
 
   Start() : void {
@@ -247,7 +251,7 @@ class GraphVisualizer implements VisualizerInterface {
   }
 
   SetGlobalInteractionCallback(
-    callback: (i: VisualizerInterface, e: InteractionEvents) => void): void {
+    callback: (data: VisualizerCallbackData) => void) : void {
     this._global_interaction_callback = callback;
   }
 
@@ -390,6 +394,8 @@ class GraphVisualizer implements VisualizerInterface {
 
   private _colors: {[K:string]: Color};
   private _id: number;
+
+  private _closest_index: number;
   private _closest_points: Array<Vec2>;
 
   private _renderer: InternalRenderer;
@@ -400,7 +406,7 @@ class GraphVisualizer implements VisualizerInterface {
   private _graphs: Array<GraphInfoInterface>;
   private _missing_points: Array<GraphInfoInterface>;
 
-  private _global_interaction_callback: (i: VisualizerInterface, e: InteractionEvents) => void;
+  private _global_interaction_callback: (d: VisualizerCallbackData) => void;
 }
 
 /**************************************************************************

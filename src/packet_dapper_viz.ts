@@ -1,7 +1,7 @@
 import {Color, AllColors} from "./colors"
 import {Bounds, Vec2} from "./vectors";
 
-import VisualizerInterface from "./visualizer_interface";
+import {VisualizerCallbackData, VisualizerInterface} from "./visualizer_interface";
 import GraphVisualizer from "./graph_visualizer"
 import TimingVisualizer from "./timing_visualizer";
 
@@ -31,7 +31,6 @@ interface PacketDapperVizInterface {
   // Data Interface
   readonly Data: PDDataInterface;
 
-  SetClosestPoint(point: Vec2) : void;
   // Resets the zoom to the containing bounds
   ApplyMaxBounds() : void;
 }
@@ -50,21 +49,25 @@ class PacketDapperViz implements PacketDapperVizInterface {
               timing_canvas_container: HTMLElement) {
     this._SetupState();
 
-    let ctx = this;
-    function viz_callback(v: VisualizerInterface, e: InteractionEvents) : void {
-      ctx._VisualizerInteractionCallback(v ,e);
-    }
-
     // Create visualizers
-    this._visualizers.push(new GraphVisualizer(graph_canvas_container, viz_callback));
-    this._visualizers.push(new TimingVisualizer(timing_canvas_container, viz_callback));
+    this._visualizers.push(new GraphVisualizer(graph_canvas_container));
+    this._visualizers.push(new TimingVisualizer(timing_canvas_container));
+
+    // Setup the callbacks
+    let ctx = this;
+    function viz_callback(data: VisualizerCallbackData) : void {
+      ctx._VisualizerInteractionCallback(data);
+    }
+    for (let viz of this._visualizers) {
+      viz.SetGlobalInteractionCallback(viz_callback);
+    }
     console.log("LOADED VISUALIZERS");
   }
 
-  private _VisualizerInteractionCallback(v: VisualizerInterface, e: InteractionEvents) : void {
+  private _VisualizerInteractionCallback(data: VisualizerCallbackData) : void {
     for (let viz of this._visualizers) {
-      if (viz.Id != v.Id) {
-        viz.ReactToOtherVisualizer(v, e);
+      if (viz.Id != data.Owner.Id) {
+        viz.ReactToOtherVisualizer(data);
       }
     }
   }
@@ -201,12 +204,6 @@ class PacketDapperViz implements PacketDapperVizInterface {
     }
   }
 
-
-  SetClosestPoint(pos: Vec2) : void {
-    for (let viz of this._visualizers) {
-      viz.SetClosestPoint(pos);
-    }
-  }
 
   /********************************************************************
    * PRIVATE METHODS
