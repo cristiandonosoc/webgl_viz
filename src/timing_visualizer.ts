@@ -20,6 +20,8 @@ import {VertexShaders, FragmentShaders} from "./shaders";
 
 import {MousePosition} from "./mouse";
 
+import * as Utils from "./visualizer_utils";
+
 /**************************************************************************
  * IMPLEMENTATION
  **************************************************************************/
@@ -64,6 +66,7 @@ class TimingVisualizer implements VisualizerInterface {
 
   private _InteractionCallback(i: InteractionInterface, e: InteractionEvents) : void {
     this.MousePos = i.CurrentMousePos;
+    this.SetClosestPoint(this.MousePos.local);
 
     // We see if we have to call the program
     if (this._global_interaction_callback) {
@@ -88,10 +91,7 @@ class TimingVisualizer implements VisualizerInterface {
   get MousePos() : MousePosition { return this._mouse_pos; }
   set MousePos(pos: MousePosition) { this._mouse_pos = pos; }
 
-  get CurrentEntryIndex() : number {
-    return this._current_index;
-  }
-
+  get CurrentEntryIndex() : number { return this._current_index; }
   set CurrentEntryIndex(i: number) { this._current_index = i; }
 
   get Colors() : {[K:string]: Color} { return this._colors; }
@@ -350,7 +350,14 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   SetClosestPoint(point: Vec2) {
-    throw new Error("NOT IMPLEMENTED");
+    if (this.MatchesPoints.length == 0) {
+      return;
+    }
+
+    this.CurrentEntryIndex = Utils.SearchForClosest(this.MatchesPoints,
+        point, function(a: Array<Vec2>) {
+      return a[0];
+    });
   }
 
   ApplyMaxBounds() : void {
