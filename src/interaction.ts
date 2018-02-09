@@ -23,6 +23,14 @@ import KeyboardSingleton from "./keyboard";
  * INTERFACE
  **************************************************************************/
 
+enum InteractionEvents {
+  MOVE,
+  MOVE_DRAG,
+  ZOOM_DRAG,
+  ZOOM
+
+};
+
 interface InteractionInterface {
   Start() : void;
 
@@ -50,7 +58,7 @@ class Interaction implements InteractionInterface {
 
   // TODO(donosoc): Decouple zoom from UIManager (now has local data)
   constructor(renderer: InternalRendererInterface,
-              callback: (i: InteractionInterface) => void) {
+              callback: (i: InteractionInterface, e: InteractionEvents) => void) {
     this._renderer = renderer;
     this._callback = callback;
     this._started = false;
@@ -147,7 +155,10 @@ class Interaction implements InteractionInterface {
     this._ProcessMove(event);
     if (this._state.mouse.dragging) {
       this._ProcessDrag(event);
+      return;
     }
+
+    this.PostChange(InteractionEvents.MOVE);
   }
 
   private MouseWheel = (event: any) => {
@@ -186,17 +197,17 @@ class Interaction implements InteractionInterface {
                               Vec2.Mul(pin_point, scale_diff));
     this._renderer.Offset = new Vec2(new_offset.x, -new_offset.y);
 
-    this.PostChange();
+    this.PostChange(InteractionEvents.ZOOM);
     // Prevent default browser behaviour
     return false;
   }
 
   // Method to call after a change has happened
-  private PostChange() {
+  private PostChange(e: InteractionEvents) {
     // TODO(donosoc): Mark the view as dirty when that is implemented
     // Call the given callback
     if (this._callback) {
-      this._callback(this);
+      this._callback(this, e);
     }
   }
 
@@ -240,7 +251,7 @@ class Interaction implements InteractionInterface {
 
     this._renderer.Offset = Vec2.Sum(this._renderer.Offset, offset);
 
-    this.PostChange();
+    this.PostChange(InteractionEvents.MOVE_DRAG);
   }
 
   private _ProcessZoomDrag(event: any) {
@@ -268,7 +279,7 @@ class Interaction implements InteractionInterface {
 
     this._renderer.Bounds = bounds;
 
-    this.PostChange();
+    this.PostChange(InteractionEvents.ZOOM_DRAG);
   }
 
   /**************************************************************************
@@ -276,7 +287,7 @@ class Interaction implements InteractionInterface {
    **************************************************************************/
 
   private _renderer: InternalRendererInterface;
-  private _callback: (i: InteractionInterface) => void;
+  private _callback: (i: InteractionInterface, e: InteractionEvents) => void;
   private _started: boolean;
   private _state: {
     config: {
@@ -298,5 +309,6 @@ class Interaction implements InteractionInterface {
  * EXPORTS
  **************************************************************************/
 
+export {InteractionEvents}
 export {Interaction, InteractionInterface}
 export default InteractionInterface;

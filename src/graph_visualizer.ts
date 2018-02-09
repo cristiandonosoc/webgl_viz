@@ -1,7 +1,7 @@
 import {IdManager, INFINITY} from "./helpers";
 import {Bounds, Vec2} from "./vectors";
 import {DrawSpace, RendererElemId, InternalRenderer, InternalRendererInterface} from "./internal_renderer";
-import {Interaction, InteractionInterface} from "./interaction";
+import {Interaction, InteractionInterface, InteractionEvents} from "./interaction";
 import {LabelManager, LabelManagerInterface} from "./label_manager";
 import {AxisManager, AxisManagerInterface} from "./axis_manager";
 
@@ -27,11 +27,11 @@ class GraphVisualizer implements VisualizerInterface {
    *******************************************************/
 
   constructor(container: HTMLElement,
-              viz_callback?: (i:VisualizerInterface) => void) {
+              viz_callback?: (i:VisualizerInterface, e: InteractionEvents) => void) {
     this._id = IdManager.GetVisualizerId();
     let ctx = this;
-    function int_callback(i: InteractionInterface) : void {
-      ctx._InteractionCallback(i);
+    function int_callback(i: InteractionInterface, e: InteractionEvents) : void {
+      ctx._InteractionCallback(i, e);
     }
 
     this._Setup(container, int_callback);
@@ -41,7 +41,7 @@ class GraphVisualizer implements VisualizerInterface {
   }
 
   private _Setup(container: HTMLElement,
-                 callback: (i: InteractionInterface) => void) {
+                 callback: (i: InteractionInterface, e: InteractionEvents) => void) {
     this._graphs = new Array<GraphInfoInterface>();
     this._missing_points = new Array<GraphInfoInterface>();
     this._renderer = new InternalRenderer(container);
@@ -51,14 +51,15 @@ class GraphVisualizer implements VisualizerInterface {
     this._colors = {};
   }
 
-  private _InteractionCallback(i: InteractionInterface) {
+  private _InteractionCallback(i: InteractionInterface, e: InteractionEvents) {
+    this.SetClosestPoint(i.CurrentMousePos.local);
+
     // We see if we have to call the program
     if (this._global_interaction_callback) {
-      this._global_interaction_callback(this);
+      this._global_interaction_callback(this, e);
     }
 
     return;
-    // this.SetClosestPoint(i.CurrentMousePos.local);
   }
 
   /*******************************************************
@@ -78,7 +79,11 @@ class GraphVisualizer implements VisualizerInterface {
 
   get Id() : number { return this._id; }
 
-  ReactToOtherVisualizer(v: VisualizerInterface) : void {
+  ReactToOtherVisualizer(v: VisualizerInterface, e: InteractionEvents) : void {
+    if (e == InteractionEvents.MOVE) {
+      return;
+    }
+
     // We only care on obtaining the horizontal zoom
     let new_bounds = v.Renderer.Bounds.Copy();
     new_bounds.y = this.Renderer.Bounds.y;
@@ -222,14 +227,16 @@ class GraphVisualizer implements VisualizerInterface {
   }
 
   SetClosestPoint(point: Vec2) {
-    throw new Error("NOT IMPLEMENTED");
+    let closest = this._SearchForClosestPoint(point);
+    this._closest_point = closest;
   }
 
   ApplyMaxBounds() : void {
     this.Renderer.ApplyMaxBounds();
   }
 
-  SetGlobalInteractionCallback(callback: (i: VisualizerInterface) => void): void {
+  SetGlobalInteractionCallback(
+    callback: (i: VisualizerInterface, e: InteractionEvents) => void): void {
     this._global_interaction_callback = callback;
   }
 
@@ -301,9 +308,8 @@ class GraphVisualizer implements VisualizerInterface {
       return;
     }
 
-    // For now we search on the last graph
-    let last_graph = this.Graphs[this.Graphs.length - 1];
-    let points = last_graph.Points;
+    let graph = this.Graphs[0];
+    let points = graph.Points;
 
     var len = points.length;
     if (pos.x <= points[0].x) {
@@ -345,7 +351,6 @@ class GraphVisualizer implements VisualizerInterface {
     }
   }
 
-
   /*******************************************************
    * GETTERS
    *******************************************************/
@@ -382,7 +387,7 @@ class GraphVisualizer implements VisualizerInterface {
   private _graphs: Array<GraphInfoInterface>;
   private _missing_points: Array<GraphInfoInterface>;
 
-  private _global_interaction_callback: (i: VisualizerInterface) => void;
+  private _global_interaction_callback: (i: VisualizerInterface, e: InteractionEvents) => void;
 }
 
 /**************************************************************************

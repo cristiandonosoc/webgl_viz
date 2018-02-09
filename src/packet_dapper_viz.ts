@@ -13,6 +13,8 @@ import DataLoaderInterface from "./data_loader_interface";
 import VizLoader from "./viz_loader";
 import JsonLoader from "./json_loader";
 
+import {InteractionEvents} from "./interaction";
+
 /**************************************************************************
  * INTERFACE
  **************************************************************************/
@@ -49,8 +51,8 @@ class PacketDapperViz implements PacketDapperVizInterface {
     this._SetupState();
 
     let ctx = this;
-    function viz_callback(v: VisualizerInterface) : void {
-      ctx._VisualizerInteractionCallback(v);
+    function viz_callback(v: VisualizerInterface, e: InteractionEvents) : void {
+      ctx._VisualizerInteractionCallback(v ,e);
     }
 
     // Create visualizers
@@ -59,10 +61,10 @@ class PacketDapperViz implements PacketDapperVizInterface {
     console.log("LOADED VISUALIZERS");
   }
 
-  private _VisualizerInteractionCallback(v: VisualizerInterface) : void {
+  private _VisualizerInteractionCallback(v: VisualizerInterface, e: InteractionEvents) : void {
     for (let viz of this._visualizers) {
       if (viz.Id != v.Id) {
-        viz.ReactToOtherVisualizer(v);
+        viz.ReactToOtherVisualizer(v, e);
       }
     }
   }

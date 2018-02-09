@@ -2,7 +2,7 @@ import {Vec2} from "./vectors";
 import GraphInfoInterface from "./graph_info"
 import {Color} from "./colors";
 
-import InteractionInterface from "./interaction";
+import {InteractionEvents, InteractionInterface} from "./interaction";
 import InternalRendererInterface from "./internal_renderer";
 
 import {PDDataInterface} from "./data";
@@ -25,8 +25,9 @@ interface VisualizerInterface {
   SetColor(key: string, color: Color) : boolean;
 
   // REACTION TO EVENTS
-  SetGlobalInteractionCallback(callback: (i: VisualizerInterface) => void) : void;
-  ReactToOtherVisualizer(v: VisualizerInterface) : void;
+  SetGlobalInteractionCallback(
+    callback: (i: VisualizerInterface, e: InteractionEvents) => void) : void;
+  ReactToOtherVisualizer(v: VisualizerInterface, e: InteractionEvents) : void;
 
   SetClosestPoint(point: Vec2) : void;
   ApplyMaxBounds() : void;
