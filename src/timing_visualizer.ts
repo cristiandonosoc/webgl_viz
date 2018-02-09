@@ -55,6 +55,9 @@ class TimingVisualizer implements VisualizerInterface {
 
     this._points = new Array<GraphInfoInterface>();
     this._missing_points = new Array<GraphInfoInterface>();
+
+    this._matches_points = new Array<Array<Vec2>>();
+    this._current_index = -1;
   }
 
   private _InteractionCallback(i: InteractionInterface, e: InteractionEvents) : void {
@@ -75,6 +78,17 @@ class TimingVisualizer implements VisualizerInterface {
    * PUBLIC INTERFACE DATA
    *******************************************************/
 
+  get MatchesPoints() : Array<Array<Vec2>> {
+    return this._matches_points;
+  }
+  set MatchesPoints(m: Array<Array<Vec2>>) { this._matches_points = m; }
+
+  get CurrentEntryIndex() : number {
+    return this._current_index;
+  }
+
+  set CurrentEntryIndex(i: number) { this._current_index = i; }
+
   get Colors() : {[K:string]: Color} { return this._colors; }
 
   GetColor(key: string) : Color {
@@ -93,13 +107,14 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   ReactToOtherVisualizer(data: VisualizerCallbackData) : void {
-    if (data.Event  == InteractionEvents.MOVE) {
+    if (data.Event == InteractionEvents.MOVE) {
+      this.CurrentEntryIndex = data.EntryIndex;
       return;
     }
+
     // We only care on obtaining the horizontal zoom
     let new_bounds = data.Owner.Renderer.Bounds.Copy();
     new_bounds.y = this.Renderer.Bounds.y;
-
     this.Renderer.Bounds = new_bounds;
   }
 
@@ -147,6 +162,8 @@ class TimingVisualizer implements VisualizerInterface {
     let points = new Array<number>();
     let missing_points = new Array<number>();
 
+    let matches_points = new Array<Array<Vec2>>();
+
     // We calculate the offsets for each capture
     let min_tsbase = Math.min(...data.TsBase);
     let base_offsets = data.TsBase.map(function(ts_base: number) {
@@ -162,6 +179,8 @@ class TimingVisualizer implements VisualizerInterface {
     }
 
     for (let match of data.Matches) {
+      let match_points = new Array<Vec2>();
+
       for (let i = 0; i < match.Entries.length - 1; i++) {
         // Setup entry variables references
         let from_entry = match.Entries[i];
@@ -191,7 +210,7 @@ class TimingVisualizer implements VisualizerInterface {
           // We add the missing points and lines
           let x = base_offsets[res.index] + offsets[res.index] + res.entry.Value;
           for (let j = 0; j < res.index; j++) {
-            missing_points.push(x, heights[j]);
+            this._AddPoint(missing_points, match_points, x, heights[j]);
             missing_lines.push(x, heights[j]);
             missing_lines.push(x, heights[j+1]);
           }
@@ -203,7 +222,7 @@ class TimingVisualizer implements VisualizerInterface {
 
         // We have a from packet, we see if there is a to
         if (to_entry.Missing) {
-          points.push(from_x, from_height);
+          this._AddPoint(points, match_points, from_x, from_height);
 
           // Get the following entry
           let res = this._GetLatestEntry(match, i + 1);
@@ -215,14 +234,14 @@ class TimingVisualizer implements VisualizerInterface {
 
             // We found the last entry of the list
             if (res.index == match.Entries.length - 1) {
-              points.push(res_x, heights[res.index]);
+              this._AddPoint(points, match_points, res_x, heights[res.index]);
             }
 
             // We mark the points in between
             let dist = (res_x - from_x) / (res.index - i);
             for (let j = i + 1; j < res.index; j++) {
               let mx = from_x + dist * (j - i);
-              missing_points.push(mx, heights[j]);
+              this._AddPoint(missing_points, match_points, mx, heights[j]);
             }
 
             // We update the loop to the correct index
@@ -234,30 +253,27 @@ class TimingVisualizer implements VisualizerInterface {
           // we mark the packet lost until the end
           missing_lines.push(from_x, from_height);
           missing_lines.push(from_x, heights[heights.length-1]);
-          missing_points.push(from_x, heights[heights.length-1]);
+          this._AddPoint(missing_points, match_points,
+                         from_x, heights[heights.length-1]);
 
           // We mark the points in between
           for (let j = i + 1; j < heights.length; j++) {
-            missing_points.push(from_x, heights[j]);
+            this._AddPoint(missing_points, match_points, from_x, heights[j]);
           }
-
-
           break;
         }
 
         // Now we can check the normal case, in which both points
         // are present
         // We add the line
-        lines.push(from_offset + from_entry.Value);
-        lines.push(from_height);
-        lines.push(to_offset + to_entry.Value);
-        lines.push(to_height);
+        lines.push(from_x, from_height);
+        lines.push(to_x, to_height);
         // We add the points
-        points.push(from_offset + from_entry.Value);
-        points.push(from_height);
-        points.push(to_offset + to_entry.Value);
-        points.push(to_height);
+        this._AddPoint(points, match_points, from_x, from_height);
+        this._AddPoint(points, match_points, to_x, to_height);
       }
+
+      matches_points.push(match_points);
     }
 
     console.debug("LINES: ", lines);
@@ -266,6 +282,9 @@ class TimingVisualizer implements VisualizerInterface {
     console.debug("MISSING: ", missing_points);
 
     this._ResetRendererData();
+
+
+    this.MatchesPoints = matches_points;
 
     // We create the graph info from the points
     this._CreateLinesGraphInfo(this.Lines, "lines", lines, AllColors.Get("yellow"));
@@ -276,6 +295,12 @@ class TimingVisualizer implements VisualizerInterface {
                                 points, AllColors.Get("lightblue"));
     this._CreatePointsGraphInfo(this.MissingPoints, "missing",
                                 missing_points, AllColors.Get("red"));
+  }
+
+  private _AddPoint(list: Array<number>, match_points: Array<Vec2>,
+                    x: number, y: number) : void {
+    list.push(x, y);
+    match_points.push(new Vec2(x, y));
   }
 
   private _GetLatestEntry(match: PDMatchInterface, start: number) {
@@ -386,15 +411,18 @@ class TimingVisualizer implements VisualizerInterface {
       this.Renderer.DrawIconElement(point_info, DrawSpace.LOCAL, point_info.Color);
     }
 
+    if ((this.CurrentEntryIndex >= 0) &&
+        (this.CurrentEntryIndex < this.MatchesPoints.length)) {
+      let match_points = this.MatchesPoints[this.CurrentEntryIndex];
+      for (let point of match_points) {
+        this.Renderer.DrawIcon(point, DrawSpace.LOCAL, AllColors.Get("purple"));
+      }
+    }
+
     // Draw mouse vertical line
-    // this.DrawLinePixelSpace([10, 10], [200, 200]);
     let canvas_pos = this.Interaction.CurrentMousePos.canvas;
     this.Renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
                                    AllColors.Get("orange"));
-
-    if (this._closest_point) {
-      this.Renderer.DrawIcon(this._closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));
-    }
   }
 
   /*******************************************************
@@ -424,17 +452,18 @@ class TimingVisualizer implements VisualizerInterface {
   private _colors: {[K:string]: Color};
   private _id: number;
 
-  _closest_point: Vec2;
+  private _current_index: number;
+  private _matches_points: Array<Array<Vec2>>;
 
-  _renderer: InternalRenderer;
-  _interaction: Interaction;
-  _label_manager: LabelManager;
-  _axis_manager: AxisManager;
+  private _renderer: InternalRenderer;
+  private _interaction: Interaction;
+  private _label_manager: LabelManager;
+  private _axis_manager: AxisManager;
 
-  _lines: Array<GraphInfoInterface>;
-  _points: Array<GraphInfoInterface>;
-  _missing_points: Array<GraphInfoInterface>;
-  _missing_lines: Array<GraphInfoInterface>;
+  private _lines: Array<GraphInfoInterface>;
+  private _points: Array<GraphInfoInterface>;
+  private _missing_points: Array<GraphInfoInterface>;
+  private _missing_lines: Array<GraphInfoInterface>;
 
   private _global_interaction_callback: (d: VisualizerCallbackData) => void;
 }

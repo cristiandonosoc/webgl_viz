@@ -104,9 +104,8 @@ class GraphVisualizer implements VisualizerInterface {
     return this._closest_points;
   }
 
-  get ClosestIndex() : number {
-    return this._closest_index;
-  }
+  get ClosestIndex() : number { return this._closest_index; }
+  set ClosestIndex(i: number) { this._closest_index = i; }
 
   Start() : void {
     this.Interaction.Start();
@@ -236,13 +235,13 @@ class GraphVisualizer implements VisualizerInterface {
   }
 
   SetClosestPoint(point: Vec2) {
-    let index = this._SearchForClosestPoint(point);
+    this.ClosestIndex = this._SearchForClosestPoint(point);
     // We clear the array
     this.ClosestPoints.length = 0;
 
     // We add the closest points
     for (let graph_info of this.Graphs) {
-      this.ClosestPoints.push(graph_info.Points[index]);
+      this.ClosestPoints.push(graph_info.Points[this.ClosestIndex]);
     }
   }
 
@@ -295,7 +294,6 @@ class GraphVisualizer implements VisualizerInterface {
     // We draw the points
     for (let point of this.ClosestPoints) {
       this.Renderer.DrawIcon(point, DrawSpace.LOCAL, AllColors.Get("purple"));
-
     }
   }
 
