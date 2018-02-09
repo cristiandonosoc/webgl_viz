@@ -204,6 +204,11 @@ class InternalRenderer implements InternalRendererInterface {
     return this._state.bounds;
   }
 
+  get Resolution() : Vec2 {
+    return new Vec2(this.GL.canvas.width,
+                    this.GL.canvas.height);
+  }
+
   set Bounds(new_bounds: Bounds) {
     this._state.bounds = new_bounds;
 
@@ -294,14 +299,30 @@ class InternalRenderer implements InternalRendererInterface {
   }
 
   DrawHorizontalLine(y: number, space: DrawSpace, color: Color) : void {
-    let p1 = new Vec2(-INFINITY, y);
-    let p2 = new Vec2(+INFINITY, y);
+    let p1, p2;
+    if (space == DrawSpace.LOCAL) {
+      p1 = new Vec2(this.Bounds.x.first - 1, y);
+      p2 = new Vec2(this.Bounds.x.last + 1, y);
+    } else {
+      // We just need to exceed the screenspace
+      let width = this.Resolution.x;
+      p1 = new Vec2(-1, y);
+      p2 = new Vec2(width + 1, y);
+    }
     this.DrawLine(p1, p2, space, color);
   }
 
   DrawVerticalLine(x: number, space: DrawSpace, color: Color) : void {
-    let p1 = new Vec2(x, -INFINITY);
-    let p2 = new Vec2(x, +INFINITY);
+    let p1, p2;
+    if (space == DrawSpace.LOCAL) {
+      p1 = new Vec2(x, this.Bounds.y.first - 1);
+      p2 = new Vec2(x, this.Bounds.y.last + 1);
+    } else {
+      // We just need to exceed the screenspace
+      let height = this.Resolution.y;
+      p1 = new Vec2(x, -1);
+      p2 = new Vec2(x, height + 1);
+    }
     this.DrawLine(p1, p2, space, color);
   }
 
@@ -565,7 +586,7 @@ class InternalRenderer implements InternalRendererInterface {
       this.buffer_info.attribs.a_position_coord, new_pos);
 
     let uniforms = {
-      u_resolution: [this._gl.canvas.width, this._gl.canvas.height],
+      u_resolution: this.Resolution.AsArray(),
       u_color: color.AsArray(),
     };
     twgl.setUniforms(program_info, uniforms);
@@ -627,7 +648,7 @@ class InternalRenderer implements InternalRendererInterface {
 
     let uniforms = {
       u_color: color,
-      u_resolution: [this._gl.canvas.width, this._gl.canvas.height],
+      u_resolution: this.Resolution.AsArray(),
       u_point_size: 10,
       u_sampler: 0
     };
@@ -690,7 +711,7 @@ class InternalRenderer implements InternalRendererInterface {
       this.buffer_info.attribs.a_position_coord, v_points);
 
     let uniforms = {
-      u_resolution: [this._gl.canvas.width, this._gl.canvas.height],
+      u_resolution: this.Resolution.AsArray(),
       u_color: color.AsArray(),
     }
     twgl.setUniforms(program_info, uniforms);
