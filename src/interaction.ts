@@ -28,7 +28,22 @@ enum InteractionEvents {
   MOVE_DRAG,
   ZOOM_DRAG,
   ZOOM
+};
 
+interface State {
+  config: {
+    wheel_factor: Vec2
+  };
+  mouse: {
+    button: MouseButtons,
+    dragging: boolean,
+
+    down_pos: MousePosition,
+    up_pos: MousePosition,
+
+    current_pos: MousePosition,
+    last_pos: MousePosition,
+  };
 };
 
 interface InteractionInterface {
@@ -37,8 +52,8 @@ interface InteractionInterface {
   ZoomDragging: boolean;
 
   /* MOUSE */
-  CurrentMousePos: MousePosition;
-  CurrentMouseButton: MouseButtons;
+  MousePos: MousePosition;
+  MouseButton: MouseButtons;
 
   // Last Position mouse was pressed
   DownMousePos: MousePosition;
@@ -88,25 +103,35 @@ class Interaction implements InteractionInterface {
   }
 
   get ZoomDragging() : boolean {
-    return this._state.mouse.dragging &&
-           (this._state.mouse.button == MouseButtons.RIGHT);
+    return this.Dragging && (this.MouseButton == MouseButtons.RIGHT);
   }
 
-  get CurrentMousePos() : MousePosition {
-    return this._state.mouse.current_pos;
-  }
+  get MousePos() : MousePosition { return this.State.mouse.current_pos; }
+  set MousePos(p: MousePosition) { this.State.mouse.current_pos = p; }
 
-  get DownMousePos() : MousePosition {
-    return this._state.mouse.down_pos;
-  }
+  get DownMousePos() : MousePosition { return this.State.mouse.down_pos; }
+  set DownMousePos(p: MousePosition) { this.State.mouse.down_pos = p; }
 
-  get UpMousePos() : MousePosition {
-    return this._state.mouse.up_pos;
-  }
+  get UpMousePos() : MousePosition { return this.State.mouse.up_pos; }
+  set UpMousePos(p: MousePosition) { this.State.mouse.up_pos = p; }
 
-  get CurrentMouseButton() : MouseButtons {
-    return this._state.mouse.button;
-  }
+  get MouseButton() : MouseButtons { return this.State.mouse.button; }
+  set MouseButton(b: MouseButtons) { this.State.mouse.button = b; }
+
+  /*****************************************************************
+   * PRIVATE INTERFACE IMPL
+   *****************************************************************/
+
+  private get State() : State { return this._state; }
+
+  private get Dragging() : boolean { return this.State.mouse.dragging; }
+  private set Dragging(d: boolean) { this.State.mouse.dragging = d; }
+
+  private get CurrentPos() : MousePosition { return this.State.mouse.current_pos; }
+  private set CurrentPos(p: MousePosition) { this.State.mouse.current_pos = p; }
+
+  private get LastPos() : MousePosition { return this.State.mouse.last_pos; }
+  private set LastPos(p: MousePosition) { this.State.mouse.last_pos = p; }
 
   /*****************************************************************
    * HANDLERS
@@ -131,20 +156,20 @@ class Interaction implements InteractionInterface {
   private MouseDown = (event: any) => {
     // Mouse Down Specific
     let mouse_pos = MousePosition.FromRendererEvent(this._renderer, event);
-    this._state.mouse.down_pos = mouse_pos;
-    this._state.mouse.dragging = true;
-    this._state.mouse.button = event.button;
+    this.Dragging = true;
+    this.DownMousePos = mouse_pos;
+    this.MouseButton = event.button;
   }
 
   private MouseUp = (event: any) => {
-    if (!this._state.mouse.dragging) {
+    if (!this.Dragging) {
       return;
     }
-    let old_button = this._state.mouse.button;
+    let old_button = this.MouseButton;
     let mouse_pos = MousePosition.FromRendererEvent(this._renderer, event);
-    this._state.mouse.dragging = false;
-    this._state.mouse.button = MouseButtons.NONE;
-    this._state.mouse.up_pos = mouse_pos;
+    this.Dragging = false;
+    this.MouseButton = MouseButtons.NONE;
+    this.UpMousePos = mouse_pos;
 
     if (old_button == MouseButtons.RIGHT) {
       this._ProcessZoomDrag(event);
@@ -153,7 +178,7 @@ class Interaction implements InteractionInterface {
 
   private MouseMove = (event: any) => {
     this._ProcessMove(event);
-    if (this._state.mouse.dragging) {
+    if (this.Dragging) {
       this._ProcessDrag(event);
       return;
     }
@@ -163,7 +188,7 @@ class Interaction implements InteractionInterface {
 
   private MouseWheel = (event: any) => {
     event.preventDefault();
-    let mouse_pos = this._state.mouse.current_pos.canvas;
+    let mouse_pos = this.CurrentPos.canvas;
     let pin_point = RendererCanvasToLocal(this._renderer, mouse_pos);
 
     // We change the scale
@@ -176,7 +201,7 @@ class Interaction implements InteractionInterface {
       delta.y = -event.deltaY;
     }
 
-    let scale_change = Vec2.Mul(this._state.config.wheel_factor, delta);
+    let scale_change = Vec2.Mul(this.State.config.wheel_factor, delta);
     let old_scale = this._renderer.Scale;
     let new_scale = Vec2.Sum(old_scale,
                              Vec2.Mul(old_scale, scale_change));
@@ -220,9 +245,8 @@ class Interaction implements InteractionInterface {
       return;
     }
 
-    this._state.mouse.last_pos = this._state.mouse.current_pos;
-    this._state.mouse.current_pos = MousePosition.FromRendererEvent(this._renderer, event);
-
+    this.LastPos = this.CurrentPos;
+    this.CurrentPos = MousePosition.FromRendererEvent(this._renderer, event);
   }
 
   private _ProcessDrag(event: any) {
@@ -230,9 +254,9 @@ class Interaction implements InteractionInterface {
       return;
     }
 
-    if (this._state.mouse.button == MouseButtons.LEFT) {
+    if (this.MouseButton == MouseButtons.LEFT) {
       this._ProcessMoveDrag(event);
-    } else if (this._state.mouse.button == MouseButtons.RIGHT) {
+    } else if (this.MouseButton == MouseButtons.RIGHT) {
       // Drag is handled at mouse up
     } else {
       throw "unsupported drag event";
@@ -240,8 +264,8 @@ class Interaction implements InteractionInterface {
   }
 
   private _ProcessMoveDrag(event: any) {
-    let prev_pos = this._state.mouse.last_pos;
-    let current_pos = this._state.mouse.current_pos;
+    let prev_pos = this.LastPos;
+    let current_pos = this.CurrentPos;
     let diff = new Vec2(current_pos.screen.x - prev_pos.screen.x,
                         current_pos.screen.y - prev_pos.screen.y);
     let offset = new Vec2(diff.x / this._renderer.Width,
@@ -289,20 +313,8 @@ class Interaction implements InteractionInterface {
   private _renderer: InternalRendererInterface;
   private _callback: (i: InteractionInterface, e: InteractionEvents) => void;
   private _started: boolean;
-  private _state: {
-    config: {
-      wheel_factor: Vec2,
-    },
-    mouse: {
-      button: MouseButtons,
-      current_pos: MousePosition,
-      down_pos: MousePosition,
-      dragging: boolean,
-      last_pos: MousePosition,
-      up_pos: MousePosition,
-    },
-  };
 
+  private _state: State;
 }
 
 /**************************************************************************

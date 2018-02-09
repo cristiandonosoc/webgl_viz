@@ -53,7 +53,7 @@ class GraphVisualizer implements VisualizerInterface {
   }
 
   private _InteractionCallback(i: InteractionInterface, e: InteractionEvents) {
-    this.MousePos = i.CurrentMousePos;
+    this.MousePos = i.MousePos;
     this.SetClosestPoint(this.MousePos.local);
 
     // We see if we have to call the program
@@ -333,15 +333,15 @@ class GraphVisualizer implements VisualizerInterface {
       let zoom = UIManagerSingleton.Zoom;
       if (zoom == ZoomType.VERTICAL) {
         let start = this.Interaction.DownMousePos.canvas.x;
-        let end = this.Interaction.CurrentMousePos.canvas.x;
+        let end = this.Interaction.MousePos.canvas.x;
         this.Renderer.DrawVerticalRange(start, end, DrawSpace.PIXEL, drag_color);
       } else if (zoom == ZoomType.HORIZONTAL) {
         let start = this.Interaction.DownMousePos.canvas.y;
-        let end = this.Interaction.CurrentMousePos.canvas.y;
+        let end = this.Interaction.MousePos.canvas.y;
         this.Renderer.DrawHorizontalRange(start, end, DrawSpace.PIXEL, drag_color);
       } else if (zoom == ZoomType.BOX) {
         let p1 = this.Interaction.DownMousePos.canvas;
-        let p2 = this.Interaction.CurrentMousePos.canvas;
+        let p2 = this.Interaction.MousePos.canvas;
         this.Renderer.DrawBox(p1, p2, DrawSpace.PIXEL, drag_color);
       }
     }
