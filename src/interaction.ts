@@ -189,7 +189,7 @@ class Interaction implements InteractionInterface {
     if (!this.IsDown) {
       return;
     }
-    this.IsDown = true;
+    this.IsDown = false;
 
     // Save some info
     let old_button = this.MouseButton;

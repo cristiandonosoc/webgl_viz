@@ -31,6 +31,13 @@ body {
   left: 0;
 }
 
+.metadata {
+  position: absolute;
+  width: 100px;
+  height: 40px;
+  background-color: red;
+}
+
 .stats {
   border: $stats-border solid black;
   height: $stats-height;

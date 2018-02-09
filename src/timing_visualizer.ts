@@ -22,6 +22,8 @@ import {MousePosition} from "./mouse";
 
 import * as Utils from "./visualizer_utils";
 
+import {RendererLocalToCanvas} from "./transforms";
+
 /**************************************************************************
  * IMPLEMENTATION
  **************************************************************************/
@@ -47,6 +49,7 @@ class TimingVisualizer implements VisualizerInterface {
     this._interaction = new Interaction(this._renderer, callback);
     this._label_manager = new LabelManager(container, this, this._renderer);
     this._axis_manager = new AxisManager(container, this._renderer);
+    this._boxes = new Array<HTMLElement>();
 
     this._ResetRendererData();
   }
@@ -68,6 +71,12 @@ class TimingVisualizer implements VisualizerInterface {
     this.MousePos = i.MousePos;
     this.SetClosestPoint(this.MousePos.local);
 
+    if (e == InteractionEvents.CLICK) {
+      this._ProcessClick();
+    } else if (e != InteractionEvents.MOVE) {
+      this._ResetBoxes();
+    }
+
     // We see if we have to call the program
     if (this._global_interaction_callback) {
       // We don't care about the entry index
@@ -80,6 +89,39 @@ class TimingVisualizer implements VisualizerInterface {
     }
 
     return;
+  }
+
+  private _ResetBoxes() {
+    // We remove all the boxes
+    for (let box of this.Boxes) {
+      box.remove();
+    }
+    this.Boxes.length = 0;
+  }
+
+  private _ProcessClick() : void {
+    this._ResetBoxes();
+
+    // We create boxes
+    let elem = document.createElement("div");
+    elem.classList.add("metadata");
+
+    // We get the stage
+    let p = this.MatchesPoints[this.CurrentEntryIndex][0];
+
+    let canvas_pos = RendererLocalToCanvas(this.Renderer, p);
+    let rect = this.Renderer.Canvas.getBoundingClientRect();
+
+    let left = window.scrollX + rect.left + Math.floor(canvas_pos.x);
+    let top = window.scrollY + rect.top + rect.height - Math.floor(canvas_pos.y);
+
+    elem.style.left = `${left}px`;
+    elem.style.top = `${top}px`;
+
+    document.body.appendChild(elem);
+
+    this.Boxes.push(elem);
+
   }
 
   /*******************************************************
@@ -95,6 +137,9 @@ class TimingVisualizer implements VisualizerInterface {
   get CurrentEntryIndex() : number { return this._current_index; }
   set CurrentEntryIndex(i: number) { this._current_index = i; }
 
+  get ClosestPoint() : Vec2 { return this._closest_point; }
+  set ClosestPoint(p: Vec2) { this._closest_point = p; }
+
   get Colors() : {[K:string]: Color} { return this._colors; }
 
   GetColor(key: string) : Color {
@@ -105,6 +150,9 @@ class TimingVisualizer implements VisualizerInterface {
     this._colors[key] = color;
     return true;
   }
+
+  get Heights() : Array<number> { return this._heights; }
+  set Heights(h: Array<number>) { this._heights = h; }
 
   get Id() : number { return this._id; }
 
@@ -120,6 +168,10 @@ class TimingVisualizer implements VisualizerInterface {
         this.CurrentEntryIndex = data.EntryIndex;
       }
       return;
+    } else if (data.Event == InteractionEvents.CLICK) {
+      // this._ProcessClick();
+    } else {
+      this._ResetBoxes();
     }
 
     // We only care on obtaining the horizontal zoom
@@ -148,6 +200,12 @@ class TimingVisualizer implements VisualizerInterface {
     return this._missing_points;
   }
 
+  private get Data() : PDDataInterface { return this._data; }
+  private set Data(data: PDDataInterface) { this._data = data; }
+
+  private get Boxes() : Array<HTMLElement> { return this._boxes; }
+  private set Boxes(b: Array<HTMLElement>) { this._boxes = b; }
+
   Start() : void {
     this.Interaction.Start();
   }
@@ -167,6 +225,8 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   LoadData(data: PDDataInterface) : void {
+    this.Data = data;
+
     let lines = new Array<number>();
     let missing_lines = new Array<number>();
     let points = new Array<number>();
@@ -183,9 +243,9 @@ class TimingVisualizer implements VisualizerInterface {
 
     // Initialize elements
     let ybase = 0;
-    let heights = new Array<number>();
+    this.Heights = new Array<number>();
     for (let i = 0; i < data.Names.length; i++) {
-      heights.push(ybase + i * 0.2);
+      this.Heights.push(ybase + i * 0.2);
     }
 
     for (let match of data.Matches) {
@@ -197,8 +257,8 @@ class TimingVisualizer implements VisualizerInterface {
         let to_entry = match.Entries[i+1];
         let from_offset = base_offsets[i] + offsets[i];
         let to_offset = base_offsets[i+1] + offsets[i+1];
-        let from_height = heights[i];
-        let to_height = heights[i+1];
+        let from_height = this.Heights[i];
+        let to_height = this.Heights[i+1];
 
         let from_x = from_offset + from_entry.Value;
         let to_x = to_offset + to_entry.Value;
@@ -220,9 +280,9 @@ class TimingVisualizer implements VisualizerInterface {
           // We add the missing points and lines
           let x = base_offsets[res.index] + offsets[res.index] + res.entry.Value;
           for (let j = 0; j < res.index; j++) {
-            this._AddPoint(missing_points, match_points, x, heights[j]);
-            missing_lines.push(x, heights[j]);
-            missing_lines.push(x, heights[j+1]);
+            this._AddPoint(missing_points, match_points, x, this.Heights[j]);
+            missing_lines.push(x, this.Heights[j]);
+            missing_lines.push(x, this.Heights[j+1]);
           }
 
           // We update the loop to the correct index
@@ -240,18 +300,18 @@ class TimingVisualizer implements VisualizerInterface {
             // We mark a line between those
             let res_x = base_offsets[res.index] + offsets[res.index] + res.entry.Value;
             missing_lines.push(from_x, from_height);
-            missing_lines.push(res_x, heights[res.index]);
+            missing_lines.push(res_x, this.Heights[res.index]);
 
             // We found the last entry of the list
             if (res.index == match.Entries.length - 1) {
-              this._AddPoint(points, match_points, res_x, heights[res.index]);
+              this._AddPoint(points, match_points, res_x, this.Heights[res.index]);
             }
 
             // We mark the points in between
             let dist = (res_x - from_x) / (res.index - i);
             for (let j = i + 1; j < res.index; j++) {
               let mx = from_x + dist * (j - i);
-              this._AddPoint(missing_points, match_points, mx, heights[j]);
+              this._AddPoint(missing_points, match_points, mx, this.Heights[j]);
             }
 
             // We update the loop to the correct index
@@ -262,13 +322,13 @@ class TimingVisualizer implements VisualizerInterface {
           // If we don't find and index,
           // we mark the packet lost until the end
           missing_lines.push(from_x, from_height);
-          missing_lines.push(from_x, heights[heights.length-1]);
+          missing_lines.push(from_x, this.Heights[this.Heights.length-1]);
           this._AddPoint(missing_points, match_points,
-                         from_x, heights[heights.length-1]);
+                         from_x, this.Heights[this.Heights.length-1]);
 
           // We mark the points in between
-          for (let j = i + 1; j < heights.length; j++) {
-            this._AddPoint(missing_points, match_points, from_x, heights[j]);
+          for (let j = i + 1; j < this.Heights.length; j++) {
+            this._AddPoint(missing_points, match_points, from_x, this.Heights[j]);
           }
           break;
         }
@@ -355,10 +415,32 @@ class TimingVisualizer implements VisualizerInterface {
       return;
     }
 
-    this.CurrentEntryIndex = Utils.SearchForClosest(this.MatchesPoints,
-        point, function(a: Array<Vec2>) {
-      return a[0];
+    // We get the closest height
+    this.MousePos.local;
+
+    let h_index = 0;
+    let abs = INFINITY;
+    for (let i = 0; i < this.Heights.length; i++) {
+      let h = this.Heights[i];
+      let cur_abs = Math.abs(this.MousePos.local.y - h);
+      if (cur_abs < abs) {
+        abs = cur_abs;
+        h_index = i;
+      }
+    }
+    // We double it for the current wat MatchesPoints is created
+    let array_index = 2 * h_index;
+    if (h_index == this.Heights.length - 1) {
+      array_index--;
+    }
+
+    let index = Utils.SearchForClosest(this.MatchesPoints,
+        this.MousePos.local, function(a: Array<Vec2>) {
+      return a[array_index];
     });
+
+    this.ClosestPoint = this.MatchesPoints[index][array_index];
+    this.CurrentEntryIndex = index;
   }
 
   ApplyMaxBounds() : void {
@@ -426,6 +508,7 @@ class TimingVisualizer implements VisualizerInterface {
       this.Renderer.DrawIconElement(point_info, DrawSpace.LOCAL, point_info.Color);
     }
 
+    // Draw the selected points
     if ((this.CurrentEntryIndex >= 0) &&
         (this.CurrentEntryIndex < this.MatchesPoints.length)) {
       let color = AllColors.Get("purple");
@@ -442,6 +525,12 @@ class TimingVisualizer implements VisualizerInterface {
       for (let point of match_points) {
         this.Renderer.DrawIcon(point, DrawSpace.LOCAL, AllColors.Get("purple"));
       }
+    }
+
+    // Draw the closest point
+    if (this.ClosestPoint) {
+      this.Renderer.DrawIcon(this.ClosestPoint, DrawSpace.LOCAL,
+        AllColors.Get("salmon"));
     }
 
     // Draw mouse vertical line
@@ -479,6 +568,8 @@ class TimingVisualizer implements VisualizerInterface {
   private _colors: {[K:string]: Color};
   private _id: number;
 
+
+  private _closest_point: Vec2;
   private _current_index: number;
   private _matches_points: Array<Array<Vec2>>;
 
@@ -495,6 +586,10 @@ class TimingVisualizer implements VisualizerInterface {
   private _global_interaction_callback: (d: VisualizerCallbackData) => void;
 
   private _mouse_pos: MousePosition;
+
+  private _data: PDDataInterface;
+  private _boxes: Array<HTMLElement>;
+  private _heights: Array<number>;
 }
 
 /**************************************************************************

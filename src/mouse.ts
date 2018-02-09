@@ -14,6 +14,7 @@ class MousePosition {
   screen: Vec2
   canvas: Vec2
   local: Vec2
+  page: Vec2
 
   static get Zero() : MousePosition {
     let mouse_pos = new MousePosition();
@@ -28,6 +29,9 @@ class MousePosition {
     // Screen
     mouse_pos.screen = new Vec2(event.screenX,
                                 window.screen.height - event.screenY);
+    // Page
+    mouse_pos.page = new Vec2(event.pageX, event.pageY);
+
     // Canvas
     let client_pos = new Vec2(event.clientX, event.clientY);
     let bounds = event.target.getBoundingClientRect();
