@@ -80,8 +80,10 @@ interface InternalRendererInterface {
   DrawVerticalRange(start: number, end: number, space: DrawSpace, color: Color) : void;
 
   DrawBox(p1: Vec2, p2: Vec2, space: DrawSpace, color: Color) : void;
-
   DrawIcon(point: Vec2, space: DrawSpace, color: Color) : void;
+
+  DrawCustomPoints(points: Array<number>, space: DrawSpace,
+                   context: any) : void;
 }
 
 /**************************************************************************
@@ -388,9 +390,23 @@ class InternalRenderer implements InternalRendererInterface {
     }
   }
 
+  DrawCustomPoints(points: Array<number>, space: DrawSpace,
+                   context: any) : void {
+    if (points.length == 0) {
+      return;
+    }
+
+    if (space == DrawSpace.LOCAL) {
+      this._DrawCustomPointsLocalSpace(points, context);
+    } else {
+      throw "Unsupported DrawSpace";
+    }
+  }
+
   /**************************************************************************
    * PRIVATE FUNCTIONS
    **************************************************************************/
+
 
   private _SetupWebGL() {
     this._gl_programs = {};
@@ -461,12 +477,6 @@ class InternalRenderer implements InternalRendererInterface {
     img.src = "resources/cross.png";
   }
 
-  /******************************************************
-   * PRIVATE RENDERING FUNCTIONS
-   ******************************************************/
-
-  /* DRAW GRAPH */
-
   private _ObtainGLProgram(graph_info: GraphInfoInterface) {
     // This key is being generated on every draw call
     // TODO(donosoc): Cache it in the graph info
@@ -480,6 +490,12 @@ class InternalRenderer implements InternalRendererInterface {
     }
     return program;
   }
+
+  /******************************************************
+   * PRIVATE RENDERING FUNCTIONS
+   ******************************************************/
+
+  /* DRAW GRAPH */
 
   private _DrawElementLocalSpace(graph_info: GraphInfoInterface) : void {
     let program_info = this._ObtainGLProgram(graph_info);
@@ -537,6 +553,8 @@ class InternalRenderer implements InternalRendererInterface {
 
   /* DRAW LINE */
 
+
+
   private _DrawLinePixelSpace(p1: Vec2, p2: Vec2, color: Color) : void {
     let program_info = this.ProgramInfoCache.pixel_simple;
     this._gl.useProgram(program_info.program);
@@ -573,6 +591,22 @@ class InternalRenderer implements InternalRendererInterface {
     };
     twgl.setUniforms(program_info, uniforms);
     this._gl.drawArrays(this._gl.LINES, 0, 2);
+  }
+
+  private _DrawCustomPointsLocalSpace(points: Array<number>, context: any) : void {
+    let program_info = this.ProgramInfoCache.direct_simple;
+    this.GL.useProgram(program_info.program);
+    twgl.setBuffersAndAttributes(this.GL, program_info, this.buffer_info);
+    twgl.setAttribInfoBufferFromArray(this.GL,
+      this.buffer_info.attribs.a_position_coord, points);
+
+    let uniforms = {
+      u_offset: this._state.offset.AsArray(),
+      u_scale: this._state.scale.AsArray(),
+      u_color: context.Color.AsArray(),
+    };
+    twgl.setUniforms(program_info, uniforms);
+    this.GL.drawArrays(context.GLPrimitive, 0, points.length / 2);
   }
 
   /* DRAW ICON */

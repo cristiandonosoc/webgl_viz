@@ -413,7 +413,17 @@ class TimingVisualizer implements VisualizerInterface {
 
     if ((this.CurrentEntryIndex >= 0) &&
         (this.CurrentEntryIndex < this.MatchesPoints.length)) {
+      let color = AllColors.Get("purple");
       let match_points = this.MatchesPoints[this.CurrentEntryIndex];
+      let points = new Array<number>();
+      for (let p of match_points) {
+        points.push(p.x, p.y);
+      }
+
+      this.Renderer.DrawCustomPoints(points, DrawSpace.LOCAL, {
+        Color: color,
+        GLPrimitive: this.Renderer.GL.LINE_STRIP
+      });
       for (let point of match_points) {
         this.Renderer.DrawIcon(point, DrawSpace.LOCAL, AllColors.Get("purple"));
       }
