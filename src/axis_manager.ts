@@ -130,7 +130,7 @@ class AxisManager implements AxisManagerInterface {
 
   Update() : void {
     // We calculate the unit the zoom should be at
-    let bounds = this._renderer.Bounds;
+    let bounds = this.Renderer.Bounds;
     let diffs = new Vec2(Math.abs(bounds.x.x - bounds.x.y),
                          Math.abs(bounds.y.x - bounds.y.y));
     let step_sizes = Vec2.Div(diffs, this.StepDividers);
@@ -173,13 +173,20 @@ class AxisManager implements AxisManagerInterface {
     let entry = this._ScaleToScaleEntry(scale);
     ctx.fillText(entry.CalculatedString, ctx.canvas.width / 2 - 30, 30);
 
-    // for (var i = 0; i < points.length; i += 1) {
+    // We calculate the bounds
+    let bounds = this.Renderer.Bounds;
+    let lower = bounds.x.first - 1;
+    let upper = bounds.x.last + 1;
+    let renderer_points = new Array<number>();
+
+    ctx.save();
     for (let x of points) {
-      // We draw the vertical line
-      this._renderer.DrawVerticalLine(x, DrawSpace.LOCAL, AllColors.Get("darkgreen"));
+      // We calculate the points
+      renderer_points.push(x, lower);
+      renderer_points.push(x, upper);
 
       // We transform the point to Canvas space
-      let canvas_x = RendererLocalToCanvas(this._renderer, new Vec2(x, 0)).x;
+      let canvas_x = RendererLocalToCanvas(this.Renderer, new Vec2(x, 0)).x;
 
       // We get the "scaled" number
       let scaled = x / entry.scale;
@@ -188,7 +195,13 @@ class AxisManager implements AxisManagerInterface {
       // We draw the axis label
       ctx.fillText(text, canvas_x - 10, 10);
     }
+    ctx.restore();
 
+    // We draw the points
+    this.Renderer.DrawCustomPoints(renderer_points, DrawSpace.LOCAL, {
+      Color: AllColors.Get("darkgreen"),
+      GLPrimitive: this.Renderer.GL.LINES
+    });
   }
 
   private _DrawAxisY(points: Array<number>, scale: number) : void {
@@ -202,14 +215,21 @@ class AxisManager implements AxisManagerInterface {
     let entry = this._ScaleToScaleEntry(scale);
     let point = new Vec2(20, ctx.canvas.height / 2 + 30);
 
+    // We calculate the bounds
+    let bounds = this.Renderer.Bounds;
+    let lower = bounds.y.first - 1;
+    let upper = bounds.y.last + 1;
+    let renderer_points = new Array<number>();
+
     // The drawing changes some settings
     ctx.save();
     for (let y of points) {
-      // We draw the horizontal lines
-      this._renderer.DrawHorizontalLine(y, DrawSpace.LOCAL, AllColors.Get("darkgreen"));
+      // We calculate the points
+      renderer_points.push(lower, y);
+      renderer_points.push(upper, y);
 
       // We transform the point to Canvas Space
-      let canvas_y = RendererLocalToCanvas(this._renderer, new Vec2(0, y)).y;
+      let canvas_y = RendererLocalToCanvas(this.Renderer, new Vec2(0, y)).y;
 
       // We get the "scaled" number
       let scaled = y / entry.scale;
@@ -227,6 +247,12 @@ class AxisManager implements AxisManagerInterface {
     ctx.rotate(-Math.PI/2);
     ctx.fillText(entry.CalculatedString, 0, 0);
     ctx.restore();
+
+    // We draw the points
+    this.Renderer.DrawCustomPoints(renderer_points, DrawSpace.LOCAL, {
+      Color: AllColors.Get("darkgreen"),
+      GLPrimitive: this.Renderer.GL.LINES
+    });
   }
 
   /****************************************************
@@ -234,7 +260,7 @@ class AxisManager implements AxisManagerInterface {
    ****************************************************/
 
   private _CalculateAxisCenters(scales: Vec2) : Vec2 {
-    let final_offset = Vec2.Div(this._renderer.Offset, this._renderer.Scale);
+    let final_offset = Vec2.Div(this.Renderer.Offset, this.Renderer.Scale);
 
     // We create a mapping function
     let center_func = function(i: number, scale: number) : number {
@@ -303,6 +329,8 @@ class AxisManager implements AxisManagerInterface {
     }
     return text;
   }
+
+  get Renderer() : InternalRendererInterface { return this._renderer; }
 
   /**************************************************************************
    * PRIVATE DATA
