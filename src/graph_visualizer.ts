@@ -18,6 +18,8 @@ import {PDDataInterface, PDMatchInterface} from "./data";
 
 import {MousePosition} from "./mouse";
 
+import * as Utils from "./visualizer_utils";
+
 /**************************************************************************
  * IMPLEMENTATION
  **************************************************************************/
@@ -244,7 +246,14 @@ class GraphVisualizer implements VisualizerInterface {
   }
 
   SetClosestPoint(point: Vec2) {
-    this.ClosestIndex = this._SearchForClosestPoint(point);
+    if (this.Graphs.length == 0) {
+      return;
+    }
+
+    this.ClosestIndex = Utils.SearchForClosest(this.Graphs[0].Points,
+      point, function(v: Vec2) : Vec2 {
+      return v;
+    })
     // We clear the array
     this.ClosestPoints.length = 0;
 
@@ -326,55 +335,6 @@ class GraphVisualizer implements VisualizerInterface {
         let p2 = this.Interaction.CurrentMousePos.canvas;
         this.Renderer.DrawBox(p1, p2, DrawSpace.PIXEL, drag_color);
       }
-    }
-  }
-
-  private _SearchForClosestPoint(pos: Vec2) : number {
-    // No points to search
-    if (this.Graphs.length < 1) {
-      return;
-    }
-
-    let graph = this.Graphs[0];
-    let points = graph.Points;
-
-    var len = points.length;
-    if (pos.x <= points[0].x) {
-      return 0;
-    }
-    if (pos.x >= points[len-1].x) {
-      return len-1 ;
-    }
-
-    // We do binary search
-    var min_index = 0;
-    var max_index = len - 1;
-
-    while (min_index < max_index) {
-      var half = Math.floor((min_index + max_index) / 2);
-      var val = points[half].x;
-
-      if (val > pos.x) {
-        if (max_index == half) { break; }
-        max_index = half;
-      } else {
-        if (min_index == half) { break; }
-        min_index = half;
-      }
-    }
-
-    // We now have two points
-    var min_point = points[min_index];
-    var max_point = points[max_index];
-
-    // We want to return the closest (x-wise)
-    var dist1 = Math.abs(min_point.x - pos.x);
-    var dist2 = Math.abs(max_point.x - pos.x);
-
-    if (dist1 < dist2) {
-      return min_index;
-    } else {
-      return max_index;
     }
   }
 
