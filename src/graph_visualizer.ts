@@ -16,6 +16,8 @@ import {VertexShaders, FragmentShaders} from "./shaders";
 
 import {PDDataInterface, PDMatchInterface} from "./data";
 
+import {MousePosition} from "./mouse";
+
 /**************************************************************************
  * IMPLEMENTATION
  **************************************************************************/
@@ -49,7 +51,8 @@ class GraphVisualizer implements VisualizerInterface {
   }
 
   private _InteractionCallback(i: InteractionInterface, e: InteractionEvents) {
-    this.SetClosestPoint(i.CurrentMousePos.local);
+    this.MousePos = i.CurrentMousePos;
+    this.SetClosestPoint(this.MousePos.local);
 
     // We see if we have to call the program
     if (this._global_interaction_callback) {
@@ -68,6 +71,9 @@ class GraphVisualizer implements VisualizerInterface {
    *******************************************************/
 
   get Colors() : {[K:string]: Color} { return this._colors; }
+
+  get MousePos() : MousePosition { return this._mouse_pos; }
+  set MousePos(pos: MousePosition) { this._mouse_pos = pos; }
 
   GetColor(key: string) : Color {
     return this._colors[key];
@@ -287,9 +293,12 @@ class GraphVisualizer implements VisualizerInterface {
       this.Renderer.DrawIconElement(point_info, DrawSpace.LOCAL, point_info.Color);
     }
 
-    let canvas_pos = this.Interaction.CurrentMousePos.canvas;
-    this.Renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
-                                   AllColors.Get("orange"));
+    // Draw the mouse
+    if (this.MousePos) {
+      let canvas_pos = this.MousePos.canvas;
+      this.Renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
+                                     AllColors.Get("orange"));
+    }
 
     // We draw the points
     for (let point of this.ClosestPoints) {
@@ -400,6 +409,7 @@ class GraphVisualizer implements VisualizerInterface {
   private _interaction: Interaction;
   private _label_manager: LabelManager;
   private _axis_manager: AxisManager;
+  private _mouse_pos: MousePosition;
 
   private _graphs: Array<GraphInfoInterface>;
   private _missing_points: Array<GraphInfoInterface>;

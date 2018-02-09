@@ -7,6 +7,8 @@ import InternalRendererInterface from "./internal_renderer";
 
 import {PDDataInterface} from "./data";
 
+import {MousePosition} from "./mouse";
+
 interface VisualizerCallbackData {
   Owner: VisualizerInterface;
   Event: InteractionEvents;
@@ -35,6 +37,9 @@ interface VisualizerInterface {
   ReactToOtherVisualizer(data: VisualizerCallbackData) : void;
 
   ApplyMaxBounds() : void;
+
+  // Can be set (useful for inter-visualizer interaction)
+  MousePos: MousePosition;
 
   // GETTERS
   readonly Id : number;

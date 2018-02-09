@@ -18,6 +18,8 @@ import {INFINITY} from "./helpers";
 
 import {VertexShaders, FragmentShaders} from "./shaders";
 
+import {MousePosition} from "./mouse";
+
 /**************************************************************************
  * IMPLEMENTATION
  **************************************************************************/
@@ -61,6 +63,8 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   private _InteractionCallback(i: InteractionInterface, e: InteractionEvents) : void {
+    this.MousePos = i.CurrentMousePos;
+
     // We see if we have to call the program
     if (this._global_interaction_callback) {
       // We don't care about the entry index
@@ -71,17 +75,17 @@ class TimingVisualizer implements VisualizerInterface {
     }
 
     return;
-    // this.SetClosestPoint(i.CurrentMousePos.local);
   }
 
   /*******************************************************
    * PUBLIC INTERFACE DATA
    *******************************************************/
 
-  get MatchesPoints() : Array<Array<Vec2>> {
-    return this._matches_points;
-  }
+  get MatchesPoints() : Array<Array<Vec2>> { return this._matches_points; }
   set MatchesPoints(m: Array<Array<Vec2>>) { this._matches_points = m; }
+
+  get MousePos() : MousePosition { return this._mouse_pos; }
+  set MousePos(pos: MousePosition) { this._mouse_pos = pos; }
 
   get CurrentEntryIndex() : number {
     return this._current_index;
@@ -397,7 +401,6 @@ class TimingVisualizer implements VisualizerInterface {
     for (let line_info of this.Lines) {
       this.Renderer.DrawElement(line_info, DrawSpace.LOCAL, line_info.Color);
     }
-
     for (let line_info of this.MissingLines) {
       this.Renderer.DrawElement(line_info, DrawSpace.LOCAL, line_info.Color);
     }
@@ -406,7 +409,6 @@ class TimingVisualizer implements VisualizerInterface {
     for (let point_info of this.Points) {
       this.Renderer.DrawIconElement(point_info, DrawSpace.LOCAL, point_info.Color);
     }
-
     for (let point_info of this.MissingPoints) {
       this.Renderer.DrawIconElement(point_info, DrawSpace.LOCAL, point_info.Color);
     }
@@ -430,9 +432,11 @@ class TimingVisualizer implements VisualizerInterface {
     }
 
     // Draw mouse vertical line
-    let canvas_pos = this.Interaction.CurrentMousePos.canvas;
-    this.Renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
-                                   AllColors.Get("orange"));
+    if (this.MousePos) {
+      let canvas_pos = this.MousePos.canvas;
+      this.Renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
+                                     AllColors.Get("orange"));
+    }
   }
 
   /*******************************************************
@@ -476,6 +480,8 @@ class TimingVisualizer implements VisualizerInterface {
   private _missing_lines: Array<GraphInfoInterface>;
 
   private _global_interaction_callback: (d: VisualizerCallbackData) => void;
+
+  private _mouse_pos: MousePosition;
 }
 
 /**************************************************************************
