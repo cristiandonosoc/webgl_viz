@@ -175,8 +175,8 @@ class AxisManager implements AxisManagerInterface {
 
     // We calculate the bounds
     let bounds = this.Renderer.Bounds;
-    let lower = bounds.x.first - 1;
-    let upper = bounds.x.last + 1;
+    let lower = bounds.y.first - 1;
+    let upper = bounds.y.last + 1;
     let renderer_points = new Array<number>();
 
     ctx.save();
@@ -217,8 +217,8 @@ class AxisManager implements AxisManagerInterface {
 
     // We calculate the bounds
     let bounds = this.Renderer.Bounds;
-    let lower = bounds.y.first - 1;
-    let upper = bounds.y.last + 1;
+    let lower = bounds.x.first - 1;
+    let upper = bounds.x.last + 1;
     let renderer_points = new Array<number>();
 
     // The drawing changes some settings
