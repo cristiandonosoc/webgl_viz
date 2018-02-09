@@ -44,6 +44,7 @@ class GraphVisualizer implements VisualizerInterface {
                  callback: (i: InteractionInterface, e: InteractionEvents) => void) {
     this._graphs = new Array<GraphInfoInterface>();
     this._missing_points = new Array<GraphInfoInterface>();
+    this._closest_points = new Array<Vec2>();
     this._renderer = new InternalRenderer(container);
     this._interaction = new Interaction(this._renderer, callback);
     this._label_manager = new LabelManager(container, this, this._renderer);
@@ -97,6 +98,10 @@ class GraphVisualizer implements VisualizerInterface {
 
   get MissingPoints() : Array<GraphInfoInterface> {
     return this._missing_points;
+  }
+
+  get ClosestPoints() : Array<Vec2> {
+    return this._closest_points;
   }
 
   Start() : void {
@@ -227,8 +232,14 @@ class GraphVisualizer implements VisualizerInterface {
   }
 
   SetClosestPoint(point: Vec2) {
-    let closest = this._SearchForClosestPoint(point);
-    this._closest_point = closest;
+    let index = this._SearchForClosestPoint(point);
+    // We clear the array
+    this.ClosestPoints.length = 0;
+
+    // We add the closest points
+    for (let graph_info of this.Graphs) {
+      this.ClosestPoints.push(graph_info.Points[index]);
+    }
   }
 
   ApplyMaxBounds() : void {
@@ -277,8 +288,10 @@ class GraphVisualizer implements VisualizerInterface {
     this.Renderer.DrawVerticalLine(canvas_pos.x, DrawSpace.PIXEL,
                                    AllColors.Get("orange"));
 
-    if (this._closest_point) {
-      this.Renderer.DrawIcon(this._closest_point, DrawSpace.LOCAL, AllColors.Get("purple"));
+    // We draw the points
+    for (let point of this.ClosestPoints) {
+      this.Renderer.DrawIcon(point, DrawSpace.LOCAL, AllColors.Get("purple"));
+
     }
   }
 
@@ -302,7 +315,7 @@ class GraphVisualizer implements VisualizerInterface {
     }
   }
 
-  private _SearchForClosestPoint(pos: Vec2) : Vec2 {
+  private _SearchForClosestPoint(pos: Vec2) : number {
     // No points to search
     if (this.Graphs.length < 1) {
       return;
@@ -313,10 +326,10 @@ class GraphVisualizer implements VisualizerInterface {
 
     var len = points.length;
     if (pos.x <= points[0].x) {
-      return points[0];
+      return 0;
     }
     if (pos.x >= points[len-1].x) {
-      return points[len-1];
+      return len-1 ;
     }
 
     // We do binary search
@@ -345,9 +358,9 @@ class GraphVisualizer implements VisualizerInterface {
     var dist2 = Math.abs(max_point.x - pos.x);
 
     if (dist1 < dist2) {
-      return min_point;
+      return min_index;
     } else {
-      return max_point;
+      return max_index;
     }
   }
 
@@ -377,7 +390,7 @@ class GraphVisualizer implements VisualizerInterface {
 
   private _colors: {[K:string]: Color};
   private _id: number;
-  private _closest_point: Vec2;
+  private _closest_points: Array<Vec2>;
 
   private _renderer: InternalRenderer;
   private _interaction: Interaction;
