@@ -62,7 +62,7 @@ class GraphVisualizer implements VisualizerInterface {
         Owner: this,
         Event: e,
         MousePos: this.MousePos,
-        EntryIndex: this.ClosestIndex
+        EntryIndex: this.CurrentEntryIndex
       });
     }
 
@@ -93,6 +93,9 @@ class GraphVisualizer implements VisualizerInterface {
     this.MousePos = data.MousePos;
 
     if (data.Event == InteractionEvents.MOVE) {
+      if (data.EntryIndex) {
+        this._SetCurrentEntryIndex(data.EntryIndex);
+      }
       return;
     }
 
@@ -115,8 +118,8 @@ class GraphVisualizer implements VisualizerInterface {
     return this._closest_points;
   }
 
-  get ClosestIndex() : number { return this._closest_index; }
-  set ClosestIndex(i: number) { this._closest_index = i; }
+  get CurrentEntryIndex() : number { return this._current_index; }
+  set CurrentEntryIndex(i: number) { this._current_index = i; }
 
   Start() : void {
     this.Interaction.Start();
@@ -250,16 +253,22 @@ class GraphVisualizer implements VisualizerInterface {
       return;
     }
 
-    this.ClosestIndex = Utils.SearchForClosest(this.Graphs[0].Points,
+    let closest_index = Utils.SearchForClosest(this.Graphs[0].Points,
       point, function(v: Vec2) : Vec2 {
       return v;
     })
+    this._SetCurrentEntryIndex(closest_index);
+  }
+
+  private _SetCurrentEntryIndex(i: number) : void {
+    this.CurrentEntryIndex = i;
+
     // We clear the array
     this.ClosestPoints.length = 0;
 
     // We add the closest points
     for (let graph_info of this.Graphs) {
-      this.ClosestPoints.push(graph_info.Points[this.ClosestIndex]);
+      this.ClosestPoints.push(graph_info.Points[this.CurrentEntryIndex]);
     }
   }
 
@@ -365,7 +374,7 @@ class GraphVisualizer implements VisualizerInterface {
   private _colors: {[K:string]: Color};
   private _id: number;
 
-  private _closest_index: number;
+  private _current_index: number;
   private _closest_points: Array<Vec2>;
 
   private _renderer: InternalRenderer;
