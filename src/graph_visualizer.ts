@@ -59,6 +59,7 @@ class GraphVisualizer implements VisualizerInterface {
       this._global_interaction_callback({
         Owner: this,
         Event: e,
+        MousePos: this.MousePos,
         EntryIndex: this.ClosestIndex
       });
     }
@@ -87,6 +88,8 @@ class GraphVisualizer implements VisualizerInterface {
   get Id() : number { return this._id; }
 
   ReactToOtherVisualizer(data: VisualizerCallbackData) : void {
+    this.MousePos = data.MousePos;
+
     if (data.Event == InteractionEvents.MOVE) {
       return;
     }

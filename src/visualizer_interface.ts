@@ -12,7 +12,8 @@ import {MousePosition} from "./mouse";
 interface VisualizerCallbackData {
   Owner: VisualizerInterface;
   Event: InteractionEvents;
-  EntryIndex: number;
+  MousePos: MousePosition;
+  EntryIndex?: number;
 }
 
 interface VisualizerInterface {

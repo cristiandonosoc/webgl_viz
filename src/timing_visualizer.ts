@@ -71,7 +71,8 @@ class TimingVisualizer implements VisualizerInterface {
       this._global_interaction_callback({
         Owner: this,
         Event: e,
-        EntryIndex: 0});
+        MousePos: this.MousePos
+      });
     }
 
     return;
@@ -111,8 +112,12 @@ class TimingVisualizer implements VisualizerInterface {
   }
 
   ReactToOtherVisualizer(data: VisualizerCallbackData) : void {
+    this.MousePos = data.MousePos;
+
     if (data.Event == InteractionEvents.MOVE) {
-      this.CurrentEntryIndex = data.EntryIndex;
+      if (data.EntryIndex) {
+        this.CurrentEntryIndex = data.EntryIndex;
+      }
       return;
     }
 
