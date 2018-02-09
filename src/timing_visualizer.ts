@@ -224,6 +224,19 @@ class TimingVisualizer implements VisualizerInterface {
     }
   }
 
+  private _GenerateHeights(count: number) : Array<number> {
+    let lower = -0.9;
+    let top = 0.9;
+
+    let diff = (top - lower) / (count - 1);
+
+    let heights = new Array<number>();
+    for (let i = 0; i < count; i++) {
+      heights.push(lower + i * diff);
+    }
+    return heights;
+  }
+
   LoadData(data: PDDataInterface) : void {
     this.Data = data;
 
@@ -241,12 +254,7 @@ class TimingVisualizer implements VisualizerInterface {
     });
     let offsets = data.Offsets;
 
-    // Initialize elements
-    let ybase = 0;
-    this.Heights = new Array<number>();
-    for (let i = 0; i < data.Names.length; i++) {
-      this.Heights.push(ybase + i * 0.2);
-    }
+    this.Heights = this._GenerateHeights(data.TsBase.length);
 
     for (let match of data.Matches) {
       let match_points = new Array<Vec2>();
