@@ -24,10 +24,11 @@ import KeyboardSingleton from "./keyboard";
  **************************************************************************/
 
 enum InteractionEvents {
+  CLICK,
   MOVE,
   MOVE_DRAG,
+  ZOOM,
   ZOOM_DRAG,
-  ZOOM
 };
 
 interface State {
@@ -35,8 +36,10 @@ interface State {
     wheel_factor: Vec2
   };
   mouse: {
-    button: MouseButtons,
+    is_down: boolean;
     dragging: boolean,
+
+    button: MouseButtons,
 
     down_pos: MousePosition,
     up_pos: MousePosition,
@@ -83,11 +86,15 @@ class Interaction implements InteractionInterface {
         wheel_factor: new Vec2(0.001, 0.001),
       },
       mouse: {
-        button: MouseButtons.NONE,
-        current_pos: MousePosition.Zero,
-        down_pos: MousePosition.Zero,
+        is_down: false,
         dragging: false,
+
+        button: MouseButtons.NONE,
+
+        current_pos: MousePosition.Zero,
         last_pos: MousePosition.Zero,
+
+        down_pos: MousePosition.Zero,
         up_pos: MousePosition.Zero,
       },
     }
@@ -124,6 +131,9 @@ class Interaction implements InteractionInterface {
 
   private get State() : State { return this._state; }
 
+  private get IsDown() : boolean { return this.State.mouse.is_down; }
+  private set IsDown(d: boolean) { this.State.mouse.is_down = d; }
+
   private get Dragging() : boolean { return this.State.mouse.dragging; }
   private set Dragging(d: boolean) { this.State.mouse.dragging = d; }
 
@@ -156,34 +166,49 @@ class Interaction implements InteractionInterface {
   private MouseDown = (event: any) => {
     // Mouse Down Specific
     let mouse_pos = MousePosition.FromRendererEvent(this._renderer, event);
-    this.Dragging = true;
+    this.IsDown = true;
     this.DownMousePos = mouse_pos;
     this.MouseButton = event.button;
   }
 
-  private MouseUp = (event: any) => {
-    if (!this.Dragging) {
-      return;
-    }
-    let old_button = this.MouseButton;
-    let mouse_pos = MousePosition.FromRendererEvent(this._renderer, event);
-    this.Dragging = false;
-    this.MouseButton = MouseButtons.NONE;
-    this.UpMousePos = mouse_pos;
-
-    if (old_button == MouseButtons.RIGHT) {
-      this._ProcessZoomDrag(event);
-    }
-  }
-
   private MouseMove = (event: any) => {
+    if (this.MouseButton != MouseButtons.NONE) {
+      this.Dragging = true;
+    }
+
     this._ProcessMove(event);
     if (this.Dragging) {
       this._ProcessDrag(event);
       return;
     }
 
-    this.PostChange(InteractionEvents.MOVE);
+    this._PostChange(InteractionEvents.MOVE);
+  }
+
+  private MouseUp = (event: any) => {
+    if (!this.IsDown) {
+      return;
+    }
+    this.IsDown = true;
+
+    // Save some info
+    let old_button = this.MouseButton;
+    let old_dragging = this.Dragging;
+
+    // Update the mouse information
+    let mouse_pos = MousePosition.FromRendererEvent(this._renderer, event);
+    this.Dragging = false;
+    this.MouseButton = MouseButtons.NONE;
+    this.UpMousePos = mouse_pos;
+
+    if (!old_dragging) {
+      this._PostChange(InteractionEvents.CLICK);
+      return;
+    }
+
+    if (old_button == MouseButtons.RIGHT) {
+      this._ProcessZoomDrag(event);
+    }
   }
 
   private MouseWheel = (event: any) => {
@@ -222,13 +247,13 @@ class Interaction implements InteractionInterface {
                               Vec2.Mul(pin_point, scale_diff));
     this._renderer.Offset = new Vec2(new_offset.x, -new_offset.y);
 
-    this.PostChange(InteractionEvents.ZOOM);
+    this._PostChange(InteractionEvents.ZOOM);
     // Prevent default browser behaviour
     return false;
   }
 
   // Method to call after a change has happened
-  private PostChange(e: InteractionEvents) {
+  private _PostChange(e: InteractionEvents) {
     // TODO(donosoc): Mark the view as dirty when that is implemented
     // Call the given callback
     if (this._callback) {
@@ -275,7 +300,7 @@ class Interaction implements InteractionInterface {
 
     this._renderer.Offset = Vec2.Sum(this._renderer.Offset, offset);
 
-    this.PostChange(InteractionEvents.MOVE_DRAG);
+    this._PostChange(InteractionEvents.MOVE_DRAG);
   }
 
   private _ProcessZoomDrag(event: any) {
@@ -303,7 +328,7 @@ class Interaction implements InteractionInterface {
 
     this._renderer.Bounds = bounds;
 
-    this.PostChange(InteractionEvents.ZOOM_DRAG);
+    this._PostChange(InteractionEvents.ZOOM_DRAG);
   }
 
   /**************************************************************************
