@@ -124,17 +124,16 @@ class TimingVisualizer implements VisualizerInterface {
     let match = this.Data.Matches[this.MatchIndex];
     let entry = match.Entries[this.EntryIndex];
     // We get the data
-    let ul = elem.appendChild(document.createElement("ul"));
-    this._AddLi(ul, `NAME: ${name}`);
-    this._AddLi(ul, `INDEX: ${this.MatchIndex}`);
+    this._AddTag(elem, "div", `NAME: ${name}`);
+    this._AddTag(elem, "div", `INDEX: ${this.MatchIndex}`);
 
     this.Boxes.push(elem);
   }
 
-  private _AddLi(ul: HTMLElement, content: string) : void {
-    let li = document.createElement("li");
-    li.innerText = content;
-    ul.appendChild(li);
+  private _AddTag(base: HTMLElement, tag: string, content: string) : void {
+    let elem = document.createElement(tag);
+    elem.innerText = content;
+    base.appendChild(elem);
   }
 
   /*******************************************************

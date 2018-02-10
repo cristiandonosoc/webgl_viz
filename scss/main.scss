@@ -24,6 +24,7 @@ $label-width-x: 75px;
 $label-width-y: 75px;
 
 $metadata-background-color: white;
+$metadata-padding: 7.5px;
 
 body {
   position: absolute;
@@ -35,6 +36,7 @@ body {
 
 .metadata {
   background-color: $metadata-background-color;
+  padding: $metadata-padding;
   position: absolute;
 }
 
