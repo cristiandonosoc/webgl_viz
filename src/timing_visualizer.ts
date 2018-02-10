@@ -457,15 +457,24 @@ class TimingVisualizer implements VisualizerInterface {
       array_index--;
     }
 
-    // // We get the numbers
-    // let entry_values = this.MatchesPoints.map(function(a: Array<Vec2>) : number {
-    //   return a[array_index].x;
-    // });
 
-    let index = Utils.SearchForClosest(this.MatchesPoints,
-        this.MousePos.local.x, function(a: Array<Vec2>) {
+    let sorted_values = this.MatchesPoints.map(function(a: Array<Vec2>) : number {
       return a[array_index].x;
+    }).map(function(val: number, i: number) : {Index: number, Value: number}  {
+      return {
+        Index: i,
+        Value: val,
+      };
+    }).sort(function(a, b) {
+      return a.Value - b.Value;
     });
+
+    let elem_index = Utils.SearchForClosest(sorted_values,
+      this.MousePos.local.x, function(a) : number {
+      return a.Value;
+    });
+
+    let index = sorted_values[elem_index].Index;
 
     this.MatchIndex = index;
     this.EntryIndex = h_index;
