@@ -120,13 +120,21 @@ class TimingVisualizer implements VisualizerInterface {
 
     document.body.appendChild(elem);
 
+    let name = this.Data.Names[this.EntryIndex];
+    let match = this.Data.Matches[this.MatchIndex];
+    let entry = match.Entries[this.EntryIndex];
     // We get the data
     let ul = elem.appendChild(document.createElement("ul"));
-
-
+    this._AddLi(ul, `NAME: ${name}`);
+    this._AddLi(ul, `INDEX: ${this.MatchIndex}`);
 
     this.Boxes.push(elem);
+  }
 
+  private _AddLi(ul: HTMLElement, content: string) : void {
+    let li = document.createElement("li");
+    li.innerText = content;
+    ul.appendChild(li);
   }
 
   /*******************************************************
@@ -455,8 +463,9 @@ class TimingVisualizer implements VisualizerInterface {
       return a[array_index];
     });
 
-    this.ClosestPoint = this.MatchesPoints[index][array_index];
     this.MatchIndex = index;
+    this.EntryIndex = h_index;
+    this.ClosestPoint = this.MatchesPoints[index][array_index];
   }
 
   ApplyMaxBounds() : void {
