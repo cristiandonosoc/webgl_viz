@@ -8,16 +8,16 @@
 import {Vec2} from "./vectors";
 
 export function SearchForClosest<T>(container: Array<T>,
-                                    pos: Vec2,
-                                    Extractor: ((t: T) => Vec2)) : number {
+                                    pos: number,
+                                    Extractor: ((t: T) => number)) : number {
   let len = container.length;
   let first = Extractor(container[0]);
-  if (pos.x <= first.x) {
+  if (pos <= first) {
     return 0;
   }
   let last = Extractor(container[len-1]);
-  if (pos.x >= last.x) {
-    return len-1 ;
+  if (pos >= last) {
+    return len-1;
   }
 
   // We do binary search
@@ -26,9 +26,9 @@ export function SearchForClosest<T>(container: Array<T>,
 
   while (min_index < max_index) {
     let half = Math.floor((min_index + max_index) / 2);
-    let val = Extractor(container[half]).x;
+    let val = Extractor(container[half]);
 
-    if (val > pos.x) {
+    if (val > pos) {
       if (max_index == half) { break; }
       max_index = half;
     } else {
@@ -42,8 +42,8 @@ export function SearchForClosest<T>(container: Array<T>,
   let max_point = Extractor(container[max_index]);
 
   // We want to return the closest (x-wise)
-  let dist1 = Math.abs(min_point.x - pos.x);
-  let dist2 = Math.abs(max_point.x - pos.x);
+  let dist1 = Math.abs(min_point - pos);
+  let dist2 = Math.abs(max_point - pos);
 
   if (dist1 < dist2) {
     return min_index;

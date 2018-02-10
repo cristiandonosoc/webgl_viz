@@ -254,8 +254,8 @@ class GraphVisualizer implements VisualizerInterface {
     }
 
     let closest_index = Utils.SearchForClosest(this.Graphs[0].Points,
-      point, function(v: Vec2) : Vec2 {
-      return v;
+      point.x, function(v: Vec2) : number {
+      return v.x;
     })
     this._SetMatchIndex(closest_index);
   }
