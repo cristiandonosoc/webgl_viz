@@ -23,6 +23,8 @@ $graph-container-height: 500px;
 $label-width-x: 75px;
 $label-width-y: 75px;
 
+$metadata-background-color: white;
+
 body {
   position: absolute;
   top: 0;
@@ -32,10 +34,8 @@ body {
 }
 
 .metadata {
+  background-color: $metadata-background-color;
   position: absolute;
-  width: 100px;
-  height: 40px;
-  background-color: red;
 }
 
 .stats {

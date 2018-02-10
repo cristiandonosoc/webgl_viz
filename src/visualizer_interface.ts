@@ -13,7 +13,7 @@ interface VisualizerCallbackData {
   Owner: VisualizerInterface;
   Event: InteractionEvents;
   MousePos: MousePosition;
-  EntryIndex?: number;
+  MatchIndex?: number;
 }
 
 interface VisualizerInterface {
